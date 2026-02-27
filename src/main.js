@@ -289,6 +289,7 @@ const lastCardCallState={key:'',seat:0,until:0,startedAt:0};
 const lastCardAnnouncedSeats=new Set();
 let lastCardProcessedHistoryLen=0;
 let googleInlineRetryTimer=null;
+let googleIdentityInitialized=false;
 const sound={ctx:null,enabled:true};
 let speechPrimed=false;
 const BOT_NAMES={zh:['阿龍','小琪','天仔','阿雲','阿樂','子晴','阿彥','家豪','嘉琪','子軒'],en:['Nova','Milo','Jade','Axel','Iris','Luna','Rex','Nora','Kane','Skye']};
@@ -569,6 +570,25 @@ function speakCallout(text){
 function parseJwtPayload(token){try{const p=String(token??'').split('.')[1];if(!p)return null;const b=p.replace(/-/g,'+').replace(/_/g,'/');const json=decodeURIComponent(atob(b).split('').map((c)=>`%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(''));return JSON.parse(json);}catch{return null;}}
 function handleCredentialResponse(response){const token=String(response?.credential??'').trim();if(!token)return;const p=parseJwtPayload(token)??{};state.home.google={signedIn:true,name:String(p.name??'').slice(0,18),token};if(state.home.google.name)state.home.name=state.home.google.name;render();}
 function clearGoogleInlineRetry(){if(googleInlineRetryTimer){clearTimeout(googleInlineRetryTimer);googleInlineRetryTimer=null;}}
+function ensureGoogleIdentityInitialized(){
+  if(googleIdentityInitialized)return true;
+  const idApi=window.google?.accounts?.id;
+  if(!idApi)return false;
+  const clientId=String(document.getElementById('g_id_onload')?.getAttribute('data-client_id')??'').trim();
+  if(!clientId)return false;
+  try{
+    idApi.initialize({client_id:clientId,callback:handleCredentialResponse});
+    googleIdentityInitialized=true;
+    return true;
+  }catch{
+    return false;
+  }
+}
+function queueGoogleInlineRender(){
+  window.setTimeout(()=>{if(state.screen==='home')renderGoogleInline();},0);
+  window.requestAnimationFrame(()=>{if(state.screen==='home')renderGoogleInline();});
+}
+window.onGoogleScriptLoaded=()=>{if(state.screen==='home')queueGoogleInlineRender();};
 function renderGoogleInline(attempt=0){
   clearGoogleInlineRetry();
   const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');
@@ -581,13 +601,15 @@ function renderGoogleInline(attempt=0){
   }
   try{
     if(window.google?.accounts?.id){
-      slot.innerHTML='';
-      window.google.accounts.id.renderButton(slot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
-      return;
+      if(ensureGoogleIdentityInitialized()){
+        slot.innerHTML='';
+        window.google.accounts.id.renderButton(slot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
+        if(slot.childElementCount>0)return;
+      }
     }
   }catch{}
   if(!slot.innerHTML.trim())slot.innerHTML=`<button class="secondary" disabled>Google...</button>`;
-  if(attempt<20){
+  if(attempt<40){
     googleInlineRetryTimer=window.setTimeout(()=>renderGoogleInline(attempt+1),250);
   }
 }
@@ -1093,7 +1115,7 @@ function renderHome(){
   document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard();render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
-  renderGoogleInline();
+  queueGoogleInlineRender();
 }
 function renderConfig(){
   app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="config-sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div></section></section>`;
@@ -1307,6 +1329,7 @@ function render(){applyTheme();document.body.setAttribute('data-screen',state.sc
 function syncViewport(){const root=document.documentElement;const short=Math.min(window.innerWidth,window.innerHeight);const scale=Math.max(0.74,Math.min(1.1,short/520));root.style.setProperty('--card-scale',scale.toFixed(3));const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';document.body.setAttribute('data-orientation',orientation);root.style.setProperty('--table-tilt','0deg');}
 
 window.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',syncViewport);document.addEventListener('pointerdown',()=>{unlockAudio();primeSpeech();},{once:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&aiTimer){clearTimeout(aiTimer);aiTimer=null;}});
+window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 syncViewport();render();
 
 

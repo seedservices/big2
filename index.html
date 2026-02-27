@@ -8,7 +8,7 @@
 </head>
 <body>
 <main id="app"></main>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" onload="window.onGoogleScriptLoaded && window.onGoogleScriptLoaded()"></script>
 
 <!-- Configure the login behavior -->
 <div id="g_id_onload"
