@@ -15,10 +15,10 @@ const I18N={
     zh:'繁體中文',
     en:'English',
     name:'玩家名稱',
-    ai:'AI 難度',
-    easy:'簡單',
-    normal:'普通',
-    hard:'困難',
+    ai:'對手難度',
+    easy:'初級',
+    normal:'中級',
+    hard:'高級',
     solo:'開局',
     config:'設定',
     soundFx:'音效',
@@ -46,6 +46,7 @@ const I18N={
       '只可跟出相同張數；5 張可用更高牌型壓較低牌型。',
       '其餘三家都過牌後，最後出牌者重新話事。',
       '有人剩 1 張時會提示「最後一張！」。',
+      '當下家只剩 1 張牌時，上家若冇頂大而令下家出清，需兼負其餘兩家輸分。',
       '記分：所有人起始 5000 分。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
       '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
@@ -129,6 +130,7 @@ const I18N={
       '有人出清手牌即勝出該局。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
       '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
+      '最後一張規則：若上家冇頂大而令下家出清，上家需兼負其餘兩家輸分。',
       '所有輸家扣分總和加到贏家。'
     ]
   },
@@ -139,10 +141,10 @@ const I18N={
     zh:'Traditional Chinese',
     en:'English',
     name:'Player Name',
-    ai:'AI Difficulty',
-    easy:'Easy',
-    normal:'Normal',
-    hard:'Hard',
+    ai:'Opponent Difficulty',
+    easy:'Beginner',
+    normal:'Intermediate',
+    hard:'Advanced',
     solo:'Start',
     config:'Config',
     soundFx:'Sound Effects',
@@ -170,6 +172,7 @@ const I18N={
       'You must follow the same card count; for 5-card hands, stronger hand types beat weaker ones.',
       'After three consecutive passes, the last player who played regains lead.',
       'A player with 1 card left triggers a "Last card!" warning.',
+      'If next player has 1 card and you fail to top with your strongest card, and that player wins, you also absorb the other two losers\' deductions.',
       'Everyone starts at 5000 points.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
       'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
@@ -253,6 +256,7 @@ const I18N={
       'A round ends when one player empties their hand.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
       'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
+      'Last-card rule: if you fail to top against a next player on 1 card and they win, you also absorb the other two losers\' deductions.',
       'Total deductions from all losers are added to the winner.'
     ]
   }
@@ -284,24 +288,27 @@ let lastCardCallTimer=null;
 const lastCardCallState={key:'',seat:0,until:0,startedAt:0};
 const lastCardAnnouncedSeats=new Set();
 let lastCardProcessedHistoryLen=0;
+let googleInlineRetryTimer=null;
 const sound={ctx:null,enabled:true};
 let speechPrimed=false;
 const BOT_NAMES={zh:['阿龍','小琪','天仔','阿雲','阿樂','子晴','阿彥','家豪','嘉琪','子軒'],en:['Nova','Milo','Jade','Axel','Iris','Luna','Rex','Nora','Kane','Skye']};
 const BACK_OPTIONS=[
-  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue'}},
-  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red'}},
-  {value:'green',file:'back-green.svg',label:{'zh-HK':'綠色',en:'Green'}},
-  {value:'gold',file:'back-gold.svg',label:{'zh-HK':'金色',en:'Gold'}},
-  {value:'dark',file:'back-dark.svg',label:{'zh-HK':'深灰',en:'Dark'}}
+  {value:'blue',file:'back-blue-clean.png',label:{'zh-HK':'藍色',en:'Blue'}},
+  {value:'red',file:'back-red-clean.png',label:{'zh-HK':'紅色',en:'Red'}},
+  {value:'green',file:'back-green-clean.png',label:{'zh-HK':'綠色',en:'Green'}},
+  {value:'gold',file:'back-gold-clean.png',label:{'zh-HK':'金色',en:'Gold'}},
+  {value:'purple',file:'back-purple-clean.png',label:{'zh-HK':'紫色',en:'Purple'}}
 ];
+const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
+const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
 
 const t=(k)=>I18N[state.language][k]??k;
 const kindLabel=(k)=>KIND[state.language][k]??k;
 const introText=()=>state.language==='en'
   ?{
-    btnShow:'Gameplay Guide',
+    btnShow:'Guide',
     btnHide:'Close',
-    panelTitle:'Gameplay Guide',
+    panelTitle:'Guide',
     panelSub:'',
     historyTitle:'Background',
     historyBody:'Big 2 (Cho Dai Di) is a four-player climbing card game played with a full 52-card deck, 13 cards each, with no jokers. The Hong Kong ruleset emphasizes tempo control: players follow the same card count (single, pair, triple, or 5-card hand) and compete to shed all cards first, while suit order (♦ < ♣ < ♥ < ♠) resolves ties. In local play culture, Big 2 became a staple social game because rounds are short, decisions are tactical, and score swings reward both efficient hand management and timely pressure on opponents.',
@@ -361,7 +368,7 @@ function introPanelHtml(){
   const it=introText();
   const formatIntroLine=(text)=>{
     const token='{{3D}}';
-    const inlineCard=`<img class="intro-inline-card-art" src="/card-assets/diamond-3.png" alt="♦3"/>`;
+const inlineCard=`<img class="intro-inline-card-art" src="${withBase('card-assets/diamond-3.png')}" alt="♦3"/>`;
     return esc(String(text??'')).replaceAll(token,inlineCard);
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
@@ -561,7 +568,29 @@ function speakCallout(text){
 }
 function parseJwtPayload(token){try{const p=String(token??'').split('.')[1];if(!p)return null;const b=p.replace(/-/g,'+').replace(/_/g,'/');const json=decodeURIComponent(atob(b).split('').map((c)=>`%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(''));return JSON.parse(json);}catch{return null;}}
 function handleCredentialResponse(response){const token=String(response?.credential??'').trim();if(!token)return;const p=parseJwtPayload(token)??{};state.home.google={signedIn:true,name:String(p.name??'').slice(0,18),token};if(state.home.google.name)state.home.name=state.home.google.name;render();}
-function renderGoogleInline(){const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');if(!slot)return;if(state.home.google.signedIn){slot.innerHTML=`<button id="google-use-name" class="secondary">${t('useGoogleName')}</button><button id="google-signout" class="secondary">${t('signOut')}</button>`;document.getElementById('google-use-name')?.addEventListener('click',()=>{if(state.home.google.name){state.home.name=state.home.google.name;render();}});document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',token:''};try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}render();});return;}slot.innerHTML='';try{if(window.google?.accounts?.id)window.google.accounts.id.renderButton(slot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});}catch{}}
+function clearGoogleInlineRetry(){if(googleInlineRetryTimer){clearTimeout(googleInlineRetryTimer);googleInlineRetryTimer=null;}}
+function renderGoogleInline(attempt=0){
+  clearGoogleInlineRetry();
+  const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');
+  if(!slot)return;
+  if(state.home.google.signedIn){
+    slot.innerHTML=`<button id="google-use-name" class="secondary">${t('useGoogleName')}</button><button id="google-signout" class="secondary">${t('signOut')}</button>`;
+    document.getElementById('google-use-name')?.addEventListener('click',()=>{if(state.home.google.name){state.home.name=state.home.google.name;render();}});
+    document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',token:''};try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}render();});
+    return;
+  }
+  try{
+    if(window.google?.accounts?.id){
+      slot.innerHTML='';
+      window.google.accounts.id.renderButton(slot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
+      return;
+    }
+  }catch{}
+  if(!slot.innerHTML.trim())slot.innerHTML=`<button class="secondary" disabled>Google...</button>`;
+  if(attempt<20){
+    googleInlineRetryTimer=window.setTimeout(()=>renderGoogleInline(attempt+1),250);
+  }
+}
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
 window.handleCredentialResponse=handleCredentialResponse;
 function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
@@ -767,7 +796,7 @@ function randomBotNames(){const list=state.language==='en'?BOT_NAMES.en:BOT_NAME
 function relabelSoloBots(){if(state.home.mode!=='solo'||!state.solo.players.length)return;const keys=state.solo.botNames?.length===3?state.solo.botNames:randomBotNames();state.solo.botNames=keys;state.solo.players=state.solo.players.map((p,i)=>i===0?p:{...p,name:keys[i-1]});}
 
 const suitName=(s)=>['diamond','club','heart','spade'][s]??'club';
-const cardImagePath=(card)=>`/card-assets/${suitName(card.suit)}-${RANKS[card.rank]}.png`;
+const cardImagePath=(card)=>withBase(`card-assets/${suitName(card.suit)}-${RANKS[card.rank]}.png`);
 const faceRankClass=(card)=>(card.rank>=8&&card.rank<=10)?'face-jqk':'';
 function renderStaticCard(card,mini=false,extra=''){return`<div class="card face ${mini?'mini':''} ${faceRankClass(card)} ${extra}"><img class="card-art" src="${cardImagePath(card)}" alt="${RANKS[card.rank]} ${SUITS[card.suit].symbol}"/></div>`;}
 function renderHandCard(card,selected){const draggable=isMobilePointer()?'false':'true';return`<button class="card face hand-card ${faceRankClass(card)} ${selected?'selected':''}" draggable="${draggable}" data-card-id="${cardId(card)}"><img class="card-art" src="${cardImagePath(card)}" alt="${RANKS[card.rank]} ${SUITS[card.suit].symbol}"/></button>`;}
@@ -780,7 +809,7 @@ function fanNoise(seed,i,salt=''){
 function fanJitterDeg(seed,i){return((fanNoise(seed,i,'deg')*2)-1)*0.75;}
 function fanGap(seed,i){return fanNoise(seed,i,'gap');}
 function fanLift(seed,i){return fanNoise(seed,i,'lift');}
-function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0);const backFile=backAssetFile(state.home.backColor);return Array.from({length:shown},(_,i)=>`<span class="card back mini closed-back" style="--i:${i};--n:${shown};--fan-jitter:${fanJitterDeg(seed,i).toFixed(3)}deg;--fan-gap:${fanGap(seed,i).toFixed(3)};--fan-lift:${fanLift(seed,i).toFixed(3)};"><img class="card-art" src="/card-assets/${backFile}" alt="back"/></span>`).join('');}
+function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0);const backFile=backAssetFile(state.home.backColor);return Array.from({length:shown},(_,i)=>`<span class="card back mini closed-back" style="--i:${i};--n:${shown};--fan-jitter:${fanJitterDeg(seed,i).toFixed(3)}deg;--fan-gap:${fanGap(seed,i).toFixed(3)};--fan-lift:${fanLift(seed,i).toFixed(3)};"><img class="card-art" src="${withBase(`card-assets/${backFile}`)}" alt="back"/></span>`).join('');}
 
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
@@ -803,7 +832,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     let deductions=details.map((d)=>d.deduction);
     if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat){
       const violator=g.lastCardBreach.seat;
-      const transferred=deductions.reduce((sum,v,i)=>i===violator?sum:sum+v,0);
+      const transferred=deductions.reduce((sum,v)=>sum+v,0);
       deductions=deductions.map((v,i)=>i===violator?transferred:0);
     }
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
@@ -1015,24 +1044,24 @@ function backAssetFile(value){
   return found?.file??'back-red.png';
 }
 function renderBackCombo(){
-  return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}"><img class="combo-back-preview" src="/card-assets/${opt.file}" alt="${opt.label[state.language]??opt.value}"/><span>${opt.label[state.language]??opt.value}</span></button>`).join('');
+  return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/><span class="back-label">${opt.label[state.language]??opt.value}</span></button>`).join('');
 }
 function renderThemeCombo(){
   const themeItems=[
-    {value:'ocean',label:'themeOcean',dot:'theme-ocean'},
-    {value:'emerald',label:'themeEmerald',dot:'theme-emerald'},
-    {value:'sunset',label:'themeSunset',dot:'theme-sunset'},
-    {value:'slate',label:'themeSlate',dot:'theme-slate'},
-    {value:'aurora',label:'themeAurora',dot:'theme-aurora'},
-    {value:'sand',label:'themeSand',dot:'theme-sand'},
-    {value:'cyber',label:'themeCyber',dot:'theme-cyber'}
+    {value:'ocean',label:'themeOcean',bg:'radial-gradient(circle at 16% 20%, rgba(160, 226, 255, .34), transparent 36%), linear-gradient(135deg, #0b3554 0%, #126182 52%, #1a8b97 100%)'},
+    {value:'emerald',label:'themeEmerald',bg:'radial-gradient(circle at 18% 24%, rgba(180, 255, 220, .28), transparent 34%), linear-gradient(135deg, #0b4131 0%, #11694f 50%, #1d966f 100%)'},
+    {value:'sunset',label:'themeSunset',bg:'radial-gradient(circle at 15% 18%, rgba(255, 214, 148, .34), transparent 36%), linear-gradient(135deg, #5d2133 0%, #933f4f 48%, #d7773d 100%)'},
+    {value:'slate',label:'themeSlate',bg:'radial-gradient(circle at 18% 22%, rgba(210, 226, 255, .24), transparent 34%), linear-gradient(135deg, #222f40 0%, #3c526d 50%, #647e9f 100%)'},
+    {value:'aurora',label:'themeAurora',bg:'radial-gradient(circle at 20% 18%, rgba(216, 188, 255, .34), transparent 36%), linear-gradient(135deg, #442b79 0%, #6a45a8 46%, #278a96 100%)'},
+    {value:'sand',label:'themeSand',bg:'radial-gradient(circle at 18% 24%, rgba(255, 240, 192, .30), transparent 34%), linear-gradient(135deg, #6f4e2f 0%, #9b7549 48%, #d5ae73 100%)'},
+    {value:'cyber',label:'themeCyber',bg:'radial-gradient(circle at 18% 24%, rgba(127, 255, 236, .25), transparent 34%), linear-gradient(135deg, #073247 0%, #0b5f79 52%, #1491a4 100%)'}
   ];
-  return themeItems.map((opt)=>`<button class="combo-btn ${state.home.theme===opt.value?'active':''}" data-value="${opt.value}"><span class="theme-dot ${opt.dot}"></span>${t(opt.label)}</button>`).join('');
+  return themeItems.map((opt)=>`<button class="combo-btn theme-preview-btn ${state.home.theme===opt.value?'active':''}" data-value="${opt.value}" style="--theme-preview:${opt.bg};">${t(opt.label)}</button>`).join('');
 }
 function renderHome(){
   const intro=introText();
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('title')}</h2></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('theme')}</span><div class="option-combo" id="theme-combo">${renderThemeCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo" id="sound-combo"><button class="combo-btn ${sound.enabled?'active':''}" data-value="on">${t('soundOn')}</button><button class="combo-btn ${!sound.enabled?'active':''}" data-value="off">${t('soundOff')}</button></div></label></div><div class="action-row"><button id="solo-start" class="primary">${t('solo')}</button></div></section>${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('theme')}</span><div class="option-combo" id="theme-combo">${renderThemeCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary">${t('solo')}</button></div></section>${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -1048,17 +1077,18 @@ function renderHome(){
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   document.querySelectorAll('#theme-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!(THEMES[v]))return;state.home.theme=v;applyTheme();markComboActive('theme-combo',v);}));
-  document.querySelectorAll('#sound-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
-    const v=btn.getAttribute('data-value');
-    if(v==='on'){
+  document.getElementById('sound-switch')?.addEventListener('change',(e)=>{
+    const on=Boolean(e.target.checked);
+    if(on){
       sound.enabled=true;
       try{sound.ctx?.resume?.();}catch{}
-    }else if(v==='off'){
+    }else{
       sound.enabled=false;
       try{sound.ctx?.suspend?.();}catch{}
     }
-    markComboActive('sound-combo',sound.enabled?'on':'off');
-  }));
+    const lb=document.querySelector('.sound-switch-label');
+    if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
+  });
   document.getElementById('solo-start')?.addEventListener('click',()=>{unlockAudio();state.home.mode='solo';startSoloGame();});
   document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard();render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
@@ -1066,20 +1096,21 @@ function renderHome(){
   renderGoogleInline();
 }
 function renderConfig(){
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><div class="option-combo" id="sound-combo"><button class="combo-btn ${sound.enabled?'active':''}" data-value="on">${t('soundOn')}</button><button class="combo-btn ${!sound.enabled?'active':''}" data-value="off">${t('soundOff')}</button></div></label></div></section></section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="config-sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div></section></section>`;
   document.getElementById('config-back')?.addEventListener('click',()=>{state.screen='home';render();});
   document.getElementById('config-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
-  document.querySelectorAll('#sound-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
-    const v=btn.getAttribute('data-value');
-    if(v==='on'){
+  document.getElementById('config-sound-switch')?.addEventListener('change',(e)=>{
+    const on=Boolean(e.target.checked);
+    if(on){
       sound.enabled=true;
       try{sound.ctx?.resume?.();}catch{}
-    }else if(v==='off'){
+    }else{
       sound.enabled=false;
       try{sound.ctx?.suspend?.();}catch{}
     }
-    markComboActive('sound-combo',sound.enabled?'on':'off');
-  }));
+    const lb=document.querySelector('.sound-switch-label');
+    if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
+  });
 }
 function renderGame(){
   const v=buildView();
@@ -1123,13 +1154,13 @@ function renderGame(){
   const selfScore=self?selfScoreValue:0;
   const selfName=self?self.name:t('name');
   const selfCount=self?self.count:0;
-  const scorePanelHtml=arr.map((p)=>{const c=playerColorByViewClass(p.cls);const val=p.viewIndex===0?selfScore:(p.score??0);return`<div class="score-item"><span class="player-color-chip" style="--player-color:${c};"></span><span class="score-name">${esc(p.name)}</span><span class="score-value">${val}</span></div>`;}).join('');
+  const scorePanelHtml=arr.map((p)=>{const c=playerColorByViewClass(p.cls);const val=p.viewIndex===0?selfScore:(p.score??0);return`<div class="score-item" style="--player-color:${c};"><span class="score-name">${esc(p.name)}</span><span class="score-value">${val}</span></div>`;}).join('');
   const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
   const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
   const isMobile=isMobilePointer();
   const mobileNamesHtml=isMobile?'':centerMobileOpponentNamesHtml(arr,v.currentSeat,v.gameOver);
-  const mobileDiscardHtml=isMobile?mobileDiscardPanelHtml(v.history,v.selfSeat,arr):'';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div><h2>${t('title')}</h2></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name"><span class="player-color-chip" style="--player-color:${playerColorByViewClass('south')};"></span><span class="seat-name-text">${esc(selfName)}</span></div><span class="seat-count-tag outside">${selfCount}</span></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card score-side-card"><div class="score-panel" aria-label="${t('score')}"><div class="score-panel-head"><span class="score-inline-title">${t('score')}</span><button id="score-guide-toggle" class="secondary score-guide-inline-btn">${t('scoreGuide')}</button></div><div class="score-panel-list">${scorePanelHtml}</div></div></section><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title">${t('log')}</h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  const mobileDiscardHtml='';
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name"><span class="player-color-chip" style="--player-color:${playerColorByViewClass('south')};"></span><span class="seat-name-text">${esc(selfName)}</span></div><span class="seat-count-tag outside">${selfCount}</span></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card score-side-card"><div class="score-panel" aria-label="${t('score')}"><div class="score-panel-head"><span class="score-inline-title">${t('score')}</span><button id="score-guide-toggle" class="secondary score-guide-inline-btn">${t('scoreGuide')}</button></div><div class="score-panel-list">${scorePanelHtml}</div></div></section><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title">${t('log')}</h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   bindGameEvents(v,arr);
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
