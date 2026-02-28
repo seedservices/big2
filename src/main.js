@@ -16,10 +16,14 @@ const I18N={
     en:'English',
     name:'玩家名稱',
     ai:'對手難度',
+    gender:'性別',
+    male:'男',
+    female:'女',
     easy:'初級',
     normal:'中級',
     hard:'高級',
     solo:'開局',
+    loginToStart:'請先使用 Google 登入先可以開始遊戲。',
     config:'設定',
     soundFx:'音效',
     soundOn:'開',
@@ -142,10 +146,14 @@ const I18N={
     en:'English',
     name:'Player Name',
     ai:'Opponent Difficulty',
+    gender:'Gender',
+    male:'Male',
+    female:'Female',
     easy:'Beginner',
     normal:'Intermediate',
     hard:'Advanced',
     solo:'Start',
+    loginToStart:'Please sign in with Google before starting the game.',
     config:'Config',
     soundFx:'Sound Effects',
     soundOn:'On',
@@ -266,11 +274,11 @@ const KIND={
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
-const LEADERBOARD_KEY='hkbig2.leaderboard.v1';
+const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
-const FIRESTORE_LB_COLLECTION='big2LeaderboardPlayers';
+const FIRESTORE_LB_COLLECTION='big2LeaderboardScoresV2';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -407,6 +415,104 @@ function loadLeaderboardStore(){
 function saveLeaderboardStore(store){
   try{localStorage.setItem(LEADERBOARD_KEY,JSON.stringify(store));}catch{}
 }
+function clampScoreValue(v){
+  const n=Number(v);
+  if(!Number.isFinite(n))return 5000;
+  return Math.max(0,Math.trunc(n));
+}
+function scoreFromStoredTotal(totalScore){
+  return clampScoreValue(totalScore);
+}
+function collectMainSettings(){
+  return{
+    language:state.language==='en'?'en':'zh-HK',
+    aiDifficulty:['easy','normal','hard'].includes(state.home.aiDifficulty)?state.home.aiDifficulty:'normal',
+    backColor:BACK_OPTIONS.some((x)=>x.value===state.home.backColor)?state.home.backColor:'red',
+    soundEnabled:Boolean(sound.enabled),
+    gender:state.home.gender==='female'?'female':'male'
+  };
+}
+function applyMainSettings(settings){
+  if(!settings||typeof settings!=='object')return;
+  const language=String(settings.language??'');
+  if(language==='en'||language==='zh-HK')state.language=language;
+  const ai=String(settings.aiDifficulty??'');
+  if(['easy','normal','hard'].includes(ai))state.home.aiDifficulty=ai;
+  const back=String(settings.backColor??'');
+  if(BACK_OPTIONS.some((x)=>x.value===back))state.home.backColor=back;
+  if(typeof settings.soundEnabled==='boolean')sound.enabled=Boolean(settings.soundEnabled);
+  const gender=String(settings.gender??'');
+  if(gender==='male'||gender==='female')state.home.gender=gender;
+}
+function syncSessionScoreFromStore(store,{force=false}={}){
+  if(!store||typeof store!=='object'||!store.players||typeof store.players!=='object')return;
+  const identity=currentLeaderboardIdentity();
+  const entry=store.players[String(identity.id??'')];
+  if(!entry)return;
+  const inGame=state.screen==='game'&&Array.isArray(state.solo.players)&&state.solo.players.length>0&&!state.solo.gameOver;
+  if(inGame&&!force)return;
+  const restored=scoreFromStoredTotal(entry.totalScore);
+  state.score=restored;
+  state.solo.totals=[restored,5000,5000,5000];
+}
+async function hydrateProfileFromCloudByIdentity(identity){
+  if(!firebaseDb)return false;
+  try{
+    const ids=identityLookupIds(identity);
+    if(!ids.length)return false;
+    let snap=null;
+    let foundId='';
+    for(const id of ids){
+      const s=await firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(id).get();
+      if(s.exists){snap=s;foundId=id;break;}
+    }
+    if(!snap)return false;
+    const d=snap.data()??{};
+    const restoredName=String(d.name??'').trim().slice(0,18);
+    const restoredScore=scoreFromStoredTotal(d.totalScore);
+    const restoredGender=String(d.gender??'male')==='female'?'female':'male';
+    applyMainSettings(d.settings);
+    const store=loadLeaderboardStore();
+    const entry=ensureLeaderboardEntry(store,identity);
+    if(entry){
+      entry.name=restoredName||entry.name;
+      entry.gender=restoredGender;
+      entry.settings={...(entry.settings??{}),...(d.settings&&typeof d.settings==='object'?d.settings:{})};
+      entry.totalScore=restoredScore;
+      entry.games=Number(d.games)||Number(entry.games)||0;
+      entry.wins=Number(d.wins)||Number(entry.wins)||0;
+      entry.updatedAt=Number(d.updatedAt)||Date.now();
+      saveLeaderboardStore(store);
+    }
+    if(restoredName){
+      state.home.name=restoredName;
+    }
+    state.home.gender=restoredGender;
+    const inGame=state.screen==='game'&&Array.isArray(state.solo.players)&&state.solo.players.length>0&&!state.solo.gameOver;
+    if(!inGame){
+      state.score=restoredScore;
+      state.solo.totals=[restoredScore,5000,5000,5000];
+    }
+    const preferredId=String(currentLeaderboardIdentity().id??'');
+    if(preferredId&&foundId&&preferredId!==foundId){
+      await firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(preferredId).set({
+        id:preferredId,
+        name:restoredName||String(identity?.name??'Player').slice(0,32),
+        email:String(identity?.email??'').toLowerCase().slice(0,120),
+        gender:restoredGender,
+        settings:collectMainSettings(),
+        totalScore:restoredScore,
+        games:Number(d.games)||0,
+        wins:Number(d.wins)||0,
+        updatedAt:Number(d.updatedAt)||Date.now()
+      },{merge:true});
+    }
+    return true;
+  }catch(err){
+    console.error('profile hydrate failed',err);
+    return false;
+  }
+}
 function initFirebaseIfReady(){
   try{
     if(firebaseAuth&&firebaseDb)return true;
@@ -420,15 +526,14 @@ function initFirebaseIfReady(){
         const displayName=String(user.displayName??'').trim().slice(0,18);
         const email=String(user.email??'').trim().toLowerCase().slice(0,120);
         state.home.google={signedIn:true,name:displayName,email,uid:String(user.uid??''),sub:state.home.google.sub||String(user.uid??''),token:''};
-        if(displayName)state.home.name=displayName;
         saveGoogleSession();
+        syncSessionNameFromStore(loadLeaderboardStore());
+        void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then((ok)=>{if(ok&&state.home.showLeaderboard)refreshLeaderboard();render();});
       }else{
-        if(state.home.google.signedIn){
-          state.home.google={signedIn:false,name:'',email:'',uid:'',sub:'',token:''};
-          clearGoogleSession();
-        }
+        // Keep local session payload so login status survives refresh.
       }
       if(state.home.showLeaderboard)refreshLeaderboard(true);
+      syncSessionScoreFromStore(loadLeaderboardStore());
       render();
     });
     return true;
@@ -440,18 +545,23 @@ function loadGoogleSession(){
     const parsed=raw?JSON.parse(raw):null;
     if(!parsed||typeof parsed!=='object')return;
     const signedIn=Boolean(parsed.signedIn);
-    const name=String(parsed.name??'').trim().slice(0,18);
+    const googleName=String(parsed.googleName??parsed.name??'').trim().slice(0,18);
+    const appName=String(parsed.appName??'').trim().slice(0,18);
     const email=String(parsed.email??'').trim().toLowerCase().slice(0,120);
     const uid=String(parsed.uid??'').trim().slice(0,128);
     const sub=String(parsed.sub??'').trim().slice(0,64);
+    const gender=String(parsed.gender??'male')==='female'?'female':'male';
     if(!signedIn||!email)return;
-    state.home.google={signedIn:true,name,email,uid,sub,token:''};
-    if(name)state.home.name=name;
+    state.home.google={signedIn:true,name:googleName,email,uid,sub,token:''};
+    if(appName)state.home.name=appName;
+    state.home.gender=gender;
+    syncSessionNameFromStore(loadLeaderboardStore());
+    syncSessionScoreFromStore(loadLeaderboardStore());
   }catch{}
 }
 function saveGoogleSession(){
   const g=state.home.google;
-  const payload={signedIn:Boolean(g.signedIn),name:String(g.name??'').slice(0,18),email:String(g.email??'').toLowerCase().slice(0,120),uid:String(g.uid??'').slice(0,128),sub:String(g.sub??'').slice(0,64)};
+  const payload={signedIn:Boolean(g.signedIn),googleName:String(g.name??'').slice(0,18),appName:String(state.home.name??'').slice(0,18),email:String(g.email??'').toLowerCase().slice(0,120),uid:String(g.uid??'').slice(0,128),sub:String(g.sub??'').slice(0,64),gender:String(state.home.gender??'male')==='female'?'female':'male'};
   try{localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify(payload));}catch{}
 }
 function clearGoogleSession(){
@@ -459,25 +569,51 @@ function clearGoogleSession(){
 }
 function currentLeaderboardIdentity(){
   const g=state.home.google;
+  const gender=state.home.gender==='female'?'female':'male';
   if(g.signedIn&&g.email){
     const email=String(g.email).toLowerCase();
-    const uid=String(g.uid??'').trim();
-    return{id:uid?`uid:${uid}`:`google:${email}`,name:String(g.name||state.home.name||'Player').slice(0,32),email};
+    return{id:`google:${email}`,name:String(state.home.name||g.name||'Player').slice(0,32),email,gender};
   }
   const fallback=String(state.home.name??'').trim().slice(0,32)||'Player';
-  return{id:`name:${fallback.toLowerCase()}`,name:fallback,email:''};
+  return{id:`name:${fallback.toLowerCase()}`,name:fallback,email:'',gender};
+}
+function identityLookupIds(identity){
+  const out=[];
+  const id=String(identity?.id??'').trim();
+  if(id)out.push(id);
+  const email=String(identity?.email??'').trim().toLowerCase();
+  if(email)out.push(`google:${email}`);
+  const uid=String(state.home.google?.uid??'').trim();
+  if(uid)out.push(`uid:${uid}`);
+  const seen=new Set();
+  return out.filter((x)=>{if(seen.has(x))return false;seen.add(x);return true;});
+}
+function syncSessionNameFromStore(store){
+  if(!store||typeof store!=='object'||!store.players||typeof store.players!=='object')return;
+  const identity=currentLeaderboardIdentity();
+  const entry=store.players[String(identity.id??'')];
+  if(!entry)return;
+  applyMainSettings(entry.settings);
+  const savedName=String(entry?.name??'').trim().slice(0,18);
+  const savedGender=String(entry?.gender??'male')==='female'?'female':'male';
+  state.home.gender=savedGender;
+  if(savedName)state.home.name=savedName;
 }
 function ensureLeaderboardEntry(store,identity){
   const safe=String(identity?.name??identity??'').trim().slice(0,32);
   if(!safe)return null;
   const email=String(identity?.email??'').trim().toLowerCase().slice(0,120);
+  const gender=String(identity?.gender??state.home.gender??'male')==='female'?'female':'male';
   const key=String(identity?.id??(email?`google:${email}`:`name:${safe.toLowerCase()}`)).trim().slice(0,180);
   if(!key)return null;
   if(!store.players[key]){
-    store.players[key]={id:key,name:safe,email,games:0,wins:0,totalDelta:0,bestRound:0,worstRound:0,updatedAt:Date.now(),history:[]};
+    store.players[key]={id:key,name:safe,email,gender,settings:collectMainSettings(),games:0,wins:0,totalScore:5000,updatedAt:Date.now()};
   }
   if(safe)store.players[key].name=safe;
   if(email)store.players[key].email=email;
+  store.players[key].gender=String(store.players[key].gender??gender)==='female'?'female':'male';
+  store.players[key].settings={...(store.players[key].settings??{}),...collectMainSettings()};
+  store.players[key].totalScore=scoreFromStoredTotal(store.players[key].totalScore);
   return store.players[key];
 }
 async function recordLeaderboardRound(identity,delta,won){
@@ -488,11 +624,8 @@ async function recordLeaderboardRound(identity,delta,won){
   const now=Date.now();
   entry.games+=1;
   if(won)entry.wins+=1;
-  entry.totalDelta+=value;
-  entry.bestRound=Math.max(Number(entry.bestRound)||0,value);
-  entry.worstRound=Math.min(Number(entry.worstRound)||0,value);
+  entry.totalScore=scoreFromStoredTotal((Number(entry.totalScore)||5000)+value);
   entry.updatedAt=now;
-  entry.history=[...(entry.history??[]),{ts:now,delta:value,won:Boolean(won)}].slice(-200);
   saveLeaderboardStore(store);
   if(!firebaseDb)return;
   try{
@@ -500,40 +633,53 @@ async function recordLeaderboardRound(identity,delta,won){
     await firebaseDb.runTransaction(async(tx)=>{
       const snap=await tx.get(ref);
       const base=snap.exists?(snap.data()??{}):{};
-      const prevHistory=Array.isArray(base.history)?base.history:[];
-      const history=[...prevHistory,{ts:now,delta:value,won:Boolean(won)}].slice(-200);
       const games=Number(base.games)||0;
       const wins=Number(base.wins)||0;
-      const totalDelta=Number(base.totalDelta)||0;
-      const bestRound=Math.max(Number(base.bestRound)||0,value);
-      const worstRound=Math.min(Number(base.worstRound)||0,value);
-      tx.set(ref,{id:String(entry.id),name:String(identity?.name??entry.name??'Player').slice(0,32),email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),games:games+1,wins:wins+(won?1:0),totalDelta:totalDelta+value,bestRound,worstRound,updatedAt:now,history},{merge:true});
+      const totalScore=scoreFromStoredTotal((Number(base.totalScore)||5000)+value);
+      tx.set(ref,{id:String(entry.id),name:String(identity?.name??entry.name??'Player').slice(0,32),email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',settings:collectMainSettings(),games:games+1,wins:wins+(won?1:0),totalScore,updatedAt:now},{merge:true});
     });
   }catch(err){
     console.error('leaderboard round write exception',err);
   }
 }
+async function syncLeaderboardProfile(identity){
+  const store=loadLeaderboardStore();
+  const entry=ensureLeaderboardEntry(store,identity);
+  if(!entry)return;
+  entry.updatedAt=Date.now();
+  entry.totalScore=scoreFromStoredTotal(entry.totalScore);
+  entry.settings={...(entry.settings??{}),...collectMainSettings()};
+  saveLeaderboardStore(store);
+  if(!firebaseDb)return;
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
+    await ref.set({
+      id:String(entry.id),
+      name:String(identity?.name??entry.name??'Player').slice(0,32),
+      email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),
+      gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',
+      settings:collectMainSettings(),
+      totalScore:entry.totalScore,
+      games:Number(entry.games)||0,
+      wins:Number(entry.wins)||0,
+      updatedAt:entry.updatedAt
+    },{merge:true});
+  }catch(err){
+    console.error('leaderboard profile sync exception',err);
+  }
+}
 function computeLeaderboardRowsFromStore(store,period,sort,limit){
-  const days=period==='7d'?7:period==='30d'?30:0;
-  const cutoff=days?Date.now()-days*24*60*60*1000:0;
   const rows=Object.values(store.players).map((entry)=>{
-    const items=(entry.history??[]).filter((h)=>!cutoff||Number(h.ts)>=cutoff);
-    const games=items.length;
-    const wins=items.filter((h)=>Boolean(h.won)).length;
-    const totalDelta=items.reduce((sum,h)=>sum+(Number(h.delta)||0),0);
-    const bestRound=items.length?Math.max(...items.map((h)=>Number(h.delta)||0)):0;
-    const worstRound=items.length?Math.min(...items.map((h)=>Number(h.delta)||0)):0;
-    const useGames=cutoff?games:(Number(entry.games)||games);
-    const useWins=cutoff?wins:(Number(entry.wins)||wins);
-    const useDelta=cutoff?totalDelta:(Number(entry.totalDelta)||totalDelta);
-    return{name:String(entry.name??''),email:String(entry.email??''),games:useGames,wins:useWins,winRate:useGames?useWins/useGames:0,totalDelta:useDelta,avgDelta:useGames?useDelta/useGames:0,bestRound:cutoff?bestRound:(Number(entry.bestRound)||0),worstRound:cutoff?worstRound:(Number(entry.worstRound)||0),updatedAt:Number(entry.updatedAt)||0};
+    const games=Number(entry.games)||0;
+    const wins=Number(entry.wins)||0;
+    const totalScore=scoreFromStoredTotal(entry.totalScore);
+    return{name:String(entry.name??''),email:String(entry.email??''),games,wins,winRate:games?wins/games:0,totalScore,updatedAt:Number(entry.updatedAt)||0};
   }).filter((row)=>row.games>0||period==='all');
   rows.sort((a,b)=>{
-    if(sort==='wins')return b.wins-a.wins||b.totalDelta-a.totalDelta||a.name.localeCompare(b.name);
+    if(sort==='wins')return b.wins-a.wins||b.totalScore-a.totalScore||a.name.localeCompare(b.name);
     if(sort==='games')return b.games-a.games||b.wins-a.wins||a.name.localeCompare(b.name);
     if(sort==='winRate')return b.winRate-a.winRate||b.wins-a.wins||a.name.localeCompare(b.name);
-    if(sort==='avgDelta')return b.avgDelta-a.avgDelta||b.totalDelta-a.totalDelta||a.name.localeCompare(b.name);
-    return b.totalDelta-a.totalDelta||b.wins-a.wins||a.name.localeCompare(b.name);
+    return b.totalScore-a.totalScore||b.wins-a.wins||a.name.localeCompare(b.name);
   });
   return rows.slice(0,limit);
 }
@@ -547,8 +693,10 @@ async function refreshLeaderboardCloud(){
     snap.forEach((doc)=>{
       const d=doc.data()??{};
       const id=String(d.id??doc.id);
-      store.players[id]={id,name:String(d.name??''),email:String(d.email??''),games:Number(d.games)||0,wins:Number(d.wins)||0,totalDelta:Number(d.totalDelta)||0,bestRound:Number(d.bestRound)||0,worstRound:Number(d.worstRound)||0,updatedAt:Number(d.updatedAt)||0,history:Array.isArray(d.history)?d.history:[]};
+      store.players[id]={id,name:String(d.name??''),email:String(d.email??''),gender:String(d.gender??'male')==='female'?'female':'male',settings:d.settings&&typeof d.settings==='object'?d.settings:{},games:Number(d.games)||0,wins:Number(d.wins)||0,totalScore:scoreFromStoredTotal(d.totalScore),updatedAt:Number(d.updatedAt)||0};
     });
+    saveLeaderboardStore(store);
+    syncSessionScoreFromStore(store);
     lb.rows=computeLeaderboardRowsFromStore(store,lb.period,lb.sort,lb.limit);
     leaderboardCloudLoaded=true;
     if(state.home.showLeaderboard&&state.screen==='home')render();
@@ -559,6 +707,7 @@ async function refreshLeaderboardCloud(){
 function refreshLeaderboard(forceCloud=false){
   const lb=state.home.leaderboard;
   const store=loadLeaderboardStore();
+  syncSessionScoreFromStore(store);
   lb.rows=computeLeaderboardRowsFromStore(store,lb.period,lb.sort,lb.limit);
   if(firebaseDb&&(forceCloud||(!lb.rows.length&&!leaderboardCloudLoaded)))void refreshLeaderboardCloud();
 }
@@ -566,7 +715,7 @@ function leaderboardPanelHtml(){
   const lb=state.home.leaderboard;
   const rows=lb.rows??[];
   const lx=lbText();
-  const rowHtml=rows.length?rows.map((r,i)=>`<div class="lb-row"><div class="lb-rank">#${i+1}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}${r.email?` <span class="hint">(${esc(r.email)})</span>`:''}</div><div class="lb-stat">${r.totalDelta>=0?`+${r.totalDelta}`:r.totalDelta}</div></div><div class="lb-sub">${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)} · ${lx.avg} ${Number(r.avgDelta??0).toFixed(1)}</div><div class="lb-meta2"><span>${lx.best} ${r.bestRound>=0?`+${r.bestRound}`:r.bestRound}</span><span>${lx.worst} ${r.worstRound>=0?`+${r.worstRound}`:r.worstRound}</span><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
+  const rowHtml=rows.length?rows.map((r,i)=>`<div class="lb-row"><div class="lb-rank">#${i+1}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label><button id="lb-refresh" class="secondary">${t('lbRefresh')}</button></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
@@ -682,8 +831,9 @@ async function handleCredentialResponse(response){
     }
   }catch{}
   state.home.google={signedIn:true,name:String(p.name??'').slice(0,18),email:String(p.email??'').trim().toLowerCase().slice(0,120),uid:String(firebaseAuth?.currentUser?.uid??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token:''};
-  if(state.home.google.name)state.home.name=state.home.google.name;
   saveGoogleSession();
+  syncSessionNameFromStore(loadLeaderboardStore());
+  void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then((ok)=>{if(ok&&state.home.showLeaderboard)refreshLeaderboard();render();});
   render();
 }
 function clearGoogleInlineRetry(){if(googleInlineRetryTimer){clearTimeout(googleInlineRetryTimer);googleInlineRetryTimer=null;}}
@@ -748,16 +898,10 @@ function hashNameSeed(name){
   return h>>>0;
 }
 function pick(arr,seed,offset=0){return arr[(seed+offset)%arr.length];}
-function avatarDataUri(name,color){
-  const seed=hashNameSeed(name);
-  const bg=String(color??'#5f7f9d');
-  const skin=pick(['#f2cfb3','#e7bf9f','#dbb08d','#efc9ad'],seed,1);
-  const hair=pick(['#241912','#3a281f','#4f3a2d','#1c2028'],seed,2);
-  const shirt=pick(['#95aecf','#7f9dc6','#6f8eb9','#8fa8b7'],seed,3);
-  const shade=pick(['#1a2633','#1f2d3b','#202a36','#243244'],seed,4);
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${bg}"/><stop offset="1" stop-color="${shade}"/></linearGradient><linearGradient id="shirt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shirt}"/><stop offset="1" stop-color="#4e647f"/></linearGradient></defs><rect width="72" height="72" rx="12" fill="url(#bg)"/><rect x="4" y="4" width="64" height="64" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.38)"/><circle cx="36" cy="27" r="13" fill="${skin}"/><path d="M21 24c0-8 6-14 15-14 7 0 12 3 15 9-2-1-5-2-8-2-8 0-13 4-16 10-2 0-4-1-6-3z" fill="${hair}"/><path d="M22 49c2-7 8-12 14-12s12 5 14 12v15H22z" fill="url(#shirt)"/><path d="M29 27c.8 0 1.5.7 1.5 1.5S29.8 30 29 30s-1.5-.7-1.5-1.5S28.2 27 29 27zm14 0c.8 0 1.5.7 1.5 1.5S43.8 30 43 30s-1.5-.7-1.5-1.5S42.2 27 43 27z" fill="#141a23"/><path d="M31 34c1.3 1.1 2.9 1.7 5 1.7s3.7-.6 5-1.7" stroke="#8f5a4a" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+function avatarDataUri(name,color,gender='male'){
+  return withBase(String(gender??'male')==='female'?'avatar-female.png':'avatar-male.png');
 }
+const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
 const cmpCard=(a,b)=>a.rank-b.rank||a.suit-b.suit;
 
@@ -956,7 +1100,15 @@ const opponentFanStyleByName=(name)=>{
 };
 const hasAnyBeatingPlay=(hand,lastPlay,isFirst)=>{if(isFirst)return allValidPlays(hand).some((e)=>has3d(e.cards));if(!lastPlay)return allValidPlays(hand).length>0;return allValidPlays(hand).some((e)=>canBeat(e.eval,lastPlay.eval));};
 function randomBotNames(){const list=state.language==='en'?BOT_NAMES.en:BOT_NAMES.zh;const bag=[...list];const out=[];while(out.length<3){if(!bag.length)bag.push(...list);const idx=Math.floor(Math.random()*bag.length);out.push(bag.splice(idx,1)[0]);}return out;}
-function relabelSoloBots(){if(state.home.mode!=='solo'||!state.solo.players.length)return;const keys=state.solo.botNames?.length===3?state.solo.botNames:randomBotNames();state.solo.botNames=keys;state.solo.players=state.solo.players.map((p,i)=>i===0?p:{...p,name:keys[i-1]});}
+function botGenderByName(name){
+  const n=String(name??'').trim();
+  const map={
+    '阿龍':'male','小琪':'female','天仔':'male','阿雲':'male','阿樂':'male','子晴':'female','阿彥':'male','家豪':'male','嘉琪':'female','子軒':'male',
+    'Nova':'female','Milo':'male','Jade':'female','Axel':'male','Iris':'female','Luna':'female','Rex':'male','Nora':'female','Kane':'male','Skye':'female'
+  };
+  return map[n]??(Math.random()<0.5?'female':'male');
+}
+function relabelSoloBots(){if(state.home.mode!=='solo'||!state.solo.players.length)return;const keys=state.solo.botNames?.length===3?state.solo.botNames:randomBotNames();state.solo.botNames=keys;state.solo.players=state.solo.players.map((p,i)=>i===0?p:{...p,name:keys[i-1],gender:botGenderByName(keys[i-1])});}
 
 const suitName=(s)=>['diamond','club','heart','spade'][s]??'club';
 const cardImagePath=(card)=>withBase(`card-assets/${suitName(card.suit)}-${RANKS[card.rank]}.png`);
@@ -977,7 +1129,7 @@ function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0)
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){const names=randomBotNames();const p=[{name:state.home.name||t('name'),hand:[],isHuman:true},{name:names[0],hand:[],isHuman:false},{name:names[1],hand:[],isHuman:false},{name:names[2],hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botNames:names,totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:`${p[start].name} ${t('start')}`,history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){const names=randomBotNames();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:names[0],gender:botGenderByName(names[0]),hand:[],isHuman:false},{name:names[1],gender:botGenderByName(names[1]),hand:[],isHuman:false},{name:names[2],gender:botGenderByName(names[2]),hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botNames:names,totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:`${p[start].name} ${t('start')}`,history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)g.status=ev.reason;return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)g.status=t('must3');return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)g.status=t('beat');return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
@@ -1020,7 +1172,7 @@ function playTone(freq,d,type='sine',g=0.03,delay=0){if(!sound.ctx)return;const 
 function playSound(kind){if(!sound.enabled||!sound.ctx)return;if(kind==='select')playTone(520,0.08,'triangle',0.02);if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}if(kind==='pass')playTone(210,0.1,'sine',0.02);if(kind==='start'){playTone(330,0.1,'triangle',0.025);playTone(495,0.12,'triangle',0.025,0.05);}if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}}
 function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const root=document.documentElement;for(const[k,v]of Object.entries(theme))root.style.setProperty(k,v);}
 
-function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,participants:g.players.map((p,seat)=>({seat,name:p.name,isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
+function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
 
 function historyHtml(h,self){if(!h.length)return`<div class="hint">${t('nolog')}</div>`;return h.slice().reverse().map((e)=>{const vIdx=seatView(e.seat,self);const cls=seatCls[vIdx]||'south';const color=playerColorByViewClass(cls);const mine=vIdx===0;const tag=`<span class="player-color-chip" style="--player-color:${color};"></span><span class="history-name">${esc(e.name)}</span>`;if(e.action==='pass')return`<div class="history-item ${mine?'mine':''}"><div class="history-title">${tag} ${t('pass')}</div></div>`;const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');return`<div class="history-item ${mine?'mine':''}"><div class="history-title">${tag} · ${kindLabel(e.kind)}</div><div class="history-cards">${cards}</div></div>`;}).join('');}
 function isStatusDuplicatedByHistory(v){
@@ -1214,8 +1366,9 @@ function renderBackCombo(){
 }
 function renderHome(){
   const intro=introText();
+  const signedIn=Boolean(state.home.google.signedIn&&state.home.google.email);
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary">${t('solo')}</button></div></section>${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo" id="gender-combo"><button class="combo-btn ${state.home.gender==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn ${state.home.gender==='female'?'active':''}" data-value="female">${t('female')}</button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -1227,7 +1380,8 @@ function renderHome(){
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
-  document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;});
+  document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}});
+  document.querySelectorAll('#gender-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(v!=='male'&&v!=='female')return;state.home.gender=v;markComboActive('gender-combo',v);saveGoogleSession();if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}}));
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   document.getElementById('sound-switch')?.addEventListener('change',(e)=>{
@@ -1242,7 +1396,7 @@ function renderHome(){
     const lb=document.querySelector('.sound-switch-label');
     if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
   });
-  document.getElementById('solo-start')?.addEventListener('click',()=>{unlockAudio();state.home.mode='solo';startSoloGame();});
+  document.getElementById('solo-start')?.addEventListener('click',()=>{if(!(state.home.google.signedIn&&state.home.google.email))return;unlockAudio();state.home.mode='solo';void syncLeaderboardProfile(currentLeaderboardIdentity());startSoloGame();});
   document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard(true);render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
@@ -1298,7 +1452,7 @@ function renderGame(){
     const active=v.currentSeat===p.seat&&!v.gameOver;
     const pColor=playerColorByViewClass(p.cls);
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
-    const labelName=`<div class="name"><img class="player-avatar player-avatar-opponent" src="${avatarDataUri(p.name,pColor)}" alt="${esc(p.name)}"/><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span><span class="seat-count-tag">${p.count}</span></div>`;
+    const labelName=`<div class="name"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarDataUri(p.name,pColor,p.gender)}" alt="${esc(p.name)}"/><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span><span class="seat-count-tag">${p.count}</span></div>`;
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
     const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
     const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
@@ -1311,7 +1465,8 @@ function renderGame(){
   const selfScore=self?selfScoreValue:0;
   const selfName=self?self.name:t('name');
   const selfCount=self?self.count:0;
-  const selfAvatar=`<img class="player-avatar player-avatar-self" src="${avatarDataUri(selfName,playerColorByViewClass('south'))}" alt="${esc(selfName)}"/>`;
+  const selfGender=self?.gender??state.home.gender??'male';
+  const selfAvatar=`<img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${playerColorByViewClass('south')};" src="${avatarDataUri(selfName,playerColorByViewClass('south'),selfGender)}" alt="${esc(selfName)}"/>`;
   const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
   const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
   const isMobile=isMobilePointer();
