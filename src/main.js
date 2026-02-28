@@ -311,16 +311,18 @@ const sound={ctx:null,enabled:true};
 let speechPrimed=false;
 const BOT_PROFILES={
   zh:[
-    {name:'阿龍',gender:'male'},
-    {name:'小琪',gender:'female'},
-    {name:'天仔',gender:'male'},
-    {name:'阿雲',gender:'male'},
-    {name:'阿樂',gender:'male'},
-    {name:'子晴',gender:'female'},
-    {name:'阿彥',gender:'male'},
-    {name:'家豪',gender:'male'},
-    {name:'嘉琪',gender:'female'},
-    {name:'子軒',gender:'male'}
+    {name:'志明',gender:'male'},
+    {name:'俊傑',gender:'male'},
+    {name:'家樂',gender:'male'},
+    {name:'子朗',gender:'male'},
+    {name:'少龍',gender:'male'},
+    {name:'天樂',gender:'male'},
+    {name:'嘉欣',gender:'female'},
+    {name:'芷晴',gender:'female'},
+    {name:'穎欣',gender:'female'},
+    {name:'佩儀',gender:'female'},
+    {name:'詠琪',gender:'female'},
+    {name:'秀文',gender:'female'}
   ],
   en:[
     {name:'Nova',gender:'female'},
@@ -766,10 +768,11 @@ async function syncLeaderboardProfile(identity){
 }
 function computeLeaderboardRowsFromStore(store,period,sort,limit){
   const rows=Object.values(store.players).map((entry)=>{
+    const id=String(entry.id??'').trim();
     const games=Number(entry.games)||0;
     const wins=Number(entry.wins)||0;
     const totalScore=scoreFromStoredTotal(entry.totalScore);
-    return{name:String(entry.name??''),email:String(entry.email??''),games,wins,winRate:games?wins/games:0,totalScore,updatedAt:Number(entry.updatedAt)||0};
+    return{id,name:String(entry.name??''),email:String(entry.email??''),games,wins,winRate:games?wins/games:0,totalScore,updatedAt:Number(entry.updatedAt)||0};
   }).filter((row)=>row.games>0||period==='all');
   rows.sort((a,b)=>{
     if(sort==='wins')return b.wins-a.wins||b.totalScore-a.totalScore||a.name.localeCompare(b.name);
@@ -777,7 +780,16 @@ function computeLeaderboardRowsFromStore(store,period,sort,limit){
     if(sort==='winRate')return b.winRate-a.winRate||b.wins-a.wins||a.name.localeCompare(b.name);
     return b.totalScore-a.totalScore||b.wins-a.wins||a.name.localeCompare(b.name);
   });
-  return rows.slice(0,limit);
+  const ranked=rows.map((r,i)=>({...r,rank:i+1}));
+  const topLimit=10;
+  const top=ranked.slice(0,topLimit);
+  const ids=new Set(top.map((r)=>r.id));
+  const me=currentLeaderboardIdentity();
+  const myIds=new Set(identityLookupIds(me));
+  const meRow=ranked.find((r)=>myIds.has(r.id))??null;
+  if(meRow&&!ids.has(meRow.id))top.push(meRow);
+  void limit;
+  return top;
 }
 async function refreshLeaderboardCloud(){
   if(!firebaseDb||leaderboardCloudRefreshInFlight)return;
@@ -811,7 +823,7 @@ function leaderboardPanelHtml(){
   const lb=state.home.leaderboard;
   const rows=lb.rows??[];
   const lx=lbText();
-  const rowHtml=rows.length?rows.map((r,i)=>`<div class="lb-row"><div class="lb-rank">#${i+1}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
+  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">#${r.rank??'-'}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
@@ -904,23 +916,29 @@ function speakCallout(text,gender='male'){
       const male=list.find((v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v)));
       return male??list[0]??null;
     };
+    const isCantoneseVoice=(v)=>{
+      const lang=String(v?.lang??'').toLowerCase();
+      const meta=`${String(v?.name??'')} ${String(v?.voiceURI??'')} ${lang}`;
+      return /^yue(-|$)/i.test(lang)
+        || /^zh[-_]?hk(-|$)/i.test(lang)
+        || /cantonese|hong kong|heung gong|ting[-\s]?ting|sin[-\s]?ji/i.test(meta);
+    };
     const setupVoice=(u,voices)=>{
       if(state.language==='en'){
         const voice=pickGenderVoice(voices,['en'],gender)??voices.find((v)=>String(v.lang??'').toLowerCase().startsWith('en'));
         if(voice)u.voice=voice;
         u.lang='en-US';
         u.pitch=String(gender??'male')==='female'?1.16:0.9;
+        return true;
       }else{
-        const voice=
-          pickGenderVoice(voices,['yue','zh-hk','zh'],gender)||
-          voices.find((v)=>/^yue(-|$)/i.test(String(v.lang??'')))||
-          voices.find((v)=>/zh[-_]?hk/i.test(String(v.lang??'')))||
-          voices.find((v)=>/cantonese|hong kong|heung gong/i.test(`${v.name||''} ${v.lang||''}`))||
-          pickGenderVoice(voices,['zh'],gender)||
-          null;
-        if(voice)u.voice=voice;
-        u.lang=voice?String(voice.lang||'yue-HK'):'yue-HK';
+        const cantoneseVoices=(voices??[]).filter(isCantoneseVoice);
+        if(!cantoneseVoices.length)return false;
+        const voice=pickGenderVoice(cantoneseVoices,['yue','zh-hk'],gender)??cantoneseVoices[0]??null;
+        if(!voice)return false;
+        u.voice=voice;
+        u.lang=String(voice.lang||'yue-HK');
         u.pitch=String(gender??'male')==='female'?1.14:0.92;
+        return true;
       }
     };
     const speakNow=()=>{
@@ -928,7 +946,8 @@ function speakCallout(text,gender='male'){
       u.rate=1.02;
       u.pitch=String(gender??'male')==='female'?1.12:0.94;
       const voices=synth.getVoices?.()??[];
-      setupVoice(u,voices);
+      const ok=setupVoice(u,voices);
+      if(!ok)return;
       synth.resume?.();
       synth.speak(u);
     };
@@ -1757,7 +1776,7 @@ function renderGame(){
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
     const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
     const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
-    const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),rgba(8, 24, 38, .34) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16) !important;border-radius:12px !important;';
+    const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
     const sectionStyle=innerNoOutline;

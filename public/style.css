@@ -1608,6 +1608,18 @@ body[data-screen='game'] .side-zone.log-collapsed {
   align-items: start;
   justify-items: stretch;
 }
+.side-zone .log-side-card {
+  min-height: 0;
+  height: 100%;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+body[data-screen='game'] .history-list {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
 .side-zone .side-card { align-content: start; }
 .history-item {
   width: 100%;
@@ -2412,10 +2424,10 @@ body[data-screen='game'] .action-strip .player-tag .seat-count-tag {
   height: 20px;
   margin-left: 4px;
   border-radius: 999px;
-  background: rgba(200, 225, 201, .16) !important;
-  border: 1px solid rgba(167, 217, 180, .56) !important;
-  color: #dcf3df !important;
-  font-size: .71rem !important;
+  background: rgba(6, 18, 30, .82) !important;
+  border: 1px solid rgba(201, 230, 213, .66) !important;
+  color: #f3fff8 !important;
+  font-size: .73rem !important;
   font-weight: 800;
 }
 /* South name panel matches N/E/W visual style without changing its dimensions. */
@@ -2428,11 +2440,17 @@ body[data-screen='game'] .action-strip .player-tag {
 body[data-screen='game'] .seat-name-fixed .seat-name-text,
 body[data-screen='game'] .action-strip .player-tag .seat-name-text {
   color: var(--player-color, #f4f9fb) !important;
+  text-shadow: 0 1px 2px rgba(2, 8, 12, .85) !important;
 }
 body[data-screen='game'] .north > .seat-name-fixed .seat-name-text,
 body[data-screen='game'] .east > .seat-name-fixed .seat-name-text,
 body[data-screen='game'] .west > .seat-name-fixed .seat-name-text {
   color: var(--player-color, #f4f9fb) !important;
+  text-shadow: 0 1px 2px rgba(2, 8, 12, .85) !important;
+}
+body[data-screen='game'] .seat-subline,
+body[data-screen='game'] .action-strip .player-tag .seat-subline {
+  color: rgba(234, 246, 240, .96) !important;
 }
 /* N/E/W remaining-card badge uses the same style as south. */
 body[data-screen='game'] .north > .seat-name-fixed .seat-count-tag,
@@ -2442,35 +2460,33 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
   height: 20px !important;
   margin-left: 4px !important;
   border-radius: 999px !important;
-  background: rgba(200, 225, 201, .16) !important;
-  border: 1px solid rgba(167, 217, 180, .56) !important;
-  color: #dcf3df !important;
-  font-size: .71rem !important;
+  background: rgba(6, 18, 30, .82) !important;
+  border: 1px solid rgba(201, 230, 213, .66) !important;
+  color: #f3fff8 !important;
+  font-size: .73rem !important;
   font-weight: 800 !important;
 }
-/* Highlight active N/E/W panel with its seat color like south turn highlight. */
+/* Active N/E/W: keep visible turn cue but avoid competing with cards. */
 body[data-screen='game'] .seat.north.active,
 body[data-screen='game'] .seat.east.active,
 body[data-screen='game'] .seat.west.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 62%, transparent) !important;
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent) !important;
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent),
-    0 0 22px color-mix(in srgb, var(--player-color, #ffd166) 46%, transparent) !important;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--player-color, #ffd166) 12%, transparent), transparent 45%),
-    rgba(6, 18, 30, .48) !important;
+    0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 34%, transparent),
+    0 0 12px color-mix(in srgb, var(--player-color, #ffd166) 30%, transparent) !important;
+  background: inherit !important;
 }
 body[data-screen='game'] .seat.north.active::before,
 body[data-screen='game'] .seat.east.active::before,
 body[data-screen='game'] .seat.west.active::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: -2px;
   border-radius: 14px;
-  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 40%, transparent);
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent),
-    0 0 26px color-mix(in srgb, var(--player-color, #ffd166) 52%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 26%, transparent),
+    0 0 14px color-mix(in srgb, var(--player-color, #ffd166) 24%, transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -2486,11 +2502,21 @@ body[data-screen='game'] .north,
 body[data-screen='game'] .west,
 body[data-screen='game'] .east {
   background:
-    linear-gradient(180deg, rgba(9, 26, 30, .94), rgba(8, 20, 25, .82)),
-    linear-gradient(130deg, rgba(255,255,255,.06), rgba(255,255,255,.01)) !important;
+    linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),
+    rgba(8, 24, 38, .36) !important;
   box-shadow:
-    inset 0 0 0 1px rgba(39, 74, 64, .75),
-    0 2px 7px rgba(0,0,0,.22) !important;
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    0 1px 4px rgba(0,0,0,.1) !important;
+}
+/* Unify south panel style with opponent outer panels (single visual language). */
+body[data-screen='game'] .action-strip {
+  background:
+    linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),
+    rgba(8, 24, 38, .36) !important;
+  border: 1px solid rgba(255,255,255,.17) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    0 1px 4px rgba(0,0,0,.1) !important;
 }
 body[data-screen='game'] .north .seat-section,
 body[data-screen='game'] .west .seat-section,
