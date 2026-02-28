@@ -700,7 +700,7 @@ function leaderboardPanelHtml(){
   const rows=lb.rows??[];
   const lx=lbText();
   const rowHtml=rows.length?rows.map((r,i)=>`<div class="lb-row"><div class="lb-rank">#${i+1}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
-  return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label><button id="lb-refresh" class="secondary">${t('lbRefresh')}</button></div><div class="lb-list">${rowHtml}</div></section>`;
+  return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
   return state.language==='en'
@@ -1368,7 +1368,7 @@ function renderHome(){
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
-  document.getElementById('home-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=!state.home.showLeaderboard;if(state.home.showLeaderboard)refreshLeaderboard();render();});
+  document.getElementById('home-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=!state.home.showLeaderboard;if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
   document.getElementById('intro-close')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('intro-backdrop')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
@@ -1393,7 +1393,6 @@ function renderHome(){
     if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
   });
   document.getElementById('solo-start')?.addEventListener('click',async()=>{if(!(state.home.google.signedIn&&state.home.google.email))return;unlockAudio();state.home.mode='solo';initFirebaseIfReady();let synced=false;for(let i=0;i<4&&!synced;i++){synced=await syncLeaderboardProfile(currentLeaderboardIdentity());if(!synced)await waitMs(250);}if(!synced){console.error('start blocked: firebase profile sync failed');state.home.showLeaderboard=true;render();return;}startSoloGame();});
-  document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard(true);render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
   queueGoogleInlineRender();
@@ -1523,12 +1522,11 @@ function bindGameEvents(v,arr){
 
   document.getElementById('lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   document.getElementById('game-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=true;render();});
-  document.getElementById('game-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=true;refreshLeaderboard();render();});
+  document.getElementById('game-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=true;refreshLeaderboard(true);render();});
   document.getElementById('intro-close')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('intro-backdrop')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
-  document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard(true);render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
   document.getElementById('home-btn')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
