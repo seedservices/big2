@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;700&display=swap');
 
 :root {
+  --ui-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'PingFang TC', 'PingFang HK', 'Hiragino Sans GB', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
   --bg-a: #071a2f;
   --bg-b: #0f4469;
   --bg-c: #15808f;
@@ -35,7 +36,7 @@ body {
   margin: 0;
   min-height: 100dvh;
   color: var(--text);
-  font-family: 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+  font-family: var(--ui-font);
   background:
     linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
     url('https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&q=80&w=2073');
@@ -61,7 +62,7 @@ body[data-screen='game'] #app {
 }
 h1, h2, h3, p { margin: 0; }
 .game-title {
-  font-family: 'Ma Shan Zheng', cursive;
+  font-family: var(--ui-font);
   font-size: clamp(2.2rem, 5.1vw, 3.55rem);
   font-weight: 400;
   line-height: 1;
@@ -86,7 +87,7 @@ h1, h2, h3, p { margin: 0; }
   -webkit-backdrop-filter: none;
 }
 .game-title-sub {
-  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
+  font-family: var(--ui-font);
   font-size: clamp(.64rem, .94vw, .8rem);
   font-weight: 600;
   letter-spacing: .31em;
@@ -99,6 +100,18 @@ h1, h2, h3, p { margin: 0; }
 .topbar .game-title {
   font-size: clamp(2.4rem, 5vw, 3.6rem);
   line-height: 1;
+}
+.home-topbar .game-title {
+  font-family: 'Ma Shan Zheng', cursive;
+}
+.home-topbar .game-title-sub {
+  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
+}
+body[data-screen='game'] .topbar .game-title {
+  font-family: 'Ma Shan Zheng', cursive;
+}
+body[data-screen='game'] .topbar .game-title-sub {
+  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
 }
 .hint { color: var(--muted); font-size: 0.92rem; }
 .control-row, .action-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -362,7 +375,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .intro-sheet *,
 .lb-sheet,
 .lb-sheet * {
-  font-family: 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+  font-family: var(--ui-font);
 }
 .intro-head {
   display: flex;
@@ -853,6 +866,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .seat-played .card.mini + .card.mini {
   margin-left: calc(var(--card-w) * -0.44);
+}
+.seat-played .card.face.mini,
+.table-recent .card.face.mini,
+.mobile-discard-cards .card.face.mini {
+  box-shadow: 0 0 0 1px rgba(22, 38, 46, .52);
 }
 .seat-line { display: flex; align-items: center; gap: 4px; }
 .seat-last { display: inline-flex; align-items: center; }
@@ -1499,7 +1517,10 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   border: 0 !important;
   border-radius: var(--card-radius) !important;
   background: transparent !important;
-  box-shadow: none !important;
+  box-shadow:
+    0 0 0 1px rgba(7, 16, 24, .95),
+    0 0 0 2px rgba(242, 248, 255, .30),
+    0 2px 6px rgba(0,0,0,.34) !important;
   line-height: 0;
   font-size: 0;
 }
@@ -1514,9 +1535,16 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   transform: none;
   border-radius: inherit !important;
   clip-path: none !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
 }
 .hand-card:active { cursor: grabbing; }
-.hand-card.selected { transform: translateY(-9px); box-shadow: 0 6px 12px rgba(255,209,102,.45); }
+.hand-card.selected {
+  transform: translateY(-9px);
+  box-shadow:
+    0 0 0 1px rgba(255, 209, 102, .88),
+    0 0 0 2px rgba(7, 16, 24, .92),
+    0 6px 12px rgba(255,209,102,.45) !important;
+}
 .card.mini { width: calc(var(--card-w)*.56); height: calc(var(--card-h)*.56); }
 .seat-pass-label {
   display: inline-block;
@@ -2268,15 +2296,27 @@ body[data-screen='game'] .west > .seat-name-fixed {
   border: 0 !important;
   box-shadow: none !important;
 }
+body[data-screen='game'] .action-strip .player-tag {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
 body[data-screen='game'] .north > .seat-name-fixed .seat-name-text,
 body[data-screen='game'] .east > .seat-name-fixed .seat-name-text,
 body[data-screen='game'] .west > .seat-name-fixed .seat-name-text {
   color: rgba(230, 243, 236, .95) !important;
   text-shadow: none !important;
 }
+body[data-screen='game'] .action-strip .player-tag .seat-name-text {
+  color: rgba(230, 243, 236, .95) !important;
+  text-shadow: none !important;
+}
 body[data-screen='game'] .north > .seat-name-fixed .seat-subline,
 body[data-screen='game'] .east > .seat-name-fixed .seat-subline,
 body[data-screen='game'] .west > .seat-name-fixed .seat-subline {
+  color: rgba(214, 232, 222, .9) !important;
+}
+body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(214, 232, 222, .9) !important;
 }
 .result-cards .card.mini {
@@ -2334,6 +2374,19 @@ body[data-screen='game'] .player-avatar {
     0 0 10px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 60%, transparent 40%),
     0 0 18px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 40%, transparent 60%);
 }
+body[data-screen='game'] .player-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+body[data-screen='game'] .player-avatar-wrap > .player-avatar {
+  width: 100% !important;
+  height: 100% !important;
+}
 body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent {
   width: 46px !important;
   height: 46px !important;
@@ -2341,6 +2394,14 @@ body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent 
 body[data-screen='game'] .action-strip .player-tag .player-avatar.player-avatar-self {
   width: 38px !important;
   height: 38px !important;
+}
+body[data-screen='game'] .seat-name-fixed .player-avatar-wrap.player-avatar-wrap-opponent {
+  width: 46px;
+  height: 46px;
+}
+body[data-screen='game'] .action-strip .player-tag .player-avatar-wrap.player-avatar-wrap-self {
+  width: 38px;
+  height: 38px;
 }
 body[data-screen='game'] .seat-count-tag,
 body[data-screen='game'] .action-strip .player-tag .seat-count-tag {
@@ -2357,7 +2418,108 @@ body[data-screen='game'] .action-strip .player-tag .seat-count-tag {
   font-size: .71rem !important;
   font-weight: 800;
 }
-
+/* South name panel matches N/E/W visual style without changing its dimensions. */
+body[data-screen='game'] .action-strip .player-tag {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Seat name text uses each seat color. */
+body[data-screen='game'] .seat-name-fixed .seat-name-text,
+body[data-screen='game'] .action-strip .player-tag .seat-name-text {
+  color: var(--player-color, #f4f9fb) !important;
+}
+body[data-screen='game'] .north > .seat-name-fixed .seat-name-text,
+body[data-screen='game'] .east > .seat-name-fixed .seat-name-text,
+body[data-screen='game'] .west > .seat-name-fixed .seat-name-text {
+  color: var(--player-color, #f4f9fb) !important;
+}
+/* N/E/W remaining-card badge uses the same style as south. */
+body[data-screen='game'] .north > .seat-name-fixed .seat-count-tag,
+body[data-screen='game'] .east > .seat-name-fixed .seat-count-tag,
+body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
+  width: 20px !important;
+  height: 20px !important;
+  margin-left: 4px !important;
+  border-radius: 999px !important;
+  background: rgba(200, 225, 201, .16) !important;
+  border: 1px solid rgba(167, 217, 180, .56) !important;
+  color: #dcf3df !important;
+  font-size: .71rem !important;
+  font-weight: 800 !important;
+}
+/* Highlight active N/E/W panel with its seat color like south turn highlight. */
+body[data-screen='game'] .seat.north.active,
+body[data-screen='game'] .seat.east.active,
+body[data-screen='game'] .seat.west.active {
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 62%, transparent) !important;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent),
+    0 0 22px color-mix(in srgb, var(--player-color, #ffd166) 46%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--player-color, #ffd166) 12%, transparent), transparent 45%),
+    rgba(6, 18, 30, .48) !important;
+}
+body[data-screen='game'] .seat.north.active::before,
+body[data-screen='game'] .seat.east.active::before,
+body[data-screen='game'] .seat.west.active::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 68%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent),
+    0 0 26px color-mix(in srgb, var(--player-color, #ffd166) 52%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+body[data-screen='game'] .seat.north.active .seat-section,
+body[data-screen='game'] .seat.east.active .seat-section,
+body[data-screen='game'] .seat.west.active .seat-section {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Use south panel background style for N/W/E outer seat panels. */
+body[data-screen='game'] .north,
+body[data-screen='game'] .west,
+body[data-screen='game'] .east {
+  background:
+    linear-gradient(180deg, rgba(9, 26, 30, .94), rgba(8, 20, 25, .82)),
+    linear-gradient(130deg, rgba(255,255,255,.06), rgba(255,255,255,.01)) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(39, 74, 64, .75),
+    0 2px 7px rgba(0,0,0,.22) !important;
+}
+body[data-screen='game'] .north .seat-section,
+body[data-screen='game'] .west .seat-section,
+body[data-screen='game'] .east .seat-section {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+@media (min-width: 861px) {
+  /* Web view: bigger south hand cards. */
+  body[data-screen='game'] .action-strip .hand .hand-card {
+    width: calc(var(--card-w) * 1.22) !important;
+    height: calc((var(--card-w) * 1.22) * 7 / 5) !important;
+  }
+  body[data-screen='game'] .action-strip .hand {
+    min-height: calc(var(--card-h) * 1.22 + 28px) !important;
+  }
+  /* Web view: bigger discarded cards. */
+  body[data-screen='game'] .seat-played .card.mini,
+  body[data-screen='game'] .center-last .seat-played .card.mini,
+  body[data-screen='game'] .seat-last .card.mini {
+    width: calc(var(--card-w) * 1.24) !important;
+    height: calc(var(--card-h) * 1.24) !important;
+  }
+  body[data-screen='game'] .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
+    margin-left: calc(var(--card-w) * -0.5) !important;
+  }
+}
 @media (max-width: 860px) {
   body[data-screen='game'] .seat-name-fixed,
   body[data-screen='game'] .action-strip .player-tag {

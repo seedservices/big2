@@ -92,7 +92,7 @@ const I18N={
     scoreChao4:'炒四',
     scoreChaoBig:'大炒',
     scorePenaltyBoost:'加乘罰則',
-    lastCardCall:'最後一張！',
+    lastCardCall:'Last card',
     noSuggest:'而家無可用建議。',
     needScore:'',
     recPass:'建議：過牌。',
@@ -222,7 +222,7 @@ const I18N={
     scoreChao4:'Chao Four',
     scoreChaoBig:'Big Chao',
     scorePenaltyBoost:'Multiplier Penalties',
-    lastCardCall:'Last card!',
+    lastCardCall:'Last card',
     noSuggest:'No valid recommendation now.',
     needScore:'',
     recPass:'Recommended: Pass.',
@@ -289,7 +289,7 @@ const THEMES={
   cyber:{'--bg-a':'#041a25','--bg-b':'#0a3c54','--bg-c':'#0f6378','--panel':'rgba(255,255,255,0.09)','--panel-2':'rgba(6,23,35,0.68)','--table-a':'#0c2f43','--table-b':'#11506a','--table-c':'#16718a','--seat-a':'rgba(8,46,63,.84)','--seat-b':'rgba(7,31,43,.8)','--line-a':'rgba(104,225,255,.62)','--line-b':'rgba(104,225,255,.36)','--center-a':'rgba(17,97,56,.92)','--center-b':'rgba(10,66,38,.9)','--accent':'#ffe66d','--danger':'#ff5d8f','--ok':'#5ce1a7'}
 };
 const seatCls=['south','east','north','west'];
-const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#c77dff',west:'#86d989'};
+const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#86d989'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
 const runtimeProfileStore={players:{}};
 let aiTimer=null;
@@ -309,7 +309,32 @@ let leaderboardCloudRefreshInFlight=false;
 let leaderboardCloudLoaded=false;
 const sound={ctx:null,enabled:true};
 let speechPrimed=false;
-const BOT_NAMES={zh:['阿龍','小琪','天仔','阿雲','阿樂','子晴','阿彥','家豪','嘉琪','子軒'],en:['Nova','Milo','Jade','Axel','Iris','Luna','Rex','Nora','Kane','Skye']};
+const BOT_PROFILES={
+  zh:[
+    {name:'阿龍',gender:'male'},
+    {name:'小琪',gender:'female'},
+    {name:'天仔',gender:'male'},
+    {name:'阿雲',gender:'male'},
+    {name:'阿樂',gender:'male'},
+    {name:'子晴',gender:'female'},
+    {name:'阿彥',gender:'male'},
+    {name:'家豪',gender:'male'},
+    {name:'嘉琪',gender:'female'},
+    {name:'子軒',gender:'male'}
+  ],
+  en:[
+    {name:'Nova',gender:'female'},
+    {name:'Milo',gender:'male'},
+    {name:'Jade',gender:'female'},
+    {name:'Axel',gender:'male'},
+    {name:'Iris',gender:'female'},
+    {name:'Luna',gender:'female'},
+    {name:'Rex',gender:'male'},
+    {name:'Nora',gender:'female'},
+    {name:'Kane',gender:'male'},
+    {name:'Skye',gender:'female'}
+  ]
+};
 const BACK_OPTIONS=[
   {value:'blue',file:'back-blue-clean.png',label:{'zh-HK':'藍色',en:'Blue'}},
   {value:'red',file:'back-red-clean.png',label:{'zh-HK':'紅色',en:'Red'}},
@@ -453,18 +478,28 @@ function syncSessionScoreFromStore(store,{force=false}={}){
   state.solo.totals=[restored,5000,5000,5000];
 }
 async function hydrateProfileFromCloudByIdentity(identity){
-  if(!firebaseDb)return false;
+  initFirebaseIfReady();
   try{
     const ids=identityLookupIds(identity);
     if(!ids.length)return false;
-    let snap=null;
+    let data=null;
     let foundId='';
     for(const id of ids){
-      const s=await firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(id).get();
-      if(s.exists){snap=s;foundId=id;break;}
+      if(firebaseDb){
+        try{
+          const s=await firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(id).get();
+          if(s.exists){data=s.data()??{};foundId=id;break;}
+        }catch{}
+      }
+      if(!data){
+        try{
+          const d=await readProfileDocByRest(id);
+          if(d){data=d;foundId=id;break;}
+        }catch{}
+      }
     }
-    if(!snap)return false;
-    const d=snap.data()??{};
+    if(!data)return false;
+    const d=data;
     const restoredName=String(d.name??'').trim().slice(0,18);
     const restoredScore=scoreFromStoredTotal(d.totalScore);
     const restoredGender=String(d.gender??'male')==='female'?'female':'male';
@@ -523,6 +558,81 @@ function initFirebaseIfReady(){
 }
 async function ensureFirebaseWriteAuth(){
   return Boolean(firebaseDb||initFirebaseIfReady());
+}
+function toFirestoreValue(v){
+  if(v===null||v===undefined)return{nullValue:null};
+  if(typeof v==='string')return{stringValue:v};
+  if(typeof v==='boolean')return{booleanValue:v};
+  if(typeof v==='number')return Number.isFinite(v)?{integerValue:String(Math.trunc(v))}:{integerValue:'0'};
+  if(Array.isArray(v))return{arrayValue:{values:v.map(toFirestoreValue)}};
+  if(typeof v==='object'){
+    const fields={};
+    Object.entries(v).forEach(([k,val])=>{if(val!==undefined)fields[k]=toFirestoreValue(val);});
+    return{mapValue:{fields}};
+  }
+  return{stringValue:String(v)};
+}
+function fromFirestoreValue(v){
+  if(!v||typeof v!=='object')return null;
+  if('stringValue'in v)return String(v.stringValue??'');
+  if('booleanValue'in v)return Boolean(v.booleanValue);
+  if('integerValue'in v)return Number(v.integerValue??0);
+  if('doubleValue'in v)return Number(v.doubleValue??0);
+  if('nullValue'in v)return null;
+  if('arrayValue'in v)return Array.isArray(v.arrayValue?.values)?v.arrayValue.values.map(fromFirestoreValue):[];
+  if('mapValue'in v){
+    const out={};
+    const f=v.mapValue?.fields??{};
+    Object.keys(f).forEach((k)=>{out[k]=fromFirestoreValue(f[k]);});
+    return out;
+  }
+  return null;
+}
+function firestoreRestDocUrl(collection,docId){
+  const projectId=String(FIREBASE_CONFIG.projectId??'').trim();
+  const apiKey=String(FIREBASE_CONFIG.apiKey??'').trim();
+  if(!projectId||!apiKey)return'';
+  return`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/${encodeURIComponent(collection)}/${encodeURIComponent(docId)}?key=${encodeURIComponent(apiKey)}`;
+}
+async function writeProfileDocByRest(docId,data){
+  const url=firestoreRestDocUrl(FIRESTORE_LB_COLLECTION,docId);
+  if(!url)throw new Error('rest url unavailable');
+  const fields={};
+  Object.entries(data).forEach(([k,v])=>{if(v!==undefined)fields[k]=toFirestoreValue(v);});
+  const res=await fetch(url,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+  if(!res.ok){
+    const text=await res.text().catch(()=>'');
+    throw new Error(`rest write failed ${res.status} ${text}`);
+  }
+  return true;
+}
+async function readProfileDocByRest(docId){
+  const url=firestoreRestDocUrl(FIRESTORE_LB_COLLECTION,docId);
+  if(!url)throw new Error('rest url unavailable');
+  const res=await fetch(url,{method:'GET'});
+  if(res.status===404)return null;
+  if(!res.ok){
+    const text=await res.text().catch(()=>'');
+    throw new Error(`rest read failed ${res.status} ${text}`);
+  }
+  const json=await res.json();
+  const rawFields=json?.fields??{};
+  const out={};
+  Object.keys(rawFields).forEach((k)=>{out[k]=fromFirestoreValue(rawFields[k]);});
+  return out;
+}
+function buildProfilePayload(identity,entry,updatedAt){
+  return{
+    id:String(entry.id),
+    name:String(identity?.name??entry.name??'Player').slice(0,32),
+    email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),
+    gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',
+    settings:collectMainSettings(),
+    totalScore:scoreFromStoredTotal(entry.totalScore),
+    games:Number(entry.games)||0,
+    wins:Number(entry.wins)||0,
+    updatedAt:Number(updatedAt)||Date.now()
+  };
 }
 function loadGoogleSession(){
   try{
@@ -609,19 +719,21 @@ async function recordLeaderboardRound(identity,delta,won){
   entry.totalScore=scoreFromStoredTotal((Number(entry.totalScore)||5000)+value);
   entry.updatedAt=now;
   saveLeaderboardStore(store);
-  if(!(await ensureFirebaseWriteAuth()))return;
+  const payload=buildProfilePayload(identity,entry,now);
   try{
-    const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
-    await firebaseDb.runTransaction(async(tx)=>{
-      const snap=await tx.get(ref);
-      const base=snap.exists?(snap.data()??{}):{};
-      const games=Number(base.games)||0;
-      const wins=Number(base.wins)||0;
-      const totalScore=scoreFromStoredTotal((Number(base.totalScore)||5000)+value);
-      tx.set(ref,{id:String(entry.id),name:String(identity?.name??entry.name??'Player').slice(0,32),email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',settings:collectMainSettings(),games:games+1,wins:wins+(won?1:0),totalScore,updatedAt:now},{merge:true});
-    });
+    if(await ensureFirebaseWriteAuth()){
+      const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
+      await ref.set(payload,{merge:true});
+      return;
+    }
+    await writeProfileDocByRest(String(entry.id),payload);
   }catch(err){
-    console.error('leaderboard round write exception',err);
+    console.error('leaderboard round write exception (sdk)',err);
+    try{
+      await writeProfileDocByRest(String(entry.id),payload);
+    }catch(restErr){
+      console.error('leaderboard round write exception (rest)',restErr);
+    }
   }
 }
 async function syncLeaderboardProfile(identity){
@@ -632,24 +744,24 @@ async function syncLeaderboardProfile(identity){
   entry.totalScore=scoreFromStoredTotal(entry.totalScore);
   entry.settings={...(entry.settings??{}),...collectMainSettings()};
   saveLeaderboardStore(store);
-  if(!(await ensureFirebaseWriteAuth()))return false;
+  const payload=buildProfilePayload(identity,entry,entry.updatedAt);
   try{
-    const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
-    await ref.set({
-      id:String(entry.id),
-      name:String(identity?.name??entry.name??'Player').slice(0,32),
-      email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),
-      gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',
-      settings:collectMainSettings(),
-      totalScore:entry.totalScore,
-      games:Number(entry.games)||0,
-      wins:Number(entry.wins)||0,
-      updatedAt:entry.updatedAt
-    },{merge:true});
+    if(await ensureFirebaseWriteAuth()){
+      const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
+      await ref.set(payload,{merge:true});
+      return true;
+    }
+    await writeProfileDocByRest(String(entry.id),payload);
     return true;
   }catch(err){
-    console.error('leaderboard profile sync exception',err);
-    return false;
+    console.error('leaderboard profile sync exception (sdk)',err);
+    try{
+      await writeProfileDocByRest(String(entry.id),payload);
+      return true;
+    }catch(restErr){
+      console.error('leaderboard profile sync exception (rest)',restErr);
+      return false;
+    }
   }
 }
 function computeLeaderboardRowsFromStore(store,period,sort,limit){
@@ -763,30 +875,58 @@ function scoreGuideModalHtml(){
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3>${t('scoreGuideTitle')}</h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-row"><div class="score-guide-cards">${anyTwoCards}</div><p>${esc(sx.anyTwo)}</p></div><div class="score-guide-row"><div class="score-guide-cards">${topTwoCard}</div><p>${esc(sx.topTwo)}</p></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
 }
-function speakCallout(text){
+function speakCallout(text,gender='male'){
   try{
     const msg=String(text??'').trim();
     if(!msg||!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return;
     const synth=window.speechSynthesis;
+    const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|mei[-\s]?jia|xiaoxiao|xiaoyi)/i;
+    const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang)/i;
+    const voiceMeta=(v)=>`${v?.name||''} ${v?.voiceURI||''}`;
+    const byLangPrefixes=(voices,prefixes)=>voices.filter((v)=>prefixes.some((p)=>String(v.lang??'').toLowerCase().startsWith(p)));
+    const firstNonMale=(voices)=>voices.find((v)=>!maleHint.test(voiceMeta(v)))??null;
+    const firstFemale=(voices)=>voices.find((v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v)))??null;
+    const pickGenderVoice=(voices,prefixes,targetGender)=>{
+      const g=String(targetGender??'male')==='female'?'female':'male';
+      const list=byLangPrefixes((voices??[]),prefixes);
+      if(!list.length){
+        if(g==='female')return firstFemale(voices)??firstNonMale(voices)??(voices?.[0]??null);
+        const male=list?.find?.((v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v)));
+        return male??(voices?.[0]??null);
+      }
+      if(g==='female'){
+        const female=firstFemale(list);
+        if(female)return female;
+        const nonMale=firstNonMale(list);
+        if(nonMale)return nonMale;
+        return firstFemale(voices)??firstNonMale(voices)??list[0]??null;
+      }
+      const male=list.find((v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v)));
+      return male??list[0]??null;
+    };
     const setupVoice=(u,voices)=>{
       if(state.language==='en'){
-        const voice=voices.find((v)=>String(v.lang??'').toLowerCase().startsWith('en'));
+        const voice=pickGenderVoice(voices,['en'],gender)??voices.find((v)=>String(v.lang??'').toLowerCase().startsWith('en'));
         if(voice)u.voice=voice;
         u.lang='en-US';
+        u.pitch=String(gender??'male')==='female'?1.16:0.9;
       }else{
         const voice=
+          pickGenderVoice(voices,['yue','zh-hk','zh'],gender)||
           voices.find((v)=>/^yue(-|$)/i.test(String(v.lang??'')))||
           voices.find((v)=>/zh[-_]?hk/i.test(String(v.lang??'')))||
           voices.find((v)=>/cantonese|hong kong|heung gong/i.test(`${v.name||''} ${v.lang||''}`))||
+          pickGenderVoice(voices,['zh'],gender)||
           null;
         if(voice)u.voice=voice;
         u.lang=voice?String(voice.lang||'yue-HK'):'yue-HK';
+        u.pitch=String(gender??'male')==='female'?1.14:0.92;
       }
     };
     const speakNow=()=>{
       const u=new SpeechSynthesisUtterance(msg.replace(/[!!]/g,''));
       u.rate=1.02;
-      u.pitch=1;
+      u.pitch=String(gender??'male')==='female'?1.12:0.94;
       const voices=synth.getVoices?.()??[];
       setupVoice(u,voices);
       synth.resume?.();
@@ -893,8 +1033,143 @@ function hashNameSeed(name){
   return h>>>0;
 }
 function pick(arr,seed,offset=0){return arr[(seed+offset)%arr.length];}
+const AVATAR_BASE_SRC={male:withBase('avatar-male.png'),female:withBase('avatar-female.png')};
+const AVATAR_RECOLOR_VERSION='v2';
+const avatarRecolorCache=new Map();
+const avatarRecolorPending=new Set();
+const avatarImageCache=new Map();
+const avatarClothesMaskCache=new Map();
+function clamp255(v){return Math.max(0,Math.min(255,Math.round(v)));}
+function normalizeAvatarColor(color){
+  const raw=String(color??'').trim();
+  if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw)){
+    if(raw.length===4)return`#${raw[1]}${raw[1]}${raw[2]}${raw[2]}${raw[3]}${raw[3]}`.toLowerCase();
+    return raw.toLowerCase();
+  }
+  const m=raw.match(/^rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if(m){
+    const r=clamp255(Number(m[1])),g=clamp255(Number(m[2])),b=clamp255(Number(m[3]));
+    return`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  }
+  return '#7aaed8';
+}
+function hexToRgb(hex){
+  const h=normalizeAvatarColor(hex);
+  return{r:parseInt(h.slice(1,3),16),g:parseInt(h.slice(3,5),16),b:parseInt(h.slice(5,7),16)};
+}
+function colorDistSq(r1,g1,b1,r2,g2,b2){
+  const dr=r1-r2,dg=g1-g2,db=b1-b2;
+  return dr*dr+dg*dg+db*db;
+}
+function computeAvatarClothesMask(data,w,h){
+  const yMin=Math.floor(h*0.42);
+  const xMin=Math.floor(w*0.2);
+  const xMax=Math.ceil(w*0.8);
+  let seedX=-1,seedY=-1,seedR=0,seedG=0,seedB=0,best=-1;
+  for(let y=h-1;y>=yMin;y--){
+    for(let x=xMin;x<xMax;x++){
+      const i=(y*w+x)*4;
+      const a=data[i+3];
+      if(a<40)continue;
+      const r=data[i],g=data[i+1],b=data[i+2];
+      const max=Math.max(r,g,b),min=Math.min(r,g,b);
+      const sat=max-min;
+      if(sat<18)continue;
+      const skinLike=(r>g&&g>b&&r>90&&b<140&&(r-g)<95);
+      if(skinLike)continue;
+      const score=sat+(y/h)*48-Math.abs(x-(w/2))*0.45;
+      if(score>best){
+        best=score;
+        seedX=x;seedY=y;seedR=r;seedG=g;seedB=b;
+      }
+    }
+  }
+  const mask=new Uint8Array(w*h);
+  if(seedX<0)return mask;
+  const qx=[seedX];
+  const qy=[seedY];
+  mask[seedY*w+seedX]=1;
+  const tolSq=145*145;
+  for(let qi=0;qi<qx.length;qi++){
+    const x=qx[qi],y=qy[qi];
+    const next=[[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+    for(const [nx,ny] of next){
+      if(nx<0||ny<0||nx>=w||ny>=h||ny<yMin)continue;
+      const p=ny*w+nx;
+      if(mask[p])continue;
+      const i=p*4;
+      if(data[i+3]<24)continue;
+      const r=data[i],g=data[i+1],b=data[i+2];
+      if(colorDistSq(r,g,b,seedR,seedG,seedB)>tolSq)continue;
+      mask[p]=1;
+      qx.push(nx);
+      qy.push(ny);
+    }
+  }
+  return mask;
+}
+function getAvatarClothesMask(img,gender,data,w,h){
+  const g=String(gender??'male')==='female'?'female':'male';
+  const key=`${g}|${w}x${h}`;
+  const cached=avatarClothesMaskCache.get(key);
+  if(cached)return cached;
+  const mask=computeAvatarClothesMask(data,w,h);
+  avatarClothesMaskCache.set(key,mask);
+  return mask;
+}
+function recolorAvatarClothes(img,seatColor,gender='male'){
+  const canvas=document.createElement('canvas');
+  canvas.width=img.naturalWidth||img.width;
+  canvas.height=img.naturalHeight||img.height;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  if(!ctx)return null;
+  ctx.drawImage(img,0,0);
+  const frame=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data=frame.data;
+  const t=hexToRgb(seatColor);
+  const mask=getAvatarClothesMask(img,gender,data,canvas.width,canvas.height);
+  for(let p=0;p<mask.length;p++){
+    if(!mask[p])continue;
+    const i=p*4;
+    const shade=(data[i]+data[i+1]+data[i+2])/765;
+    const k=0.52+(shade*0.98);
+    data[i]=clamp255(t.r*k);
+    data[i+1]=clamp255(t.g*k);
+    data[i+2]=clamp255(t.b*k);
+  }
+  ctx.putImageData(frame,0,0);
+  return canvas.toDataURL('image/png');
+}
+function ensureAvatarImageLoaded(gender){
+  const g=String(gender??'male')==='female'?'female':'male';
+  if(avatarImageCache.has(g))return Promise.resolve(avatarImageCache.get(g));
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{avatarImageCache.set(g,img);resolve(img);};
+    img.onerror=()=>reject(new Error(`avatar load failed: ${g}`));
+    img.src=AVATAR_BASE_SRC[g];
+  });
+}
+function scheduleAvatarRecolor(gender,seatColor){
+  const g=String(gender??'male')==='female'?'female':'male';
+  const c=normalizeAvatarColor(seatColor);
+  const key=`${AVATAR_RECOLOR_VERSION}|${g}|${c}`;
+  if(avatarRecolorCache.has(key)||avatarRecolorPending.has(key))return;
+  avatarRecolorPending.add(key);
+  ensureAvatarImageLoaded(g).then((img)=>{
+    const recolored=recolorAvatarClothes(img,c,g);
+    if(recolored)avatarRecolorCache.set(key,recolored);
+    if(state.screen==='game')render();
+  }).catch(()=>{}).finally(()=>avatarRecolorPending.delete(key));
+}
 function avatarDataUri(name,color,gender='male'){
-  return withBase(String(gender??'male')==='female'?'avatar-female.png':'avatar-male.png');
+  const g=String(gender??'male')==='female'?'female':'male';
+  const c=normalizeAvatarColor(color);
+  const key=`${AVATAR_RECOLOR_VERSION}|${g}|${c}`;
+  const cached=avatarRecolorCache.get(key);
+  if(cached)return cached;
+  scheduleAvatarRecolor(g,c);
+  return AVATAR_BASE_SRC[g];
 }
 const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
@@ -1094,16 +1369,39 @@ const opponentFanStyleByName=(name)=>{
   return'';
 };
 const hasAnyBeatingPlay=(hand,lastPlay,isFirst)=>{if(isFirst)return allValidPlays(hand).some((e)=>has3d(e.cards));if(!lastPlay)return allValidPlays(hand).length>0;return allValidPlays(hand).some((e)=>canBeat(e.eval,lastPlay.eval));};
-function randomBotNames(){const list=state.language==='en'?BOT_NAMES.en:BOT_NAMES.zh;const bag=[...list];const out=[];while(out.length<3){if(!bag.length)bag.push(...list);const idx=Math.floor(Math.random()*bag.length);out.push(bag.splice(idx,1)[0]);}return out;}
+function randomBotProfiles(){
+  const list=state.language==='en'?BOT_PROFILES.en:BOT_PROFILES.zh;
+  const bag=[...list];
+  const out=[];
+  while(out.length<3){
+    if(!bag.length)bag.push(...list);
+    const idx=Math.floor(Math.random()*bag.length);
+    const picked=bag.splice(idx,1)[0];
+    out.push({name:picked.name,gender:picked.gender==='female'?'female':'male'});
+  }
+  return out;
+}
+function randomBotNames(){return randomBotProfiles().map((p)=>p.name);}
 function botGenderByName(name){
   const n=String(name??'').trim();
-  const map={
-    '阿龍':'male','小琪':'female','天仔':'male','阿雲':'male','阿樂':'male','子晴':'female','阿彥':'male','家豪':'male','嘉琪':'female','子軒':'male',
-    'Nova':'female','Milo':'male','Jade':'female','Axel':'male','Iris':'female','Luna':'female','Rex':'male','Nora':'female','Kane':'male','Skye':'female'
-  };
+  const map=Object.fromEntries(
+    [...BOT_PROFILES.zh,...BOT_PROFILES.en].map((p)=>[p.name,p.gender==='female'?'female':'male'])
+  );
   return map[n]??(Math.random()<0.5?'female':'male');
 }
-function relabelSoloBots(){if(state.home.mode!=='solo'||!state.solo.players.length)return;const keys=state.solo.botNames?.length===3?state.solo.botNames:randomBotNames();state.solo.botNames=keys;state.solo.players=state.solo.players.map((p,i)=>i===0?p:{...p,name:keys[i-1],gender:botGenderByName(keys[i-1])});}
+function relabelSoloBots(){
+  if(state.home.mode!=='solo'||!state.solo.players.length)return;
+  const byProfile=Array.isArray(state.solo.botProfiles)&&state.solo.botProfiles.length===3
+    ?state.solo.botProfiles.map((p)=>({name:String(p.name??''),gender:String(p.gender??'male')==='female'?'female':'male'}))
+    :null;
+  const byName=Array.isArray(state.solo.botNames)&&state.solo.botNames.length===3
+    ?state.solo.botNames.map((name)=>({name:String(name??''),gender:botGenderByName(name)}))
+    :null;
+  const profiles=(byProfile??byName??randomBotProfiles()).slice(0,3);
+  state.solo.botProfiles=profiles;
+  state.solo.botNames=profiles.map((p)=>p.name);
+  state.solo.players=state.solo.players.map((p,i)=>i===0?p:{...p,name:profiles[i-1].name,gender:profiles[i-1].gender});
+}
 
 const suitName=(s)=>['diamond','club','heart','spade'][s]??'club';
 const cardImagePath=(card)=>withBase(`card-assets/${suitName(card.suit)}-${RANKS[card.rank]}.png`);
@@ -1124,7 +1422,7 @@ function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0)
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){const names=randomBotNames();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:names[0],gender:botGenderByName(names[0]),hand:[],isHuman:false},{name:names[1],gender:botGenderByName(names[1]),hand:[],isHuman:false},{name:names[2],gender:botGenderByName(names[2]),hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botNames:names,totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:`${p[start].name} ${t('start')}`,history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:`${p[start].name} ${t('start')}`,history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)g.status=ev.reason;return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)g.status=t('must3');return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)g.status=t('beat');return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
@@ -1243,6 +1541,13 @@ function centerLastMovesHtml(lastActions,selfSeat){
     return`<div class="center-last center-last-${cls}">${seatLastActionHtml(action)}</div>`;
   }).join('');
 }
+function seatGenderBySeat(v,seat){
+  const fromParticipants=v?.participants?.find?.((p)=>p.seat===seat)?.gender;
+  if(fromParticipants==='female'||fromParticipants==='male')return fromParticipants;
+  const fromSolo=state?.solo?.players?.[seat]?.gender;
+  if(fromSolo==='female'||fromSolo==='male')return fromSolo;
+  return'male';
+}
 function currentLastCardSeat(v){
   const now=Date.now();
   const history=v.history??[];
@@ -1270,7 +1575,7 @@ function currentLastCardSeat(v){
   lastCardCallState.seat=latest.seat;
   lastCardCallState.until=now+1500;
   lastCardCallState.startedAt=now;
-  speakCallout(t('lastCardCall'));
+  speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat));
   if(lastCardCallTimer)clearTimeout(lastCardCallTimer);
   lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;render();},1550);
   return latest.seat;
@@ -1294,7 +1599,7 @@ function currentPlayTypeCall(v){
     playTypeCallState.text=`${kindLabel(lastPlay.kind)}!`;
     playTypeCallState.until=now+1500;
     playTypeCallState.startedAt=now;
-    speakCallout(playTypeCallState.text);
+    speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat));
     if(playTypeCallTimer)clearTimeout(playTypeCallTimer);
     playTypeCallTimer=window.setTimeout(()=>{playTypeCallTimer=null;playTypeCallState.until=0;playTypeCallState.startedAt=0;render();},1550);
   }
@@ -1447,21 +1752,24 @@ function renderGame(){
     const active=v.currentSeat===p.seat&&!v.gameOver;
     const pColor=playerColorByViewClass(p.cls);
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
-    const labelName=`<div class="name"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarDataUri(p.name,pColor,p.gender)}" alt="${esc(p.name)}"/><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span><span class="seat-count-tag">${p.count}</span></div>`;
+    const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
+    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"/></span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span><span class="seat-count-tag">${p.count}</span></div>`;
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
     const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
     const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
-    const glass='border:1px solid rgba(255,255,255,.16) !important;background:linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)) !important;box-shadow:inset 0 0 0 1px rgba(8,25,42,.65) !important;border-radius:12px !important;';
+    const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.12), rgba(255,255,255,.03)),rgba(8, 24, 38, .34) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
-    const sectionStyle=(p.cls==='east'||p.cls==='west')?innerNoOutline:glass;
+    const sectionStyle=innerNoOutline;
     return`<div class="seat ${p.cls} ${active?'active':''}" style="${shellStyle}">${outerLabel}${playCallHtml}${lastCardHtml}<div class="seat-pack seat-section" style="${sectionStyle}"><div class="opponent-fan ${opponentFanStyleByName(p.rawName||p.name)}">${fan}</div></div></div>`;
   }).join('');
   const selfScore=self?selfScoreValue:0;
   const selfName=self?self.name:t('name');
   const selfCount=self?self.count:0;
   const selfGender=self?.gender??state.home.gender??'male';
-  const selfAvatar=`<img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${playerColorByViewClass('south')};" src="${avatarDataUri(selfName,playerColorByViewClass('south'),selfGender)}" alt="${esc(selfName)}"/>`;
+  const selfSeatColor=playerColorByViewClass('south');
+  const selfAvatarSrc=avatarDataUri(selfName,selfSeatColor,selfGender);
+  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" alt="${esc(selfName)}"/></span>`;
   const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
   const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
   const isMobile=isMobilePointer();
