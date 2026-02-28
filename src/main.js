@@ -358,12 +358,12 @@ function mainPageLegalMiniHtml(){
     ?'本網站提供《鋤大D / Big Two》網頁版遊戲，讓玩家可於不同裝置進行單機對局及查看排行。'
     :'This website provides a browser version of Big Two for cross-device solo gameplay and leaderboard tracking.';
   const contact=zh
-    ?'如有查詢，請電郵至 support@big2.hk。'
-    :'For enquiries, email support@big2.hk.';
+    ?'如有查詢，請電郵至 seedservices32@gmail.com。'
+    :'For enquiries, email seedservices32@gmail.com.';
   const terms=zh
     ?'使用本網站即表示你同意網站規則、排行榜機制及一般網絡使用條款；如有濫用行為，系統可限制功能。'
     :'By using this site, you agree to the game rules, leaderboard logic, and standard website terms. Misuse may result in feature restrictions.';
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">Privacy Policy</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">About Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">Contact Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">Terms and Conditions</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:support@big2.hk">support@big2.hk</a>。`:`For enquiries, email <a href="mailto:support@big2.hk">support@big2.hk</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
+  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">Privacy Policy</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">About Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">Contact Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">Terms and Conditions</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>。`:`For enquiries, email <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
 }
 const introText=()=>state.language==='en'
   ?{
