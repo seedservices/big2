@@ -124,7 +124,7 @@ button.primary { background: linear-gradient(140deg, #ffd166, var(--accent)); co
 button.secondary { background: rgba(255, 255, 255, 0.17); color: var(--text); }
 button.accent { background: linear-gradient(120deg, #9ff2b5, var(--ok)); color: #092f16; }
 button.danger { background: var(--danger); color: #fff; }
-.home-wrap { display: grid; gap: 10px; padding-top: 0; padding-bottom: 0; max-width: 860px; margin: 0 auto; }
+.home-wrap { display: grid; gap: 10px; padding-top: 0; padding-bottom: 0; max-width: 860px; margin: 0 auto; min-height: calc(100dvh - 20px); }
 .hero { padding: 0 clamp(15px, 3.7vw, 24px); border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.03)); }
 .hero-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .74rem; background: rgba(255,255,255,.14); margin-bottom: 7px; }
 .hero h1 { font-size: clamp(1.5rem, 4.8vw, 2.5rem); }
@@ -291,6 +291,62 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   background: var(--accent);
 }
 .lobby-panel { border-radius: 12px; padding: 10px; background: var(--panel); display: grid; gap: 7px; }
+.legal-mini {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.14);
+  display: grid;
+  gap: 6px;
+}
+.legal-mini-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.legal-mini-link {
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  font-size: .67rem;
+  line-height: 1.1;
+  color: rgba(226, 236, 240, .86);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.legal-mini-link:hover,
+.legal-mini-link.active {
+  color: #ffd166;
+}
+.legal-mini-sep {
+  font-size: .64rem;
+  color: rgba(200,214,222,.7);
+  line-height: 1;
+}
+.legal-mini-panels {
+  display: grid;
+  justify-items: stretch;
+}
+.legal-mini-panel {
+  display: none;
+  font-size: .7rem;
+  line-height: 1.32;
+  color: rgba(220, 234, 240, .88);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  padding: 6px 7px;
+}
+.legal-mini-panel.open {
+  display: block;
+}
+.legal-mini-panel a {
+  color: #ffd166;
+}
 .server-room-panel { gap: 8px; }
 .server-room-grid { grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr); }
 .lobby-list { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -2000,6 +2056,22 @@ body[data-screen='game'] .history-list {
     justify-content: flex-start;
   }
 }
+@media (max-width: 860px) and (orientation: landscape) {
+  /* Mobile landscape: keep right (east) play-history visible near edge. */
+  body[data-screen='game'] .center-last-east {
+    right: 2px !important;
+    max-width: 34% !important;
+    overflow: visible !important;
+  }
+  body[data-screen='game'] .center-last-east .seat-played {
+    justify-content: flex-end !important;
+    padding-right: 2px;
+    overflow: visible !important;
+  }
+  body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
+    margin-right: calc(var(--card-w) * -0.42) !important;
+  }
+}
 body[data-orientation='portrait'] .table { --table-tilt: 0deg; }
 body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
 
@@ -2525,6 +2597,10 @@ body[data-screen='game'] .east .seat-section {
   box-shadow: none !important;
   border: 0 !important;
 }
+/* Remove remaining-card number badges for all players in game view. */
+body[data-screen='game'] .seat-count-tag {
+  display: none !important;
+}
 @media (min-width: 861px) {
   /* Web view: bigger south hand cards. */
   body[data-screen='game'] .action-strip .hand .hand-card {
@@ -2551,6 +2627,26 @@ body[data-screen='game'] .east .seat-section {
   body[data-screen='game'] .action-strip .player-tag {
     min-height: 32px;
     padding: 2px 7px !important;
+  }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  /* Mobile portrait: keep buttons in one row with compact sizing. */
+  .topbar-right .control-row,
+  .action-strip .control-row {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 4px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .topbar-right .control-row button,
+  .action-strip .control-row button {
+    padding: 4px 7px !important;
+    font-size: .74rem !important;
+    border-radius: 8px !important;
+    min-height: 32px !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto;
   }
 }
 
