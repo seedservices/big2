@@ -278,7 +278,7 @@ const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTou
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
-const FIRESTORE_LB_COLLECTION='big2LeaderboardScoresV2';
+const FIRESTORE_LB_COLLECTION='big2LeaderboardPlayers';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -291,6 +291,7 @@ const THEMES={
 const seatCls=['south','east','north','west'];
 const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#c77dff',west:'#86d989'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
+const runtimeProfileStore={players:{}};
 let aiTimer=null;
 let playTypeCallTimer=null;
 const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0};
@@ -405,15 +406,11 @@ function fmtDateTime(ts){
 }
 function fmtPct(n){return `${Math.round((Number(n)||0)*100)}%`;}
 function loadLeaderboardStore(){
-  try{
-    const raw=localStorage.getItem(LEADERBOARD_KEY);
-    const parsed=raw?JSON.parse(raw):null;
-    if(parsed&&typeof parsed==='object'&&parsed.players&&typeof parsed.players==='object')return parsed;
-  }catch{}
-  return{players:{}};
+  return runtimeProfileStore;
 }
 function saveLeaderboardStore(store){
-  try{localStorage.setItem(LEADERBOARD_KEY,JSON.stringify(store));}catch{}
+  if(!store||typeof store!=='object')return;
+  runtimeProfileStore.players=store.players&&typeof store.players==='object'?store.players:{};
 }
 function clampScoreValue(v){
   const n=Number(v);
@@ -515,54 +512,39 @@ async function hydrateProfileFromCloudByIdentity(identity){
 }
 function initFirebaseIfReady(){
   try{
-    if(firebaseAuth&&firebaseDb)return true;
+    if(firebaseDb)return true;
     const fb=window.firebase;
     if(!fb)return false;
     if(!fb.apps?.length)firebaseApp=fb.initializeApp(FIREBASE_CONFIG);else firebaseApp=fb.app();
-    firebaseAuth=fb.auth();
+    firebaseAuth=fb.auth?.();
     firebaseDb=fb.firestore();
-    firebaseAuth.onAuthStateChanged((user)=>{
-      if(user){
-        const displayName=String(user.displayName??'').trim().slice(0,18);
-        const email=String(user.email??'').trim().toLowerCase().slice(0,120);
-        state.home.google={signedIn:true,name:displayName,email,uid:String(user.uid??''),sub:state.home.google.sub||String(user.uid??''),token:''};
-        saveGoogleSession();
-        syncSessionNameFromStore(loadLeaderboardStore());
-        void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then((ok)=>{if(ok&&state.home.showLeaderboard)refreshLeaderboard();render();});
-      }else{
-        // Keep local session payload so login status survives refresh.
-      }
-      if(state.home.showLeaderboard)refreshLeaderboard(true);
-      syncSessionScoreFromStore(loadLeaderboardStore());
-      render();
-    });
     return true;
   }catch{return false;}
+}
+async function ensureFirebaseWriteAuth(){
+  return Boolean(firebaseDb||initFirebaseIfReady());
 }
 function loadGoogleSession(){
   try{
     const raw=localStorage.getItem(GOOGLE_SESSION_KEY);
     const parsed=raw?JSON.parse(raw):null;
-    if(!parsed||typeof parsed!=='object')return;
-    const signedIn=Boolean(parsed.signedIn);
-    const googleName=String(parsed.googleName??parsed.name??'').trim().slice(0,18);
-    const appName=String(parsed.appName??'').trim().slice(0,18);
-    const email=String(parsed.email??'').trim().toLowerCase().slice(0,120);
-    const uid=String(parsed.uid??'').trim().slice(0,128);
-    const sub=String(parsed.sub??'').trim().slice(0,64);
-    const gender=String(parsed.gender??'male')==='female'?'female':'male';
-    if(!signedIn||!email)return;
-    state.home.google={signedIn:true,name:googleName,email,uid,sub,token:''};
-    if(appName)state.home.name=appName;
-    state.home.gender=gender;
-    syncSessionNameFromStore(loadLeaderboardStore());
-    syncSessionScoreFromStore(loadLeaderboardStore());
+    const email=String(parsed?.email??'').trim().toLowerCase().slice(0,120);
+    if(!email)return;
+    state.home.google={...state.home.google,signedIn:true,email};
+    if(initFirebaseIfReady()){
+      void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
+    }
   }catch{}
 }
 function saveGoogleSession(){
-  const g=state.home.google;
-  const payload={signedIn:Boolean(g.signedIn),googleName:String(g.name??'').slice(0,18),appName:String(state.home.name??'').slice(0,18),email:String(g.email??'').toLowerCase().slice(0,120),uid:String(g.uid??'').slice(0,128),sub:String(g.sub??'').slice(0,64),gender:String(state.home.gender??'male')==='female'?'female':'male'};
-  try{localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify(payload));}catch{}
+  try{
+    const email=String(state.home.google.email??'').trim().toLowerCase().slice(0,120);
+    if(!email){
+      localStorage.removeItem(GOOGLE_SESSION_KEY);
+      return;
+    }
+    localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify({email}));
+  }catch{}
 }
 function clearGoogleSession(){
   try{localStorage.removeItem(GOOGLE_SESSION_KEY);}catch{}
@@ -627,7 +609,7 @@ async function recordLeaderboardRound(identity,delta,won){
   entry.totalScore=scoreFromStoredTotal((Number(entry.totalScore)||5000)+value);
   entry.updatedAt=now;
   saveLeaderboardStore(store);
-  if(!firebaseDb)return;
+  if(!(await ensureFirebaseWriteAuth()))return;
   try{
     const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
     await firebaseDb.runTransaction(async(tx)=>{
@@ -645,12 +627,12 @@ async function recordLeaderboardRound(identity,delta,won){
 async function syncLeaderboardProfile(identity){
   const store=loadLeaderboardStore();
   const entry=ensureLeaderboardEntry(store,identity);
-  if(!entry)return;
+  if(!entry)return false;
   entry.updatedAt=Date.now();
   entry.totalScore=scoreFromStoredTotal(entry.totalScore);
   entry.settings={...(entry.settings??{}),...collectMainSettings()};
   saveLeaderboardStore(store);
-  if(!firebaseDb)return;
+  if(!(await ensureFirebaseWriteAuth()))return false;
   try{
     const ref=firebaseDb.collection(FIRESTORE_LB_COLLECTION).doc(String(entry.id));
     await ref.set({
@@ -664,8 +646,10 @@ async function syncLeaderboardProfile(identity){
       wins:Number(entry.wins)||0,
       updatedAt:entry.updatedAt
     },{merge:true});
+    return true;
   }catch(err){
     console.error('leaderboard profile sync exception',err);
+    return false;
   }
 }
 function computeLeaderboardRowsFromStore(store,period,sort,limit){
@@ -820,20 +804,28 @@ function speakCallout(text){
   }catch{}
 }
 function parseJwtPayload(token){try{const p=String(token??'').split('.')[1];if(!p)return null;const b=p.replace(/-/g,'+').replace(/_/g,'/');const json=decodeURIComponent(atob(b).split('').map((c)=>`%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(''));return JSON.parse(json);}catch{return null;}}
+function isDefaultPlayerName(name){
+  const s=String(name??'').trim();
+  if(!s)return true;
+  return s==='玩家'||s.toLowerCase()==='player';
+}
 async function handleCredentialResponse(response){
   const token=String(response?.credential??'').trim();
   if(!token)return;
   const p=parseJwtPayload(token)??{};
-  try{
-    if(firebaseAuth&&window.firebase?.auth?.GoogleAuthProvider){
-      const cred=window.firebase.auth.GoogleAuthProvider.credential(token);
-      await firebaseAuth.signInWithCredential(cred);
+  const wasDefaultName=isDefaultPlayerName(state.home.name);
+  initFirebaseIfReady();
+  const email=String(p.email??'').trim().toLowerCase().slice(0,120);
+  const signedIn=Boolean(email);
+  state.home.google={signedIn,name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token};
+  if(signedIn){
+    const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
+    if(!hydrated&&wasDefaultName&&state.home.google.name){
+      state.home.name=state.home.google.name;
     }
-  }catch{}
-  state.home.google={signedIn:true,name:String(p.name??'').slice(0,18),email:String(p.email??'').trim().toLowerCase().slice(0,120),uid:String(firebaseAuth?.currentUser?.uid??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token:''};
-  saveGoogleSession();
-  syncSessionNameFromStore(loadLeaderboardStore());
-  void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then((ok)=>{if(ok&&state.home.showLeaderboard)refreshLeaderboard();render();});
+    await syncLeaderboardProfile(currentLeaderboardIdentity());
+    if(state.home.showLeaderboard)refreshLeaderboard(true);
+  }
   render();
 }
 function clearGoogleInlineRetry(){if(googleInlineRetryTimer){clearTimeout(googleInlineRetryTimer);googleInlineRetryTimer=null;}}
@@ -858,6 +850,9 @@ function queueGoogleInlineRender(){
 window.onGoogleScriptLoaded=()=>{if(state.screen==='home')queueGoogleInlineRender();};
 function bootFirebase(attempt=0){
   if(initFirebaseIfReady()){
+    if(state.home.google.signedIn&&state.home.google.email){
+      void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
+    }
     refreshLeaderboard(true);
     return;
   }
@@ -1364,6 +1359,7 @@ function backAssetFile(value){
 function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/><span class="back-label">${opt.label[state.language]??opt.value}</span></button>`).join('');
 }
+const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function renderHome(){
   const intro=introText();
   const signedIn=Boolean(state.home.google.signedIn&&state.home.google.email);
@@ -1396,7 +1392,7 @@ function renderHome(){
     const lb=document.querySelector('.sound-switch-label');
     if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
   });
-  document.getElementById('solo-start')?.addEventListener('click',()=>{if(!(state.home.google.signedIn&&state.home.google.email))return;unlockAudio();state.home.mode='solo';void syncLeaderboardProfile(currentLeaderboardIdentity());startSoloGame();});
+  document.getElementById('solo-start')?.addEventListener('click',async()=>{if(!(state.home.google.signedIn&&state.home.google.email))return;unlockAudio();state.home.mode='solo';initFirebaseIfReady();let synced=false;for(let i=0;i<4&&!synced;i++){synced=await syncLeaderboardProfile(currentLeaderboardIdentity());if(!synced)await waitMs(250);}if(!synced){console.error('start blocked: firebase profile sync failed');state.home.showLeaderboard=true;render();return;}startSoloGame();});
   document.getElementById('lb-refresh')?.addEventListener('click',()=>{refreshLeaderboard(true);render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
