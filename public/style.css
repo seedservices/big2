@@ -62,12 +62,17 @@ body[data-screen='game'] #app {
 h1, h2, h3, p { margin: 0; }
 .game-title {
   font-family: 'Ma Shan Zheng', cursive;
-  font-size: clamp(2.4rem, 5.6vw, 4rem);
+  font-size: clamp(2.2rem, 5.1vw, 3.55rem);
   font-weight: 400;
   line-height: 1;
   letter-spacing: .01em;
-  color: #f59e0b;
-  text-shadow: 0 2px 10px rgba(196, 139, 54, 0.5);
+  color: #f1d084;
+  text-shadow:
+    -1px -1px 0 rgba(39, 24, 9, .9),
+    1px -1px 0 rgba(39, 24, 9, .9),
+    -1px 1px 0 rgba(39, 24, 9, .9),
+    1px 1px 0 rgba(39, 24, 9, .9),
+    0 5px 10px rgba(0,0,0,.38);
 }
 .game-title-wrap {
   display: inline-flex;
@@ -82,13 +87,13 @@ h1, h2, h3, p { margin: 0; }
 }
 .game-title-sub {
   font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
-  font-size: clamp(.72rem, 1.05vw, .9rem);
-  font-weight: 400;
-  letter-spacing: .5em;
-  color: rgba(253, 230, 138, 0.5);
+  font-size: clamp(.64rem, .94vw, .8rem);
+  font-weight: 600;
+  letter-spacing: .31em;
+  color: rgba(242, 230, 198, .92);
   text-transform: uppercase;
   line-height: 1;
-  padding-top: .2em;
+  padding-top: .12em;
   white-space: nowrap;
 }
 .topbar .game-title {
@@ -119,7 +124,7 @@ button.danger { background: var(--danger); color: #fff; }
   font-size: clamp(.95rem, 2.4vw, 1.25rem);
   font-weight: 700;
 }
-.home-panel { padding: 12px; border-radius: 18px; background: var(--panel-2); border: 1px solid rgba(255,255,255,.15); display: grid; gap: 10px; }
+.home-panel { padding: 12px; border-radius: 18px; background: linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)), rgba(6, 18, 30, .48); border: 1px solid rgba(255,255,255,.16); display: grid; gap: 10px; }
 .field-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
 .field { display: grid; gap: 5px; }
 .field span { font-size: .82rem; color: var(--muted); }
@@ -927,6 +932,20 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   vertical-align: middle;
   margin-right: 6px;
 }
+.player-avatar {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.36);
+  box-shadow: 0 1px 4px rgba(0,0,0,.28);
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.player-avatar.mini {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+}
 .table-center-stack {
   grid-area: center;
   position: relative;
@@ -1085,18 +1104,27 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   white-space: nowrap;
 }
 .table-center-grid-wrap {
-  border: 1px solid var(--line-a);
+  border: 1px solid rgba(255,255,255,.16) !important;
   border-radius: 12px;
   background:
-    radial-gradient(circle at 20% 25%, rgba(255, 255, 255, .08), transparent 42%),
-    radial-gradient(circle at 78% 76%, rgba(255, 255, 255, .06), transparent 40%),
-    linear-gradient(160deg, var(--center-a), var(--center-b));
+    linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)),
+    rgba(255,255,255,.02) !important;
   padding: 6px;
   width: 100%;
   height: 100%;
   max-height: 100%;
   overflow: hidden auto;
   box-shadow: inset 0 0 0 1px rgba(8, 25, 42, .65);
+}
+
+.north .seat-section,
+.east,
+.west {
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background:
+    linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)),
+    rgba(255,255,255,.02) !important;
+  box-shadow: inset 0 0 0 1px rgba(8, 25, 42, .65) !important;
 }
 .center-move-grid {
   display: grid;
@@ -1262,7 +1290,8 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 
 /* Opponent-specific panel color shades */
-.north .seat-section { background: linear-gradient(160deg, var(--seat-a), var(--seat-b)); }
+/* Keep neutral so all opponent panels match topbar glass style. */
+.north .seat-section { background: none; }
 
 /* Ensure panel spacing stays consistent */
 .north .seat-label { margin-bottom: 6px; }
@@ -1386,15 +1415,17 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  background: rgba(7, 22, 34, .74);
-  border: 1px solid color-mix(in srgb, var(--player-color, #f4f9fb) 72%, white 28%);
+  background: var(--player-color, #ffd166);
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 70%, black 30%);
   border-radius: 999px;
-  color: color-mix(in srgb, var(--player-color, #f4f9fb) 82%, #f4f9fb 18%);
+  color: #102619;
   font-family: inherit;
   font-style: normal;
   font-size: .84rem;
   font-weight: 700;
 }
+.action-strip .player-tag .player-color-chip { display: none !important; }
+.action-strip .player-tag .name { gap: 0; }
 .action-strip.active {
   border-color: color-mix(in srgb, var(--player-color, #ffd166) 62%, transparent);
   box-shadow:
@@ -1849,6 +1880,21 @@ body[data-screen='game'] .side-zone.log-collapsed {
     -webkit-overflow-scrolling: touch;
     padding-bottom: 2px;
   }
+  .action-strip #auto-seq-btn,
+  .action-strip #auto-pattern-btn,
+  .drag-popup {
+    display: none !important;
+  }
+  .action-strip .hand {
+    overflow: visible;
+    justify-content: center;
+    padding-left: 8px;
+    padding-right: 8px;
+    transform-origin: center center;
+  }
+  .action-strip .hand .hand-card + .hand-card {
+    margin-left: calc(var(--card-w) * -0.66) !important;
+  }
   .action-strip .control-row button {
     min-height: 40px;
     white-space: nowrap;
@@ -2054,6 +2100,89 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
+}
+
+/* Final game-panel override: keep center + opponent panels visually aligned with topbar glass style. */
+body[data-screen='game'] .table-center-grid-wrap,
+body[data-screen='game'] .north,
+body[data-screen='game'] .east,
+body[data-screen='game'] .west,
+body[data-screen='game'] .north .seat-section {
+  border: 1px solid rgba(255,255,255,.16) !important;
+  background: linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)) !important;
+  box-shadow: inset 0 0 0 1px rgba(8,25,42,.65) !important;
+}
+
+/* Slightly darker N/S/W/E panels with the same tint strength */
+body[data-screen='game'] .north,
+body[data-screen='game'] .east,
+body[data-screen='game'] .west,
+body[data-screen='game'] .action-strip {
+  background:
+    linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)),
+    rgba(6, 18, 30, .48) !important;
+}
+
+/* Game table shell: remove fill so enclosing panel is transparent. */
+body[data-screen='game'] .table {
+  background: transparent !important;
+}
+
+/* Actual play surface: green felt. */
+body[data-screen='game'] .table-center-stack {
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  background:
+    radial-gradient(circle at 26% 22%, rgba(168, 235, 188, .16), transparent 42%),
+    radial-gradient(circle at 76% 76%, rgba(90, 170, 120, .14), transparent 44%),
+    linear-gradient(165deg, #1e6a3f 0%, #175736 56%, #12472c 100%);
+  box-shadow: inset 0 0 0 1px rgba(8,25,42,.5);
+}
+
+/* Discard zone felt tone (snooker green). */
+body[data-screen='game'] .table-center-grid-wrap {
+  border-color: rgba(214, 244, 224, .34) !important;
+  background:
+    radial-gradient(circle at 24% 20%, rgba(176, 238, 196, .18), transparent 38%),
+    radial-gradient(circle at 78% 74%, rgba(112, 182, 138, .16), transparent 40%),
+    linear-gradient(165deg, #1f6f44 0%, #185b39 58%, #134a2f 100%) !important;
+}
+
+/* Name badges for all seats (S/N/W/E): outlined with light text, no color dot. */
+body[data-screen='game'] .seat-name-fixed,
+body[data-screen='game'] .action-strip .player-tag {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 70%, white 30%) !important;
+  color: color-mix(in srgb, var(--player-color, #f4f9fb) 82%, #f4f9fb 18%) !important;
+}
+body[data-screen='game'] .seat-name-fixed .name,
+body[data-screen='game'] .seat-name-fixed .seat-name-text,
+body[data-screen='game'] .action-strip .player-tag .name,
+body[data-screen='game'] .action-strip .player-tag .seat-name-text {
+  color: color-mix(in srgb, var(--player-color, #f4f9fb) 82%, #f4f9fb 18%) !important;
+  text-shadow: none !important;
+  gap: 0 !important;
+}
+body[data-screen='game'] .seat-name-fixed .player-color-chip,
+body[data-screen='game'] .action-strip .player-tag .player-color-chip {
+  display: none !important;
+}
+body[data-screen='game'] .seat-name-fixed .seat-count-tag,
+body[data-screen='game'] .action-strip .player-tag .seat-count-tag {
+  margin-left: 0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--player-color, #ffd166) !important;
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 70%, black 30%) !important;
+  color: #0a1711 !important;
+  font-weight: 800;
+  font-size: .72rem;
+  line-height: 1;
+  padding: 0;
 }
 .result-cards .card.mini {
   width: calc(var(--card-w) * .5);
