@@ -351,19 +351,22 @@ const t=(k)=>I18N[state.language][k]??k;
 const kindLabel=(k)=>KIND[state.language][k]??k;
 function mainPageLegalMiniHtml(){
   const zh=state.language==='zh-HK';
+  const labels=zh
+    ?{privacy:'私隱政策',about:'關於我們',contact:'聯絡我們',terms:'使用條款'}
+    :{privacy:'Privacy',about:'About',contact:'Contact',terms:'Terms'};
   const privacy=zh
-    ?'本網站可能使用 Cookies 及分析工具，並可能收集登入資料（例如 Google 名稱/電郵）及遊戲分數作排行榜用途。'
-    :'This site may use cookies and analytics, and may collect sign-in details (such as Google name/email) and game scores for leaderboard features.';
+    ?'我們可能收集及處理以下資料：你提供的帳戶資料（例如 Google 名稱、電郵）、遊戲紀錄與分數、裝置/瀏覽器基本技術資料，以及 Cookies 相關資料。這些資料主要用於登入狀態管理、排行榜功能、防止濫用、統計分析及改善遊戲體驗。我們不會出售你的個人資料。你可透過瀏覽器設定管理或停用 Cookies，但部份功能可能受影響。'
+    :'We may collect and process the following data: account information you provide (for example Google name and email), gameplay records and scores, basic device/browser technical data, and cookie-related data. This data is used for sign-in session management, leaderboard features, abuse prevention, analytics, and improving gameplay experience. We do not sell your personal data. You may manage or disable cookies in your browser settings, but some features may be affected.';
   const about=zh
-    ?'本網站提供《鋤大D / Big Two》網頁版遊戲，讓玩家可於不同裝置進行單機對局及查看排行。'
-    :'This website provides a browser version of Big Two for cross-device solo gameplay and leaderboard tracking.';
+    ?'本網站由 Seed Services 維護，提供《鋤大D / Big Two》網頁版體驗。網站目標是提供跨裝置、易上手且規則清晰的香港玩法環境，並透過排行榜與設定功能提升可玩性與持續性。'
+    :'This site is maintained by Seed Services and provides a browser-based Big Two experience. Our goal is to offer a cross-device, easy-to-use game environment based on Hong Kong rules, with leaderboard and quality-of-life features for long-term playability.';
   const contact=zh
     ?'如有查詢，請電郵至 seedservices32@gmail.com。'
     :'For enquiries, email seedservices32@gmail.com.';
   const terms=zh
-    ?'使用本網站即表示你同意網站規則、排行榜機制及一般網絡使用條款；如有濫用行為，系統可限制功能。'
-    :'By using this site, you agree to the game rules, leaderboard logic, and standard website terms. Misuse may result in feature restrictions.';
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">Privacy Policy</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">About Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">Contact Us</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">Terms and Conditions</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>。`:`For enquiries, email <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
+    ?'使用本網站即表示你同意：1) 遵守遊戲規則與公平使用原則；2) 不以自動化程式或異常行為干擾服務；3) 排行榜數據以系統記錄為準；4) 我們可在不另行通知下調整功能、規則或介面；5) 對於因網絡、裝置或第三方服務造成的中斷或資料延遲，網站不作保證。'
+    :'By using this site, you agree to: (1) follow the game rules and fair-use principles, (2) not use automation or abusive behavior to disrupt the service, (3) accept system records as the source of truth for leaderboard data, (4) allow us to update features/rules/UI without prior notice, and (5) acknowledge that uninterrupted service is not guaranteed due to network/device/third-party dependencies.';
+  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>。`:`For enquiries, email <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
 }
 const introText=()=>state.language==='en'
   ?{
@@ -855,6 +858,7 @@ function scoreGuideText(){
         ['10-12','x2','remaining cards x2'],
         ['13','x3','13 x3']
       ],
+      mulTableHeaders:['Condition','Multiplier','Rule'],
       chaoTableHeaders:['Remaining Cards','Multiplier','Name'],
       chaoTableRows:[
         ['8-9','x2','Chao Two'],
@@ -877,6 +881,7 @@ function scoreGuideText(){
         ['10-12 張','x2','按剩餘張數 x2'],
         ['13 張','x3','13 x3']
       ],
+      mulTableHeaders:['條件','倍率','說明'],
       chaoTableHeaders:['餘版張數','倍率','稱呼'],
       chaoTableRows:[
         ['8-9張','x2','炒雙'],
@@ -901,7 +906,8 @@ function scoreGuideModalHtml(){
   const chaoTableRows=sx.chaoTableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
-  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3>${t('scoreGuideTitle')}</h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-row"><div class="score-guide-cards">${anyTwoCards}</div><p>${esc(sx.anyTwo)}</p></div><div class="score-guide-row"><div class="score-guide-cards">${topTwoCard}</div><p>${esc(sx.topTwo)}</p></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
+  const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${esc(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${esc(sx.topTwo)}</td></tr>`;
+  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3>${t('scoreGuideTitle')}</h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
 }
 function speakCallout(text,gender='male'){
   try{
@@ -995,7 +1001,7 @@ async function handleCredentialResponse(response){
   state.home.google={signedIn,name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token};
   if(signedIn){
     const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
-    if(!hydrated&&wasDefaultName&&state.home.google.name){
+    if((wasDefaultName||!String(state.home.name??'').trim())&&state.home.google.name){
       state.home.name=state.home.google.name;
     }
     await syncLeaderboardProfile(currentLeaderboardIdentity());
@@ -1038,8 +1044,7 @@ function renderGoogleInline(attempt=0){
   const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');
   if(!slot)return;
   if(state.home.google.signedIn){
-    slot.innerHTML=`<button id="google-use-name" class="secondary">${t('useGoogleName')}</button><button id="google-signout" class="secondary">${t('signOut')}</button>`;
-    document.getElementById('google-use-name')?.addEventListener('click',()=>{if(state.home.google.name){state.home.name=state.home.google.name;render();}});
+    slot.innerHTML=`<button id="google-signout" class="secondary">${t('signOut')}</button>`;
     document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',email:'',uid:'',sub:'',token:''};clearGoogleSession();try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}try{firebaseAuth?.signOut?.();}catch{}render();});
     return;
   }
@@ -1703,8 +1708,10 @@ const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function renderHome(){
   const intro=introText();
   const signedIn=Boolean(state.home.google.signedIn&&state.home.google.email);
+  const maleAvatarSrc=withBase('avatar-male.png');
+  const femaleAvatarSrc=withBase('avatar-female.png');
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo" id="gender-combo"><button class="combo-btn ${state.home.gender==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn ${state.home.gender==='female'?'active':''}" data-value="female">${t('female')}</button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo gender-image-combo" id="gender-combo"><button class="combo-btn gender-image-btn ${state.home.gender==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/><span>${t('male')}</span></button><button class="combo-btn gender-image-btn ${state.home.gender==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/><span>${t('female')}</span></button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -1717,7 +1724,14 @@ function renderHome(){
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}});
-  document.querySelectorAll('#gender-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(v!=='male'&&v!=='female')return;state.home.gender=v;markComboActive('gender-combo',v);saveGoogleSession();if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}}));
+  document.querySelectorAll('#gender-combo .gender-image-btn').forEach((btn)=>btn.addEventListener('click',()=>{
+    const v=String(btn.getAttribute('data-value')??'');
+    if(v!=='male'&&v!=='female')return;
+    state.home.gender=v;
+    markComboActive('gender-combo',v);
+    saveGoogleSession();
+    if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}
+  }));
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   document.getElementById('sound-switch')?.addEventListener('change',(e)=>{
@@ -1784,6 +1798,7 @@ function renderGame(){
   const selEv=selected.length?evaluatePlay(selected):null;
   const canPlay=v.canControl&&selEv&&selEv.valid&&(!v.lastPlay||canBeat(selEv,v.lastPlay.eval))&&(!v.isFirstTrick||has3d(selected));
   const canReorder=!isMobilePointer()&&!v.gameOver&&v.hand.length>0;
+  const canAutoSort=!v.gameOver&&v.hand.length>0;
   const selfScoreValue=v.mode==='solo'?(state.solo.totals?.[0]??state.score):state.score;
   const canSuggest=v.canControl&&!state.recommendation;
   const self=arr.find((p)=>p.viewIndex===0);
@@ -1802,8 +1817,8 @@ function renderGame(){
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
     const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"/></span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span></div>`;
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
-    const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
-    const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
+    const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}" style="--player-color:${pColor};"><img class="callout-seat-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/>${esc(playTypeCall.text)}</div>`:'';
+    const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}" style="--player-color:${pColor};"><img class="callout-seat-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/>${t('lastCardCall')}</div>`:'';
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
@@ -1816,12 +1831,12 @@ function renderGame(){
   const selfSeatColor=playerColorByViewClass('south');
   const selfAvatarSrc=avatarDataUri(selfName,selfSeatColor,selfGender);
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" alt="${esc(selfName)}"/></span>`;
-  const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}">${esc(playTypeCall.text)}</div>`:'';
-  const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}">${t('lastCardCall')}</div>`:'';
+  const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}" style="--player-color:${selfSeatColor};"><img class="callout-seat-avatar" src="${selfAvatarSrc}" alt="${esc(selfName)}"/>${esc(playTypeCall.text)}</div>`:'';
+  const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}" style="--player-color:${selfSeatColor};"><img class="callout-seat-avatar" src="${selfAvatarSrc}" alt="${esc(selfName)}"/>${t('lastCardCall')}</div>`:'';
   const isMobile=isMobilePointer();
-  const mobileNamesHtml=isMobile?'':centerMobileOpponentNamesHtml(arr,v.currentSeat,v.gameOver);
+  const mobileNamesHtml='';
   const mobileDiscardHtml='';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canReorder?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title">${t('log')}</h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title">${t('log')}</h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   bindGameEvents(v,arr);
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
@@ -1829,6 +1844,7 @@ function autoArrangeCurrent(v,mode='seq'){state.solo.players[0].hand=mode==='pat
 
 function bindGameEvents(v,arr){
   const canReorder=!isMobilePointer()&&!v.gameOver&&v.hand.length>0;
+  const canAutoSort=!v.gameOver&&v.hand.length>0;
   const dragEnabled=canReorder&&!isMobilePointer();
   let dragPopupTimer=null;
   const popupEl=()=>document.getElementById('drag-popup');
@@ -1893,8 +1909,8 @@ function bindGameEvents(v,arr){
   document.getElementById('restart-btn')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
   document.getElementById('result-again')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
   document.getElementById('congrats-again')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
-  document.getElementById('auto-seq-btn')?.addEventListener('click',()=>{if(!canReorder)return;autoArrangeCurrent(v,'seq');render();});
-  document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canReorder)return;autoArrangeCurrent(v,'pattern');render();});
+  document.getElementById('auto-seq-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'seq');render();});
+  document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'pattern');render();});
   document.getElementById('suggest-btn')?.addEventListener('click',()=>{
     if(!v.canControl)return;
     if(state.recommendation){

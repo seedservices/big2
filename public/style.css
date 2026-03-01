@@ -101,6 +101,12 @@ h1, h2, h3, p { margin: 0; }
   font-size: clamp(2.4rem, 5vw, 3.6rem);
   line-height: 1;
 }
+body[data-screen='home'] #app {
+  padding: 0 10px 10px !important;
+}
+.home-topbar {
+  margin-top: 0 !important;
+}
 .home-topbar .game-title {
   font-family: 'Ma Shan Zheng', cursive;
 }
@@ -124,7 +130,12 @@ button.primary { background: linear-gradient(140deg, #ffd166, var(--accent)); co
 button.secondary { background: rgba(255, 255, 255, 0.17); color: var(--text); }
 button.accent { background: linear-gradient(120deg, #9ff2b5, var(--ok)); color: #092f16; }
 button.danger { background: var(--danger); color: #fff; }
-.home-wrap { display: grid; gap: 10px; padding-top: 0; padding-bottom: 0; max-width: 860px; margin: 0 auto; min-height: calc(100dvh - 20px); }
+.home-wrap { display: grid; gap: 8px; padding-top: 0; padding-bottom: 0; max-width: 860px; margin: 0 auto; min-height: calc(100dvh - 10px); }
+body[data-screen='home'] .home-wrap {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  align-content: start;
+}
 .hero { padding: 0 clamp(15px, 3.7vw, 24px); border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.03)); }
 .hero-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .74rem; background: rgba(255,255,255,.14); margin-bottom: 7px; }
 .hero h1 { font-size: clamp(1.5rem, 4.8vw, 2.5rem); }
@@ -142,6 +153,94 @@ button.danger { background: var(--danger); color: #fff; }
 .field { display: grid; gap: 5px; }
 .field span { font-size: .82rem; color: var(--muted); }
 .field.wide { grid-column: 1 / -1; }
+.gender-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 11px;
+  background: rgba(255,255,255,.06);
+  padding: 6px;
+}
+.gender-image-combo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.gender-image-combo .gender-image-btn {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  min-height: 0;
+}
+.gender-image-combo .gender-image-btn img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.85);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.2);
+  object-fit: cover;
+}
+.gender-image-combo .gender-image-btn span {
+  font-size: .78rem;
+  line-height: 1;
+}
+.gender-image-combo .gender-image-btn.active img {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 56%, white 44%),
+    0 0 12px color-mix(in srgb, var(--accent) 40%, transparent 60%);
+}
+.gender-picker-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  flex: 0 0 auto;
+}
+.gender-picker-head {
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+}
+.gender-preview-meta {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.gender-preview-meta strong {
+  font-size: .84rem;
+  color: #f4f9fb;
+  line-height: 1.1;
+}
+.gender-preview-meta span {
+  font-size: .72rem;
+  color: var(--muted);
+  line-height: 1.1;
+}
+.gender-preview {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.9);
+  object-fit: cover;
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.18);
+}
+.gender-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.14);
+  color: #f4f9fb;
+  padding: 7px 9px;
+}
 .sound-switch {
   display: inline-flex;
   align-items: center;
@@ -525,13 +624,14 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   aspect-ratio: 16 / 9;
 }
 .score-guide-table-wrap {
-  overflow-x: auto;
+  overflow-x: visible;
 }
 .score-guide-table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  min-width: 460px;
+  min-width: 0;
+  table-layout: fixed;
   font-size: .84rem;
 }
 .score-guide-table th,
@@ -539,6 +639,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   padding: 7px 8px;
   border: 1px solid var(--line-b);
   text-align: left;
+  overflow-wrap: anywhere;
 }
 .score-guide-table th {
   color: #f4f9fb;
@@ -1085,9 +1186,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   z-index: 24;
   padding: 14px 24px;
   border-radius: 999px;
-  border: 2px solid rgba(255, 236, 168, .82);
-  background: linear-gradient(160deg, rgba(36, 16, 4, .96), rgba(96, 44, 10, .92));
-  color: #fff4bf;
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 70%, white 30%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--player-color, #ffd166) 64%, rgba(42, 72, 88, .62)), rgba(34, 58, 72, .58)),
+    color-mix(in srgb, var(--player-color, #ffd166) 46%, rgba(24, 44, 58, .48));
+  color: #ffffff;
   font-size: 1.68rem;
   font-weight: 900;
   letter-spacing: .02em;
@@ -1095,9 +1198,9 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   white-space: nowrap;
   text-shadow: 0 2px 8px rgba(0,0,0,.45);
   box-shadow:
-    0 0 0 2px rgba(255, 174, 70, .38),
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffae46) 42%, transparent),
     0 8px 24px rgba(0,0,0,.42),
-    0 0 22px rgba(255, 187, 74, .36);
+    0 0 22px color-mix(in srgb, var(--player-color, #ffbb4a) 38%, transparent);
   pointer-events: none;
   animation: playTypeCallPulse .8s ease-in-out infinite alternate;
 }
@@ -1113,9 +1216,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   z-index: 24;
   padding: 14px 24px;
   border-radius: 999px;
-  border: 2px solid rgba(255, 236, 168, .82);
-  background: linear-gradient(160deg, rgba(36, 16, 4, .96), rgba(96, 44, 10, .92));
-  color: #fff4bf;
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 70%, white 30%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--player-color, #ffd166) 64%, rgba(42, 72, 88, .62)), rgba(34, 58, 72, .58)),
+    color-mix(in srgb, var(--player-color, #ffd166) 46%, rgba(24, 44, 58, .48));
+  color: #ffffff;
   font-size: 1.68rem;
   font-weight: 900;
   letter-spacing: .02em;
@@ -1123,11 +1228,21 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   white-space: nowrap;
   text-shadow: 0 2px 8px rgba(0,0,0,.45);
   box-shadow:
-    0 0 0 2px rgba(255, 174, 70, .38),
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffae46) 42%, transparent),
     0 8px 24px rgba(0,0,0,.42),
-    0 0 22px rgba(255, 187, 74, .36);
+    0 0 22px color-mix(in srgb, var(--player-color, #ffbb4a) 38%, transparent);
   pointer-events: none;
   animation: playTypeCallPulse .8s ease-in-out infinite alternate;
+}
+.callout-seat-avatar {
+  width: 1.22em;
+  height: 1.22em;
+  margin-right: .34em;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 72%, white 28%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 40%, transparent);
+  object-fit: cover;
+  vertical-align: middle;
 }
 .play-type-call-fresh {
   animation: playTypeCallPop .52s cubic-bezier(.16,.84,.35,1.22) both, playTypeCallPulse .8s ease-in-out infinite alternate;
@@ -1509,10 +1624,10 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .action-strip .player-tag .player-color-chip { display: none !important; }
 .action-strip .player-tag .name { gap: 0; }
 .action-strip.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 62%, transparent);
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 76%, transparent);
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent),
-    0 0 22px color-mix(in srgb, var(--player-color, #ffd166) 46%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent),
+    0 0 28px color-mix(in srgb, var(--player-color, #ffd166) 54%, transparent),
     inset 0 0 0 1px rgba(255,255,255,.15);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--player-color, #ffd166) 12%, transparent), transparent 45%),
@@ -1727,6 +1842,7 @@ body[data-screen='game'] .history-list {
     overflow-y: auto;
   }
   #app { padding: 7px; }
+  body[data-screen='home'] #app { padding: 0 7px 7px !important; }
   #app {
     height: auto;
     max-height: none;
@@ -1807,7 +1923,7 @@ body[data-screen='game'] .history-list {
     border: 0;
     background: transparent;
     box-shadow: none;
-    padding: 24px 2px 2px;
+    padding: 38px 2px 2px;
   }
   .east .opponent-fan,
   .west .opponent-fan,
@@ -1824,7 +1940,7 @@ body[data-screen='game'] .history-list {
   .north .opponent-fan .closed-back {
     margin-top: 0 !important;
     margin-left: calc(var(--card-w) * (-0.22 - (max(var(--n) - var(--closed-tighten-threshold), 0) * 0.014) - (var(--fan-gap, 0.5) * 0.1))) !important;
-    transform: translateY(calc(var(--fan-lift, 0.5) * -2px)) rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
+    transform: rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
   }
   .east .opponent-fan .closed-back:first-child,
   .west .opponent-fan .closed-back:first-child,
@@ -1834,11 +1950,14 @@ body[data-screen='game'] .history-list {
   .mobile-opponent-names {
     display: none;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 6px;
     position: absolute;
     top: 6px;
-    left: 6px;
-    right: 6px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(94%, 560px);
     z-index: 8;
     pointer-events: none;
   }
@@ -1849,16 +1968,37 @@ body[data-screen='game'] .history-list {
     padding: 2px 7px;
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, var(--player-color, #f4f9fb) 72%, white 28%);
-    background: rgba(7, 22, 34, .74);
+    background: transparent;
+    box-shadow: none;
     color: color-mix(in srgb, var(--player-color, #f4f9fb) 82%, #f4f9fb 18%);
     font-size: .84rem;
     font-weight: 700;
   }
+  .mobile-opponent-name .player-avatar.mini {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.94);
+  }
   .mobile-opponent-name.active {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent);
-    background: color-mix(in srgb, var(--player-color, #ffd166) 18%, rgba(7, 22, 34, .74));
+    background: transparent;
   }
   .mobile-opponent-name .mobile-seat-tag { margin-left: 2px; }
+  body[data-screen='game'] .north > .seat-name-fixed,
+  body[data-screen='game'] .east > .seat-name-fixed,
+  body[data-screen='game'] .west > .seat-name-fixed {
+    top: 2px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    padding: 0 4px !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
   .mobile-discard-panel {
     display: grid;
     gap: 8px;
@@ -2029,13 +2169,11 @@ body[data-screen='game'] .history-list {
   .north .opponent-fan .card.back.mini.closed-back:first-child {
     margin-left: 0 !important;
   }
-  .play-type-call,
-  .last-card-call {
-    display: none !important;
-  }
 }
 @media (max-width: 600px) {
   #app { padding: 5px; }
+  body[data-screen='home'] #app { padding: 0 5px 5px !important; }
+  .score-guide-table-wrap { overflow-x: auto; }
   .hero { padding: 0 12px; border-radius: 14px; }
   .hero h1 { font-size: 1.25rem; line-height: 1.15; }
   .home-panel { padding: 8px; border-radius: 14px; gap: 8px; }
@@ -2572,10 +2710,10 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
 body[data-screen='game'] .seat.north.active,
 body[data-screen='game'] .seat.east.active,
 body[data-screen='game'] .seat.west.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent) !important;
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 68%, transparent) !important;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 34%, transparent),
-    0 0 12px color-mix(in srgb, var(--player-color, #ffd166) 30%, transparent) !important;
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent),
+    0 0 18px color-mix(in srgb, var(--player-color, #ffd166) 44%, transparent) !important;
   background: inherit !important;
 }
 body[data-screen='game'] .seat.north.active::before,
@@ -2585,10 +2723,10 @@ body[data-screen='game'] .seat.west.active::before {
   position: absolute;
   inset: -2px;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 40%, transparent);
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 26%, transparent),
-    0 0 14px color-mix(in srgb, var(--player-color, #ffd166) 24%, transparent);
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 40%, transparent),
+    0 0 20px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -2614,10 +2752,18 @@ body[data-screen='game'] .east {
 body[data-screen='game'] .action-strip {
   background:
     linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),
-    rgba(8, 24, 38, .36) !important;
+    rgba(6, 18, 30, .56) !important;
   border: 1px solid rgba(255,255,255,.17) !important;
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,.16),
+    0 1px 4px rgba(0,0,0,.1) !important;
+}
+body[data-screen='game'] .action-strip.active {
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 80%, transparent) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 60%, transparent),
+    0 0 30px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent),
+    inset 0 0 0 1px rgba(255,255,255,.18),
     0 1px 4px rgba(0,0,0,.1) !important;
 }
 /* N/E/W identity block same sizing rhythm as south player tag. */
@@ -2640,6 +2786,15 @@ body[data-screen='game'] .east .seat-section {
   background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
+}
+/* Open/discarded cards: remove outer wrapper box in game view. */
+body[data-screen='game'] .seat-played,
+body[data-screen='game'] .center-last .seat-played {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
 }
 /* Remove remaining-card number badges for all players in game view. */
 body[data-screen='game'] .seat-count-tag {
@@ -2674,16 +2829,7 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
-  body[data-screen='home'] .topbar {
-    flex-direction: row !important;
-    align-items: center !important;
-  }
-  body[data-screen='home'] .topbar-right {
-    width: auto !important;
-    justify-items: end !important;
-  }
   /* Mobile portrait: keep buttons in one row with compact sizing. */
-  body[data-screen='home'] .topbar-right .control-row,
   body[data-screen='game'] .topbar-right .control-row,
   .action-strip .control-row {
     flex-wrap: nowrap !important;
@@ -2692,7 +2838,6 @@ body[data-screen='game'] .seat-count-tag {
     gap: 4px !important;
     -webkit-overflow-scrolling: touch;
   }
-  body[data-screen='home'] .topbar-right .control-row button,
   body[data-screen='game'] .topbar-right .control-row button,
   .action-strip .control-row button {
     padding: 4px 7px !important;
@@ -2701,11 +2846,6 @@ body[data-screen='game'] .seat-count-tag {
     min-height: 32px !important;
     white-space: nowrap !important;
     flex: 0 0 auto;
-  }
-  body[data-screen='home'] .topbar-right .control-row button {
-    min-height: 30px !important;
-    padding: 3px 6px !important;
-    font-size: .72rem !important;
   }
 }
 
