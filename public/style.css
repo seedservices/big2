@@ -167,6 +167,9 @@ body[data-screen='home'] .home-wrap {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+.gender-image-combo.has-google-avatar {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .gender-image-combo .gender-image-btn {
   display: grid;
   justify-items: center;
@@ -191,6 +194,9 @@ body[data-screen='home'] .home-wrap {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 56%, white 44%),
     0 0 12px color-mix(in srgb, var(--accent) 40%, transparent 60%);
+}
+.gender-image-combo .gender-image-btn.is-broken {
+  opacity: .65;
 }
 .gender-picker-avatar {
   display: inline-flex;
@@ -1270,7 +1276,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
     0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
     0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
   pointer-events: none;
-  animation: fadeIn .3s ease-out;
+  animation: none;
 }
 .last-card-call::after {
   content: '';
@@ -1313,7 +1319,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
     0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
     0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
   pointer-events: none;
-  animation: fadeIn .3s ease-out;
+  animation: none;
 }
 .play-type-call::after {
   content: '';
@@ -1328,6 +1334,9 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .play-type-call-fresh {
   animation: fadeIn .3s ease-out;
+}
+.play-type-call.pass-call {
+  animation: none !important;
 }
 .play-type-call-seat {
   top: calc(38px + var(--callout-jy, 0px));
@@ -2411,24 +2420,34 @@ body[data-screen='game'] .history-list {
   }
 }
 @media (max-width: 860px) and (orientation: landscape) {
-  /* Place game history panel at rightmost in mobile landscape. */
+  /* Match desktop/web layout in mobile landscape. */
+  body[data-screen='game'] #app {
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 100dvh;
+  }
   body[data-screen='game'] .game-shell {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 34vw) !important;
-    grid-template-rows: minmax(0, 1fr) !important;
-    gap: 6px;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0,1fr) 286px !important;
+    grid-template-rows: minmax(0,1fr) !important;
+    gap: 8px;
   }
   body[data-screen='game'] .main-zone {
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
+    grid-template-rows: auto minmax(0,1fr) auto !important;
+    min-height: 0;
+    overflow: visible;
+  }
+  body[data-screen='game'] .table {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
   }
   body[data-screen='game'] .side-zone {
-    grid-column: 2;
-    grid-row: 1;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0,1fr) auto;
     min-height: 0;
     max-height: 100%;
-    overflow: hidden;
-    grid-template-columns: 1fr !important;
   }
   body[data-screen='game'] .side-zone .log-side-card {
     height: 100%;
@@ -2437,32 +2456,15 @@ body[data-screen='game'] .history-list {
     max-height: 100% !important;
     overflow-y: auto !important;
   }
-  /* Mobile landscape: keep right (east) play-history visible near edge. */
-  body[data-screen='game'] .center-last-east {
-    right: 2px !important;
-    max-width: 34% !important;
-    overflow: visible !important;
+  body[data-screen='game'] .topbar {
+    flex-direction: row;
+    align-items: center;
   }
-  body[data-screen='game'] .center-last-east .seat-played {
-    justify-content: flex-start !important;
-    padding-right: 2px;
-    overflow: visible !important;
+  body[data-screen='game'] .topbar-right {
+    width: auto;
+    justify-items: end;
   }
-  body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.42) !important;
-    margin-right: 0 !important;
-  }
-  body[data-screen='game'] .main-zone {
-    min-height: 0;
-    overflow: hidden;
-  }
-  body[data-screen='game'] .table {
-    min-height: 0;
-  }
-  body[data-screen='game'] .action-zone {
-    min-height: 0;
-  }
-  body[data-screen='game'] .action-strip .control-row {
+  body[data-screen='game'] .topbar-right .control-row {
     flex-wrap: nowrap;
     overflow-x: auto;
   }
@@ -2873,6 +2875,11 @@ body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent 
 body[data-screen='game'] .action-strip .player-tag .player-avatar.player-avatar-self {
   width: 38px !important;
   height: 38px !important;
+}
+body[data-screen='game'] .action-strip .player-tag .player-avatar.player-avatar-self.player-avatar-google {
+  object-fit: cover;
+  object-position: center center;
+  filter: none;
 }
 body[data-screen='game'] .seat-name-fixed .player-avatar-wrap.player-avatar-wrap-opponent {
   width: 38px;

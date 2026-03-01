@@ -274,7 +274,7 @@ const KIND={
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
@@ -311,6 +311,8 @@ let leaderboardCloudRefreshInFlight=false;
 let leaderboardCloudLoaded=false;
 const sound={ctx:null,enabled:true};
 let speechPrimed=false;
+let lastSpokenCalloutKey='';
+let lastSpokenCalloutAt=0;
 const BOT_PROFILES={
   zh:[
     {name:'志明',gender:'male'},
@@ -486,7 +488,8 @@ function collectMainSettings(){
     aiDifficulty:['easy','normal','hard'].includes(state.home.aiDifficulty)?state.home.aiDifficulty:'normal',
     backColor:BACK_OPTIONS.some((x)=>x.value===state.home.backColor)?state.home.backColor:'red',
     soundEnabled:Boolean(sound.enabled),
-    gender:state.home.gender==='female'?'female':'male'
+    gender:state.home.gender==='female'?'female':'male',
+    avatarChoice:['male','female','google'].includes(state.home.avatarChoice)?state.home.avatarChoice:'male'
   };
 }
 function applyMainSettings(settings){
@@ -500,6 +503,8 @@ function applyMainSettings(settings){
   if(typeof settings.soundEnabled==='boolean')sound.enabled=Boolean(settings.soundEnabled);
   const gender=String(settings.gender??'');
   if(gender==='male'||gender==='female')state.home.gender=gender;
+  const avatarChoice=String(settings.avatarChoice??'');
+  if(avatarChoice==='male'||avatarChoice==='female'||avatarChoice==='google')state.home.avatarChoice=avatarChoice;
 }
 function syncSessionScoreFromStore(store,{force=false}={}){
   if(!store||typeof store!=='object'||!store.players||typeof store.players!=='object')return;
@@ -537,14 +542,15 @@ async function hydrateProfileFromCloudByIdentity(identity){
     const d=data;
     const restoredName=String(d.name??'').trim().slice(0,18);
     const restoredScore=scoreFromStoredTotal(d.totalScore);
-    const restoredGender=String(d.gender??'male')==='female'?'female':'male';
+    const restoredGender=String(d.gender??state.home.gender??'male')==='female'?'female':'male';
+    const restoredPicture=String(d.picture??'').trim();
     applyMainSettings(d.settings);
     const store=loadLeaderboardStore();
     const entry=ensureLeaderboardEntry(store,identity);
     if(entry){
       entry.name=restoredName||entry.name;
       entry.gender=restoredGender;
-      entry.settings={...(entry.settings??{}),...(d.settings&&typeof d.settings==='object'?d.settings:{})};
+      entry.settings=collectMainSettings();
       entry.totalScore=restoredScore;
       entry.games=Number(d.games)||Number(entry.games)||0;
       entry.wins=Number(d.wins)||Number(entry.wins)||0;
@@ -555,6 +561,9 @@ async function hydrateProfileFromCloudByIdentity(identity){
       state.home.name=restoredName;
     }
     state.home.gender=restoredGender;
+    if(restoredPicture&&state.home.google?.signedIn){
+      state.home.google.picture=restoredPicture;
+    }
     const inGame=state.screen==='game'&&Array.isArray(state.solo.players)&&state.solo.players.length>0&&!state.solo.gameOver;
     if(!inGame){
       state.score=restoredScore;
@@ -567,6 +576,7 @@ async function hydrateProfileFromCloudByIdentity(identity){
         name:restoredName||String(identity?.name??'Player').slice(0,32),
         email:String(identity?.email??'').toLowerCase().slice(0,120),
         gender:restoredGender,
+        picture:restoredPicture,
         settings:collectMainSettings(),
         totalScore:restoredScore,
         games:Number(d.games)||0,
@@ -662,6 +672,7 @@ function buildProfilePayload(identity,entry,updatedAt){
     name:String(identity?.name??entry.name??'Player').slice(0,32),
     email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),
     gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',
+    picture:String(state.home.google?.picture??'').trim(),
     settings:collectMainSettings(),
     totalScore:scoreFromStoredTotal(entry.totalScore),
     games:Number(entry.games)||0,
@@ -675,13 +686,7 @@ function loadGoogleSession(){
     const parsed=raw?JSON.parse(raw):null;
     const email=String(parsed?.email??'').trim().toLowerCase().slice(0,120);
     if(!email)return;
-    const name=String(parsed?.name??'').slice(0,18);
-    const picture=String(parsed?.picture??'').trim();
-    const g=String(parsed?.gender??'').trim().toLowerCase();
-    const gender=(g==='female'||g==='male')?g:'';
-    state.home.google={...state.home.google,signedIn:true,email,name:name||state.home.google.name,picture,gender};
-    if(name)state.home.name=name;
-    if(gender)state.home.gender=gender;
+    state.home.google={...state.home.google,signedIn:true,email};
     if(initFirebaseIfReady()){
       void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
     }
@@ -694,11 +699,7 @@ function saveGoogleSession(){
       localStorage.removeItem(GOOGLE_SESSION_KEY);
       return;
     }
-    const name=String(state.home.google.name??'').slice(0,18);
-    const picture=String(state.home.google.picture??'').trim();
-    const g=String(state.home.google.gender??'').trim().toLowerCase();
-    const gender=(g==='female'||g==='male')?g:'';
-    localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify({email,name,picture,gender}));
+    localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify({email}));
   }catch{}
 }
 function clearGoogleSession(){
@@ -749,7 +750,7 @@ function ensureLeaderboardEntry(store,identity){
   if(safe)store.players[key].name=safe;
   if(email)store.players[key].email=email;
   store.players[key].gender=String(store.players[key].gender??gender)==='female'?'female':'male';
-  store.players[key].settings={...(store.players[key].settings??{}),...collectMainSettings()};
+  store.players[key].settings=collectMainSettings();
   store.players[key].totalScore=scoreFromStoredTotal(store.players[key].totalScore);
   return store.players[key];
 }
@@ -787,7 +788,7 @@ async function syncLeaderboardProfile(identity){
   if(!entry)return false;
   entry.updatedAt=Date.now();
   entry.totalScore=scoreFromStoredTotal(entry.totalScore);
-  entry.settings={...(entry.settings??{}),...collectMainSettings()};
+  entry.settings=collectMainSettings();
   saveLeaderboardStore(store);
   const payload=buildProfilePayload(identity,entry,entry.updatedAt);
   try{
@@ -937,66 +938,48 @@ function speakCallout(text,gender='male'){
   try{
     const msg=String(text??'').trim();
     if(!msg||!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return;
+    const g=String(gender??'male')==='female'?'female':'male';
+    const key=`${state.language}|${g}|${msg}`;
+    const now=Date.now();
+    if(key===lastSpokenCalloutKey&&now-lastSpokenCalloutAt<900)return;
+    lastSpokenCalloutKey=key;
+    lastSpokenCalloutAt=now;
     const synth=window.speechSynthesis;
     const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|mei[-\s]?jia|xiaoxiao|xiaoyi|xiaomeng|xiaohan|jia[-\s]?yi|yi[-\s]?ting)/i;
     const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang|xiaoming|xiaogang|james|tom|kevin)/i;
-    const voiceMeta=(v)=>`${v?.name||''} ${v?.voiceURI||''}`;
+    const voiceMeta=(v)=>`${v?.name||''} ${v?.voiceURI||''} ${v?.lang||''}`;
     const isFemaleVoice=(v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v));
     const isMaleVoice=(v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v));
     const byLangPrefixes=(voices,prefixes)=>voices.filter((v)=>prefixes.some((p)=>String(v.lang??'').toLowerCase().startsWith(p)));
-    const firstNonMale=(voices)=>voices.find((v)=>!maleHint.test(voiceMeta(v)))??null;
-    const firstNonFemale=(voices)=>voices.find((v)=>!femaleHint.test(voiceMeta(v)))??null;
-    const firstFemale=(voices)=>voices.find((v)=>isFemaleVoice(v))??null;
-    const firstMale=(voices)=>voices.find((v)=>isMaleVoice(v))??null;
-    const pickGenderVoice=(voices,prefixes,targetGender)=>{
-      const g=String(targetGender??'male')==='female'?'female':'male';
-      const list=byLangPrefixes((voices??[]),prefixes);
-      if(g==='female'){
-        const female=firstFemale(list.length?list:voices);
-        if(female)return female;
-        const nonMale=firstNonMale(list.length?list:voices);
-        if(nonMale)return nonMale;
-        return (list[0]??voices[0]??null);
-      }
-      const male=firstMale(list.length?list:voices);
-      if(male)return male;
-      const nonFemale=firstNonFemale(list.length?list:voices);
-      if(nonFemale)return nonFemale;
-      return (list[0]??voices[0]??null);
-    };
     const isCantoneseVoice=(v)=>{
+      const meta=voiceMeta(v).toLowerCase();
       const lang=String(v?.lang??'').toLowerCase();
-      const meta=`${String(v?.name??'')} ${String(v?.voiceURI??'')} ${lang}`;
-      return /^yue(-|$)/i.test(lang)
-        || /^zh[-_]?hk(-|$)/i.test(lang)
-        || /cantonese|hong kong|heung gong|ting[-\s]?ting|sin[-\s]?ji/i.test(meta);
+      return /^yue(-|$)/i.test(lang) || /^zh[-_]?hk(-|$)/i.test(lang) || /cantonese|hong kong|heung gong/.test(meta);
     };
-    const setupVoice=(u,voices)=>{
-      if(state.language==='en'){
-        const voice=pickGenderVoice(voices,['en'],gender);
-        if(voice)u.voice=voice;
-        u.lang='en-US';
-        u.pitch=String(gender??'male')==='female'?1.16:0.9;
-        return true;
-      }else{
-        const cantoneseVoices=(voices??[]).filter(isCantoneseVoice);
-        const sourceVoices=cantoneseVoices.length?cantoneseVoices:(voices??[]);
-        const voice=pickGenderVoice(sourceVoices,['yue','zh-hk','zh'],gender);
-        if(!voice)return false;
-        u.voice=voice;
-        u.lang=String(voice.lang||'zh-HK');
-        u.pitch=String(gender??'male')==='female'?1.14:0.92;
-        return true;
+    const chooseVoice=(voices)=>{
+      const source=voices??[];
+      if(!source.length)return null;
+      const pool=state.language==='en'
+        ?byLangPrefixes(source,['en'])
+        :source.filter(isCantoneseVoice).length?source.filter(isCantoneseVoice):byLangPrefixes(source,['yue','zh-hk','zh']);
+      const set=pool.length?pool:source;
+      if(g==='female'){
+        return set.find(isFemaleVoice) ?? set.find((v)=>!isMaleVoice(v)) ?? set[0] ?? null;
       }
+      return set.find(isMaleVoice) ?? set.find((v)=>!isFemaleVoice(v)) ?? set[0] ?? null;
     };
     const speakNow=()=>{
       const u=new SpeechSynthesisUtterance(msg.replace(/[!!]/g,''));
-      u.rate=0.82;
-      u.pitch=String(gender??'male')==='female'?1.12:0.94;
+      u.rate=0.62;
+      u.pitch=g==='female'?1.28:0.92;
       const voices=synth.getVoices?.()??[];
-      const ok=setupVoice(u,voices);
-      if(!ok)return;
-      synth.cancel?.();
+      const voice=chooseVoice(voices);
+      if(voice){
+        u.voice=voice;
+        u.lang=String(voice.lang|| (state.language==='en'?'en-US':'zh-HK'));
+      }else{
+        u.lang=state.language==='en'?'en-US':'zh-HK';
+      }
       synth.resume?.();
       synth.speak(u);
     };
@@ -1236,10 +1219,25 @@ function avatarDataUri(name,color,gender='male'){
   scheduleAvatarRecolor(g,c);
   return AVATAR_BASE_SRC[g];
 }
-function selfAvatarDataUri(name,color,gender='male'){
+function googlePictureUrl(){
   const pic=String(state.home.google?.picture??'').trim();
-  if(state.home.google?.signedIn&&pic)return pic;
-  return avatarDataUri(name,color,gender);
+  if(!pic)return'';
+  try{
+    let url=pic;
+    if(/^\/\//.test(url))url=`https:${url}`;
+    if(!/^https?:\/\//i.test(url)&&/^(?:lh3|lh4|lh5|lh6)\.googleusercontent\.com\//i.test(url))url=`https://${url}`;
+    if(!/^https?:\/\//i.test(url)&&/^googleusercontent\.com\//i.test(url))url=`https://${url}`;
+    if(!/^https?:\/\//i.test(url))return'';
+    return url;
+  }catch{
+    return pic;
+  }
+}
+function selfAvatarDataUri(name,color,gender='male'){
+  const googlePic=googlePictureUrl();
+  if(state.home.google?.signedIn&&googlePic)return googlePic;
+  const g=String(gender??'male')==='female'?'female':'male';
+  return AVATAR_BASE_SRC[g];
 }
 const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
@@ -1872,8 +1870,11 @@ function renderHome(){
   const signedIn=Boolean(state.home.google.signedIn&&state.home.google.email);
   const maleAvatarSrc=withBase('avatar-male.png');
   const femaleAvatarSrc=withBase('avatar-female.png');
+  if(state.home.avatarChoice==='google'){
+    state.home.avatarChoice=state.home.gender==='female'?'female':'male';
+  }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo gender-image-combo" id="gender-combo"><button class="combo-btn gender-image-btn ${state.home.gender==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/><span>${t('male')}</span></button><button class="combo-btn gender-image-btn ${state.home.gender==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/><span>${t('female')}</span></button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo gender-image-combo" id="gender-combo"><button class="combo-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/><span>${t('male')}</span></button><button class="combo-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/><span>${t('female')}</span></button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -1889,8 +1890,9 @@ function renderHome(){
   document.querySelectorAll('#gender-combo .gender-image-btn').forEach((btn)=>btn.addEventListener('click',()=>{
     const v=String(btn.getAttribute('data-value')??'');
     if(v!=='male'&&v!=='female')return;
-    state.home.gender=v;
-    markComboActive('gender-combo',v);
+    state.home.avatarChoice=v;
+    if(v==='male'||v==='female')state.home.gender=v;
+    markComboActive('gender-combo',state.home.avatarChoice);
     saveGoogleSession();
     if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}
   }));
@@ -1908,7 +1910,20 @@ function renderHome(){
     const lb=document.querySelector('.sound-switch-label');
     if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
   });
-  document.getElementById('solo-start')?.addEventListener('click',async()=>{if(!(state.home.google.signedIn&&state.home.google.email))return;unlockAudio();state.home.mode='solo';initFirebaseIfReady();let synced=false;for(let i=0;i<4&&!synced;i++){synced=await syncLeaderboardProfile(currentLeaderboardIdentity());if(!synced)await waitMs(250);}if(!synced){console.error('start blocked: firebase profile sync failed');state.home.showLeaderboard=true;render();return;}startSoloGame();});
+  document.getElementById('solo-start')?.addEventListener('click',async()=>{
+    if(!(state.home.google.signedIn&&state.home.google.email))return;
+    unlockAudio();
+    state.home.mode='solo';
+    state.home.showLeaderboard=false;
+    initFirebaseIfReady();
+    let synced=false;
+    for(let i=0;i<4&&!synced;i++){
+      synced=await syncLeaderboardProfile(currentLeaderboardIdentity());
+      if(!synced)await waitMs(250);
+    }
+    if(!synced)console.warn('profile sync failed on start; continuing to game');
+    startSoloGame();
+  });
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
   document.querySelectorAll('.legal-mini-link').forEach((btn)=>btn.addEventListener('click',()=>{
@@ -2020,12 +2035,22 @@ function renderGame(){
   const selfGender=self?.gender??state.home.gender??'male';
   const selfSeatColor=playerColorByViewClass('south');
   const selfAvatarSrc=selfAvatarDataUri(selfName,selfSeatColor,selfGender);
-  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" alt="${esc(selfName)}"/></span>`;
+  const googlePic=googlePictureUrl();
+  const useGoogleSelfAvatar=Boolean(state.home.google?.signedIn&&googlePic&&selfAvatarSrc===googlePic);
+  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/></span>`;
   const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  document.getElementById('self-avatar-img')?.addEventListener('error',(e)=>{
+    const img=e?.target;
+    if(!(img instanceof HTMLImageElement))return;
+    const fallback=String(img.dataset.fallback??'').trim();
+    if(!fallback||img.src===fallback)return;
+    img.src=fallback;
+    img.classList.remove('player-avatar-google');
+  },{once:true});
   bindGameEvents(v,arr);
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}

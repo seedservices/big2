@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /big2LeaderboardPlayers/{docId} {
+      allow read: if true;
+      allow create, update: if isValidDoc(docId);
+      allow delete: if false;
+    }
+  }
+
+  function isValidDoc(docId) {
+    let d = request.resource.data;
+    let allowed = [
+      'id', 'name', 'email', 'gender',
+      'games', 'wins', 'totalScore',
+      'updatedAt', 'settings', 'picture'
+    ];
+
+    return
+      d.keys().hasOnly(allowed) &&
+
+      // required identity + basic profile
+      d.id is string &&
+      d.id == docId &&
+      d.name is string &&
+      d.name.size() >= 1 &&
+      d.name.size() <= 32 &&
+      (!('email' in d) || (d.email is string && d.email.size() <= 120)) &&
+      (!('gender' in d) || (d.gender is string && (d.gender == 'male' || d.gender == 'female'))) &&
+      (!('picture' in d) || (d.picture is string && d.picture.size() <= 1024)) &&
+
+      // scores
+      d.games is int &&
+      d.games >= 0 &&
+      d.games <= 100000 &&
+      d.wins is int &&
+      d.wins >= 0 &&
+      d.wins <= d.games &&
+      d.totalScore is int &&
+      d.totalScore >= 0 &&
+      d.totalScore <= 100000000 &&
+
+      // timestamp window
+      d.updatedAt is int &&
+      d.updatedAt >= request.time.toMillis() - 5 * 60 * 1000 &&
+      d.updatedAt <= request.time.toMillis() + 5 * 60 * 1000 &&
+
+      // optional settings map
+      (
+        !('settings' in d) ||
+        (
+          d.settings is map &&
+          d.settings.keys().hasOnly([
+            'language',
+            'aiDifficulty',
+            'backColor',
+            'soundEnabled',
+            'gender',
+            'avatarChoice'
+          ]) &&
+          (!('language' in d.settings) || (d.settings.language is string && (d.settings.language == 'zh-HK' || d.settings.language == 'en'))) &&
+          (!('aiDifficulty' in d.settings) || (d.settings.aiDifficulty is string && (d.settings.aiDifficulty == 'easy' || d.settings.aiDifficulty == 'normal' || d.settings.aiDifficulty == 'hard'))) &&
+          (!('backColor' in d.settings) || (d.settings.backColor is string && (
+            d.settings.backColor == 'blue' ||
+            d.settings.backColor == 'red' ||
+            d.settings.backColor == 'green' ||
+            d.settings.backColor == 'gold' ||
+            d.settings.backColor == 'purple'
+          ))) &&
+          (!('soundEnabled' in d.settings) || d.settings.soundEnabled is bool) &&
+          (!('gender' in d.settings) || (d.settings.gender is string && (d.settings.gender == 'male' || d.settings.gender == 'female'))) &&
+          (!('avatarChoice' in d.settings) || (d.settings.avatarChoice is string && (
+            d.settings.avatarChoice == 'male' ||
+            d.settings.avatarChoice == 'female' ||
+            d.settings.avatarChoice == 'google'
+          )))
+        )
+      );
+  }
+}
+
