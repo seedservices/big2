@@ -274,7 +274,7 @@ const KIND={
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
@@ -294,10 +294,12 @@ const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
 const runtimeProfileStore={players:{}};
 let aiTimer=null;
 let playTypeCallTimer=null;
-const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0};
+const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:''};
+let passCallTimer=null;
+const passCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:''};
 let recommendHintTimer=null;
 let lastCardCallTimer=null;
-const lastCardCallState={key:'',seat:0,until:0,startedAt:0};
+const lastCardCallState={key:'',seat:0,until:0,startedAt:0,nonce:''};
 const lastCardAnnouncedSeats=new Set();
 let lastCardProcessedHistoryLen=0;
 let googleInlineRetryTimer=null;
@@ -339,16 +341,28 @@ const BOT_PROFILES={
 };
 const BACK_OPTIONS=[
   {value:'blue',file:'back-blue-clean.png',label:{'zh-HK':'藍色',en:'Blue'}},
-  {value:'red',file:'back-red-clean.png',label:{'zh-HK':'紅色',en:'Red'}},
+  {value:'red',file:'back-red-clean2.png',label:{'zh-HK':'紅色',en:'Red'}},
   {value:'green',file:'back-green-clean.png',label:{'zh-HK':'綠色',en:'Green'}},
   {value:'gold',file:'back-gold-clean.png',label:{'zh-HK':'金色',en:'Gold'}},
-  {value:'purple',file:'back-purple-clean.png',label:{'zh-HK':'紫色',en:'Purple'}}
+  {value:'purple',file:'back-purple-clean2.png',label:{'zh-HK':'紫色',en:'Purple'}}
 ];
 const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
 const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
 
 const t=(k)=>I18N[state.language][k]??k;
 const kindLabel=(k)=>KIND[state.language][k]??k;
+function setSoloStatus(message,{appendLog=true}={}){
+  const g=state.solo;
+  if(!g)return;
+  const text=String(message??'').trim();
+  g.status=text;
+  if(!appendLog||!text)return;
+  if(!Array.isArray(g.systemLog))g.systemLog=[];
+  const last=g.systemLog[g.systemLog.length-1];
+  if(last&&last.text===text)return;
+  g.systemLog.push({text,ts:Date.now()});
+  if(g.systemLog.length>200)g.systemLog=g.systemLog.slice(-200);
+}
 function mainPageLegalMiniHtml(){
   const zh=state.language==='zh-HK';
   const labels=zh
@@ -661,7 +675,13 @@ function loadGoogleSession(){
     const parsed=raw?JSON.parse(raw):null;
     const email=String(parsed?.email??'').trim().toLowerCase().slice(0,120);
     if(!email)return;
-    state.home.google={...state.home.google,signedIn:true,email};
+    const name=String(parsed?.name??'').slice(0,18);
+    const picture=String(parsed?.picture??'').trim();
+    const g=String(parsed?.gender??'').trim().toLowerCase();
+    const gender=(g==='female'||g==='male')?g:'';
+    state.home.google={...state.home.google,signedIn:true,email,name:name||state.home.google.name,picture,gender};
+    if(name)state.home.name=name;
+    if(gender)state.home.gender=gender;
     if(initFirebaseIfReady()){
       void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
     }
@@ -674,7 +694,11 @@ function saveGoogleSession(){
       localStorage.removeItem(GOOGLE_SESSION_KEY);
       return;
     }
-    localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify({email}));
+    const name=String(state.home.google.name??'').slice(0,18);
+    const picture=String(state.home.google.picture??'').trim();
+    const g=String(state.home.google.gender??'').trim().toLowerCase();
+    const gender=(g==='female'||g==='male')?g:'';
+    localStorage.setItem(GOOGLE_SESSION_KEY,JSON.stringify({email,name,picture,gender}));
   }catch{}
 }
 function clearGoogleSession(){
@@ -914,29 +938,31 @@ function speakCallout(text,gender='male'){
     const msg=String(text??'').trim();
     if(!msg||!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return;
     const synth=window.speechSynthesis;
-    const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|mei[-\s]?jia|xiaoxiao|xiaoyi)/i;
-    const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang)/i;
+    const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|mei[-\s]?jia|xiaoxiao|xiaoyi|xiaomeng|xiaohan|jia[-\s]?yi|yi[-\s]?ting)/i;
+    const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang|xiaoming|xiaogang|james|tom|kevin)/i;
     const voiceMeta=(v)=>`${v?.name||''} ${v?.voiceURI||''}`;
+    const isFemaleVoice=(v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v));
+    const isMaleVoice=(v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v));
     const byLangPrefixes=(voices,prefixes)=>voices.filter((v)=>prefixes.some((p)=>String(v.lang??'').toLowerCase().startsWith(p)));
     const firstNonMale=(voices)=>voices.find((v)=>!maleHint.test(voiceMeta(v)))??null;
-    const firstFemale=(voices)=>voices.find((v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v)))??null;
+    const firstNonFemale=(voices)=>voices.find((v)=>!femaleHint.test(voiceMeta(v)))??null;
+    const firstFemale=(voices)=>voices.find((v)=>isFemaleVoice(v))??null;
+    const firstMale=(voices)=>voices.find((v)=>isMaleVoice(v))??null;
     const pickGenderVoice=(voices,prefixes,targetGender)=>{
       const g=String(targetGender??'male')==='female'?'female':'male';
       const list=byLangPrefixes((voices??[]),prefixes);
-      if(!list.length){
-        if(g==='female')return firstFemale(voices)??firstNonMale(voices)??(voices?.[0]??null);
-        const male=list?.find?.((v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v)));
-        return male??(voices?.[0]??null);
-      }
       if(g==='female'){
-        const female=firstFemale(list);
+        const female=firstFemale(list.length?list:voices);
         if(female)return female;
-        const nonMale=firstNonMale(list);
+        const nonMale=firstNonMale(list.length?list:voices);
         if(nonMale)return nonMale;
-        return firstFemale(voices)??firstNonMale(voices)??list[0]??null;
+        return (list[0]??voices[0]??null);
       }
-      const male=list.find((v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v)));
-      return male??list[0]??null;
+      const male=firstMale(list.length?list:voices);
+      if(male)return male;
+      const nonFemale=firstNonFemale(list.length?list:voices);
+      if(nonFemale)return nonFemale;
+      return (list[0]??voices[0]??null);
     };
     const isCantoneseVoice=(v)=>{
       const lang=String(v?.lang??'').toLowerCase();
@@ -947,29 +973,30 @@ function speakCallout(text,gender='male'){
     };
     const setupVoice=(u,voices)=>{
       if(state.language==='en'){
-        const voice=pickGenderVoice(voices,['en'],gender)??voices.find((v)=>String(v.lang??'').toLowerCase().startsWith('en'));
+        const voice=pickGenderVoice(voices,['en'],gender);
         if(voice)u.voice=voice;
         u.lang='en-US';
         u.pitch=String(gender??'male')==='female'?1.16:0.9;
         return true;
       }else{
         const cantoneseVoices=(voices??[]).filter(isCantoneseVoice);
-        if(!cantoneseVoices.length)return false;
-        const voice=pickGenderVoice(cantoneseVoices,['yue','zh-hk'],gender)??cantoneseVoices[0]??null;
+        const sourceVoices=cantoneseVoices.length?cantoneseVoices:(voices??[]);
+        const voice=pickGenderVoice(sourceVoices,['yue','zh-hk','zh'],gender);
         if(!voice)return false;
         u.voice=voice;
-        u.lang=String(voice.lang||'yue-HK');
+        u.lang=String(voice.lang||'zh-HK');
         u.pitch=String(gender??'male')==='female'?1.14:0.92;
         return true;
       }
     };
     const speakNow=()=>{
       const u=new SpeechSynthesisUtterance(msg.replace(/[!!]/g,''));
-      u.rate=1.02;
+      u.rate=0.82;
       u.pitch=String(gender??'male')==='female'?1.12:0.94;
       const voices=synth.getVoices?.()??[];
       const ok=setupVoice(u,voices);
       if(!ok)return;
+      synth.cancel?.();
       synth.resume?.();
       synth.speak(u);
     };
@@ -985,25 +1012,23 @@ function speakCallout(text,gender='male'){
   }catch{}
 }
 function parseJwtPayload(token){try{const p=String(token??'').split('.')[1];if(!p)return null;const b=p.replace(/-/g,'+').replace(/_/g,'/');const json=decodeURIComponent(atob(b).split('').map((c)=>`%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(''));return JSON.parse(json);}catch{return null;}}
-function isDefaultPlayerName(name){
-  const s=String(name??'').trim();
-  if(!s)return true;
-  return s==='玩家'||s.toLowerCase()==='player';
-}
 async function handleCredentialResponse(response){
   const token=String(response?.credential??'').trim();
   if(!token)return;
   const p=parseJwtPayload(token)??{};
-  const wasDefaultName=isDefaultPlayerName(state.home.name);
   initFirebaseIfReady();
   const email=String(p.email??'').trim().toLowerCase().slice(0,120);
+  const pic=String(p.picture??'').trim();
+  const gRaw=String(p.gender??p.sex??'').trim().toLowerCase();
+  const googleGender=(gRaw==='female'||gRaw==='male')?gRaw:'';
   const signedIn=Boolean(email);
-  state.home.google={signedIn,name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token};
+  state.home.google={signedIn,name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token,picture:pic,gender:googleGender};
   if(signedIn){
     const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
-    if((wasDefaultName||!String(state.home.name??'').trim())&&state.home.google.name){
-      state.home.name=state.home.google.name;
-    }
+    void hydrated;
+    if(state.home.google.name)state.home.name=state.home.google.name;
+    if(googleGender)state.home.gender=googleGender;
+    saveGoogleSession();
     await syncLeaderboardProfile(currentLeaderboardIdentity());
     if(state.home.showLeaderboard)refreshLeaderboard(true);
   }
@@ -1045,7 +1070,7 @@ function renderGoogleInline(attempt=0){
   if(!slot)return;
   if(state.home.google.signedIn){
     slot.innerHTML=`<button id="google-signout" class="secondary">${t('signOut')}</button>`;
-    document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',email:'',uid:'',sub:'',token:''};clearGoogleSession();try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}try{firebaseAuth?.signOut?.();}catch{}render();});
+    document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''};clearGoogleSession();try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}try{firebaseAuth?.signOut?.();}catch{}render();});
     return;
   }
   try{
@@ -1210,6 +1235,11 @@ function avatarDataUri(name,color,gender='male'){
   if(cached)return cached;
   scheduleAvatarRecolor(g,c);
   return AVATAR_BASE_SRC[g];
+}
+function selfAvatarDataUri(name,color,gender='male'){
+  const pic=String(state.home.google?.picture??'').trim();
+  if(state.home.google?.signedIn&&pic)return pic;
+  return avatarDataUri(name,color,gender);
 }
 const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
@@ -1458,13 +1488,46 @@ function fanJitterDeg(seed,i){return((fanNoise(seed,i,'deg')*2)-1)*0.75;}
 function fanGap(seed,i){return fanNoise(seed,i,'gap');}
 function fanLift(seed,i){return fanNoise(seed,i,'lift');}
 function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0);const backFile=backAssetFile(state.home.backColor);return Array.from({length:shown},(_,i)=>`<span class="card back mini closed-back" style="--i:${i};--n:${shown};--fan-jitter:${fanJitterDeg(seed,i).toFixed(3)}deg;--fan-gap:${fanGap(seed,i).toFixed(3)};--fan-lift:${fanLift(seed,i).toFixed(3)};"><img class="card-art" src="${withBase(`card-assets/${backFile}`)}" alt="back"/></span>`).join('');}
+function calloutJitterStyle(viewCls,key=''){
+  const seed=`${viewCls}|${key}`;
+  const r=(salt)=>fanNoise(seed,0,salt);
+  const xr=viewCls==='north'||viewCls==='south'?24:18;
+  const yr=14;
+  const size=0.82+(r('size')*0.36);
+  const x=Math.round((r('jx')*2-1)*xr);
+  const y=Math.round((r('jy')*2-1)*yr);
+  return`--callout-jx:${x}px;--callout-jy:${y}px;--callout-size:${size.toFixed(3)};`;
+}
+function newCalloutNonce(){
+  return`${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`;
+}
+function clearCalloutStates(except=''){
+  if(except!=='play'){
+    if(playTypeCallTimer){clearTimeout(playTypeCallTimer);playTypeCallTimer=null;}
+    playTypeCallState.until=0;
+    playTypeCallState.startedAt=0;
+    playTypeCallState.nonce='';
+  }
+  if(except!=='pass'){
+    if(passCallTimer){clearTimeout(passCallTimer);passCallTimer=null;}
+    passCallState.until=0;
+    passCallState.startedAt=0;
+    passCallState.nonce='';
+  }
+  if(except!=='last'){
+    if(lastCardCallTimer){clearTimeout(lastCardCallTimer);lastCardCallTimer=null;}
+    lastCardCallState.until=0;
+    lastCardCallState.startedAt=0;
+    lastCardCallState.nonce='';
+  }
+}
 
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:`${p[start].name} ${t('start')}`,history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
 
-function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)g.status=ev.reason;return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)g.status=t('must3');return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)g.status=t('beat');return false;}
+function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
     const legal=legalTurnPlays(g.players[seat].hand,g).sort(cmpStrongPlayDesc);
     const strongest=legal[0];
@@ -1485,11 +1548,11 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     }
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
-  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');g.status=`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`;recordLeaderboardRound(currentLeaderboardIdentity(),seat===0?winnerGain:-deductions[0],seat===0);playSound('win');return true;
+  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);recordLeaderboardRound(currentLeaderboardIdentity(),seat===0?winnerGain:-deductions[0],seat===0);playSound('win');return true;
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
-  g.currentSeat=(seat+1)%4;g.status=`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`;playSound('play');return true;}
-function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)g.status=t('cantPass');return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;g.status=`${g.players[lead].name} ${t('retake')}`;playSound('pass');return true;}g.currentSeat=(seat+1)%4;g.status=`${g.players[seat].name} ${t('pass')}.`;playSound('pass');return true;}
+  g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false});playSound('play');return true;}
+function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)setSoloStatus(t('cantPass'));return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;setSoloStatus(`${g.players[lead].name} ${t('retake')}`);playSound('pass');return true;}g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('pass')}.`,{appendLog:false});playSound('pass');return true;}
 function maybeRunSoloAi(){if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}const g=state.solo;if(!g||g.gameOver||g.players[g.currentSeat].isHuman)return;aiTimer=window.setTimeout(()=>{const seat=g.currentSeat;if(g.gameOver||g.players[seat].isHuman)return;const ch=chooseAiPlay(g.players[seat].hand,g,g.aiDifficulty);if(!ch)soloPass(seat);else soloApplyPlay(seat,ch.cards);render();maybeRunSoloAi();},650);}
 
 function unlockAudio(){if(sound.ctx||!sound.enabled)return;try{sound.ctx=new window.AudioContext();}catch{sound.enabled=false;}}
@@ -1505,7 +1568,7 @@ function playTone(freq,d,type='sine',g=0.03,delay=0){if(!sound.ctx)return;const 
 function playSound(kind){if(!sound.enabled||!sound.ctx)return;if(kind==='select')playTone(520,0.08,'triangle',0.02);if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}if(kind==='pass')playTone(210,0.1,'sine',0.02);if(kind==='start'){playTone(330,0.1,'triangle',0.025);playTone(495,0.12,'triangle',0.025,0.05);}if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}}
 function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const root=document.documentElement;for(const[k,v]of Object.entries(theme))root.style.setProperty(k,v);}
 
-function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
+function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,systemLog:g.systemLog??[],participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
 
 function formatGameLogDateTime(ts){
   const n=Number(ts)||0;
@@ -1513,12 +1576,62 @@ function formatGameLogDateTime(ts){
   try{
     const locale=state.language==='en'?'en-US':'zh-HK';
     const d=new Date(n);
-    return d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit'});
+    const time=d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return time;
   }catch{
     return'';
   }
 }
-function historyHtml(h,self){if(!h.length)return`<div class="hint">${t('nolog')}</div>`;return h.slice().reverse().map((e)=>{const vIdx=seatView(e.seat,self);const cls=seatCls[vIdx]||'south';const color=playerColorByViewClass(cls);const mine=vIdx===0;const timeText=formatGameLogDateTime(e.ts);const tag=`<span class="player-color-chip" style="--player-color:${color};"></span><span class="history-name">${esc(e.name)}</span>`;if(e.action==='pass')return`<div class="history-item ${mine?'mine':''}"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-meta">${t('pass')}</div></div>`;const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');return`<div class="history-item ${mine?'mine':''}"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-play-row"><div class="history-meta">${kindLabel(e.kind)}</div><div class="history-cards">${cards}</div></div></div>`;}).join('');}
+function formatSystemLogDateTime(ts){
+  const n=Number(ts)||0;
+  if(!n)return'';
+  try{
+    const locale=state.language==='en'?'en-US':'zh-HK';
+    const d=new Date(n);
+    const time=d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return time;
+  }catch{
+    return'';
+  }
+}
+function gameLogCardText(cards){
+  return(cards??[]).map((c)=>`${SUITS[c.suit]?.symbol??''}${RANKS[c.rank]??''}`).join(' ');
+}
+function gameLogDetailText(e){
+  const zh=state.language==='zh-HK';
+  if(e.action==='pass')return zh?'本回合選擇過牌。':'Passed this turn.';
+  const cards=e.cards??[];
+  const kind=kindLabel(e.kind);
+  const cardText=gameLogCardText(cards);
+  if(zh)return`出牌：${kind}（${cards.length}張）${cardText?`（${cardText}）`:''}`;
+  return`Played: ${kind} (${cards.length} cards)${cardText?` (${cardText})`:''}`;
+}
+function historyHtml(h,self,systemLog=[]){
+  const items=[];
+  let seq=0;
+  for(const e of (h??[])){
+    const vIdx=seatView(e.seat,self);
+    const cls=seatCls[vIdx]||'south';
+    const color=playerColorByViewClass(cls);
+    const timeText=formatGameLogDateTime(e.ts);
+    const detail=gameLogDetailText(e);
+    const tag=`<span class="player-color-chip" style="--player-color:${color};"></span><span class="history-name">${esc(e.name)}</span>`;
+    if(e.action==='pass'){
+      items.push({ts:Number(e.ts)||0,seq:seq++,html:`<div class="history-item"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-detail">${esc(detail)}</div></div>`});
+      continue;
+    }
+    const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');
+    items.push({ts:Number(e.ts)||0,seq:seq++,html:`<div class="history-item"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-detail-row"><div class="history-detail">${esc(detail)}</div><div class="history-cards">${cards}</div></div></div>`});
+  }
+  const sysEntries=(systemLog??[]).map((x)=>typeof x==='string'?{text:x,ts:0}:{text:String(x?.text??''),ts:Number(x?.ts)||0}).filter((x)=>x.text.trim());
+  for(const s of sysEntries){
+    const timeText=formatSystemLogDateTime(s.ts);
+    items.push({ts:Number(s.ts)||0,seq:seq++,html:`<div class="history-item"><div class="history-head"><div class="history-meta history-system-line">${esc(s.text)}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div></div>`});
+  }
+  const entries=items.sort((a,b)=>(b.ts-a.ts)||(b.seq-a.seq)).map((x)=>x.html);
+  if(!entries.length)return`<div class="hint">${t('nolog')}</div>`;
+  return entries.join('');
+}
 function isStatusDuplicatedByHistory(v){
   const h=v.history??[];
   if(!h.length)return false;
@@ -1608,6 +1721,7 @@ function currentLastCardSeat(v){
     lastCardCallState.key='';
     lastCardCallState.until=0;
     lastCardCallState.startedAt=0;
+    lastCardCallState.nonce='';
     lastCardProcessedHistoryLen=0;
     return null;
   }
@@ -1627,9 +1741,11 @@ function currentLastCardSeat(v){
   lastCardCallState.seat=latest.seat;
   lastCardCallState.until=now+1500;
   lastCardCallState.startedAt=now;
+  lastCardCallState.nonce=newCalloutNonce();
+  clearCalloutStates('last');
   speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat));
   if(lastCardCallTimer)clearTimeout(lastCardCallTimer);
-  lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;render();},1550);
+  lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;lastCardCallState.nonce='';render();},1550);
   return latest.seat;
 }
 function setRecommendHint(msg=''){
@@ -1651,12 +1767,46 @@ function currentPlayTypeCall(v){
     playTypeCallState.text=`${kindLabel(lastPlay.kind)}!`;
     playTypeCallState.until=now+1500;
     playTypeCallState.startedAt=now;
+    playTypeCallState.nonce=newCalloutNonce();
+    clearCalloutStates('play');
     speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat));
     if(playTypeCallTimer)clearTimeout(playTypeCallTimer);
-    playTypeCallTimer=window.setTimeout(()=>{playTypeCallTimer=null;playTypeCallState.until=0;playTypeCallState.startedAt=0;render();},1550);
+    playTypeCallTimer=window.setTimeout(()=>{playTypeCallTimer=null;playTypeCallState.until=0;playTypeCallState.startedAt=0;playTypeCallState.nonce='';render();},1550);
   }
   if(now>playTypeCallState.until)return null;
   return{seat:playTypeCallState.seat,text:playTypeCallState.text};
+}
+function currentPassCall(v){
+  if(v.gameOver)return null;
+  const history=v.history??[];
+  if(!history.length){
+    passCallState.key='';
+    passCallState.until=0;
+    passCallState.startedAt=0;
+    passCallState.nonce='';
+    return null;
+  }
+  const latest=history[history.length-1];
+  if(!latest||latest.action!=='pass'){
+    if(Date.now()>passCallState.until)return null;
+    return{seat:passCallState.seat,text:passCallState.text};
+  }
+  const key=`pass-${history.length}-${latest.seat}`;
+  const now=Date.now();
+  if(passCallState.key!==key){
+    passCallState.key=key;
+    passCallState.seat=latest.seat;
+    passCallState.text=state.language==='zh-HK'?'大':'Pass';
+    passCallState.until=now+1400;
+    passCallState.startedAt=now;
+    passCallState.nonce=newCalloutNonce();
+    clearCalloutStates('pass');
+    speakCallout(state.language==='zh-HK'?'大':'pass',seatGenderBySeat(v,latest.seat));
+    if(passCallTimer)clearTimeout(passCallTimer);
+    passCallTimer=window.setTimeout(()=>{passCallTimer=null;passCallState.until=0;passCallState.startedAt=0;passCallState.nonce='';render();},1450);
+  }
+  if(now>passCallState.until)return null;
+  return{seat:passCallState.seat,text:passCallState.text};
 }
 function revealHtml(){return'';}
 function resultScreenHtml(v,arr){
@@ -1711,7 +1861,7 @@ function markComboActive(comboId,value){
 }
 function backAssetFile(value){
   const found=BACK_OPTIONS.find((x)=>x.value===value);
-  return found?.file??'back-red.png';
+  return found?.file??'back-red-clean2.png';
 }
 function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/><span class="back-label">${opt.label[state.language]??opt.value}</span></button>`).join('');
@@ -1817,8 +1967,37 @@ function renderGame(){
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
   const playTypeFresh=Boolean(playTypeCallState.startedAt&&Date.now()-playTypeCallState.startedAt<260);
+  const passCall=currentPassCall(v);
+  const passCallFresh=Boolean(passCallState.startedAt&&Date.now()-passCallState.startedAt<260);
   const lastCardSeat=currentLastCardSeat(v);
   const lastCardFresh=Boolean(lastCardCallState.startedAt&&Date.now()-lastCardCallState.startedAt<260);
+  const calloutCandidates=[];
+  if(passCall)calloutCandidates.push({kind:'pass',seat:passCall.seat,text:passCall.text,fresh:passCallFresh,nonce:passCallState.nonce||passCallState.startedAt,startedAt:passCallState.startedAt});
+  if(playTypeCall)calloutCandidates.push({kind:'play',seat:playTypeCall.seat,text:playTypeCall.text,fresh:playTypeFresh,nonce:playTypeCallState.nonce||playTypeCallState.startedAt,startedAt:playTypeCallState.startedAt});
+  if(lastCardSeat!==null)calloutCandidates.push({kind:'last',seat:lastCardSeat,text:t('lastCardCall'),fresh:lastCardFresh,nonce:lastCardCallState.nonce||lastCardCallState.startedAt,startedAt:lastCardCallState.startedAt});
+  const calloutPriority={pass:3,play:2,last:1};
+  const activeCallout=calloutCandidates.sort((a,b)=>(Number(b.startedAt)||0)-(Number(a.startedAt)||0)||(calloutPriority[b.kind]-calloutPriority[a.kind]))[0]??null;
+  const seatCalloutHtml=(seat,viewCls,color,isSelf=false)=>{
+    const seatClass=isSelf?'play-type-call-self':'play-type-call-seat';
+    const lastClass=isSelf?'last-card-call-self':'last-card-call-seat';
+    if(!activeCallout||activeCallout.seat!==seat)return'';
+    if(activeCallout.kind==='pass'){
+      const fresh='';
+      const jitter=calloutJitterStyle(viewCls,`pass|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
+      return`<div class="play-type-call ${seatClass} pass-call${fresh}" style="--player-color:${color};${jitter}">${esc(activeCallout.text)}</div>`;
+    }
+    if(activeCallout.kind==='play'){
+      const fresh=activeCallout.fresh?' play-type-call-fresh':'';
+      const jitter=calloutJitterStyle(viewCls,`play|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
+      return`<div class="play-type-call ${seatClass}${fresh}" style="--player-color:${color};${jitter}">${esc(activeCallout.text)}</div>`;
+    }
+    if(activeCallout.kind==='last'){
+      const fresh=activeCallout.fresh?' last-card-call-fresh':'';
+      const jitter=calloutJitterStyle(viewCls,`last|${seat}|${activeCallout.nonce}`);
+      return`<div class="last-card-call ${lastClass}${fresh}" style="--player-color:${color};${jitter}">${esc(activeCallout.text)}</div>`;
+    }
+    return'';
+  };
   const lastActions=lastActionBySeat(v.history);
   const playKey=v.lastPlay?`${v.lastPlay.seat}-${v.lastPlay.cards.map(cardId).join(',')}`:'';
   if(playKey&&state.playAnimKey!==playKey)state.playAnimKey=playKey;
@@ -1829,26 +2008,24 @@ function renderGame(){
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
     const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"/></span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span></div>`;
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
-    const playCallHtml=playTypeCall&&playTypeCall.seat===p.seat?`<div class="play-type-call play-type-call-seat${playTypeFresh?' play-type-call-fresh':''}" style="--player-color:${pColor};"><img class="callout-seat-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/>${esc(playTypeCall.text)}</div>`:'';
-    const lastCardHtml=lastCardSeat===p.seat?`<div class="last-card-call last-card-call-seat${lastCardFresh?' last-card-call-fresh':''}" style="--player-color:${pColor};"><img class="callout-seat-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/>${t('lastCardCall')}</div>`:'';
+    const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
     const sectionStyle=innerNoOutline;
-    return`<div class="seat ${p.cls} ${active?'active':''}" style="${shellStyle}">${outerLabel}${playCallHtml}${lastCardHtml}<div class="seat-pack seat-section" style="${sectionStyle}"><div class="opponent-fan ${opponentFanStyleByName(p.rawName||p.name)}">${fan}</div></div></div>`;
+    return`<div class="seat ${p.cls} ${active?'active':''}" style="${shellStyle}">${outerLabel}${calloutHtml}<div class="seat-pack seat-section" style="${sectionStyle}"><div class="opponent-fan ${opponentFanStyleByName(p.rawName||p.name)}">${fan}</div></div></div>`;
   }).join('');
   const selfScore=self?selfScoreValue:0;
   const selfName=self?self.name:t('name');
   const selfGender=self?.gender??state.home.gender??'male';
   const selfSeatColor=playerColorByViewClass('south');
-  const selfAvatarSrc=avatarDataUri(selfName,selfSeatColor,selfGender);
+  const selfAvatarSrc=selfAvatarDataUri(selfName,selfSeatColor,selfGender);
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" alt="${esc(selfName)}"/></span>`;
-  const selfPlayCallHtml=playTypeCall&&self&&playTypeCall.seat===self.seat?`<div class="play-type-call play-type-call-self${playTypeFresh?' play-type-call-fresh':''}" style="--player-color:${selfSeatColor};"><img class="callout-seat-avatar" src="${selfAvatarSrc}" alt="${esc(selfName)}"/>${esc(playTypeCall.text)}</div>`:'';
-  const selfLastCardHtml=lastCardSeat!==null&&self&&lastCardSeat===self.seat?`<div class="last-card-call last-card-call-self${lastCardFresh?' last-card-call-fresh':''}" style="--player-color:${selfSeatColor};"><img class="callout-seat-avatar" src="${selfAvatarSrc}" alt="${esc(selfName)}"/>${t('lastCardCall')}</div>`:'';
+  const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   bindGameEvents(v,arr);
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
@@ -1890,7 +2067,7 @@ function bindGameEvents(v,arr){
     if(!v.canControl)return;
     setRecommendHint('');
     if(!cards.length){
-      if(v.mode==='solo'){state.solo.status=t('pick');render();}
+      if(v.mode==='solo'){setSoloStatus(t('pick'));render();}
       return;
     }
     state.recommendation=null;
