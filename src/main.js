@@ -1513,9 +1513,9 @@ function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0)
 function calloutJitterStyle(viewCls,key=''){
   const seed=`${viewCls}|${key}`;
   const r=(salt)=>fanNoise(seed,0,salt);
-  const xr=viewCls==='north'||viewCls==='south'?24:18;
-  const yr=14;
-  const size=0.82+(r('size')*0.36);
+  const xr=viewCls==='south'?12:8;
+  const yr=8;
+  const size=0.64;
   const x=Math.round((r('jx')*2-1)*xr);
   const y=Math.round((r('jy')*2-1)*yr);
   return`--callout-jx:${x}px;--callout-jy:${y}px;--callout-size:${size.toFixed(3)};`;

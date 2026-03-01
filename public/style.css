@@ -1339,30 +1339,30 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   animation: none !important;
 }
 .play-type-call-seat {
-  top: calc(38px + var(--callout-jy, 0px));
-  left: calc(122px + var(--callout-jx, 0px));
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(94px + var(--callout-jx, 0px));
 }
 .last-card-call-seat {
-  top: calc(38px + var(--callout-jy, 0px));
-  left: calc(122px + var(--callout-jx, 0px));
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(94px + var(--callout-jx, 0px));
 }
 .seat.north .play-type-call-seat,
 .seat.north .last-card-call-seat,
 .seat.north .pass-call.play-type-call-seat {
-  top: calc(74px + var(--callout-jy, 0px));
-  left: calc(50% + var(--callout-jx, 0px));
-  transform: translateX(-50%);
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(98px + var(--callout-jx, 0px));
+  transform: none;
 }
 .seat.west .play-type-call-seat,
 .seat.west .last-card-call-seat {
-  top: calc(54px + var(--callout-jy, 0px));
-  left: calc(156px + var(--callout-jx, 0px));
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(98px + var(--callout-jx, 0px));
 }
 .seat.east .play-type-call-seat,
 .seat.east .last-card-call-seat {
-  top: calc(54px + var(--callout-jy, 0px));
-  left: auto;
-  right: calc(156px - var(--callout-jx, 0px));
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(98px + var(--callout-jx, 0px));
+  right: auto;
 }
 .play-type-call-self {
   top: calc(-112px + var(--callout-jy, 0px));
@@ -1386,21 +1386,34 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .seat.east .play-type-call-seat::after,
 .seat.east .last-card-call-seat::after {
-  left: auto;
-  right: -18px;
+  left: -18px;
+  right: auto;
   top: 52%;
-  transform: translateY(-50%) rotate(162deg);
+  transform: translateY(-50%) rotate(22deg);
 }
 .seat.north .play-type-call-seat::after,
 .seat.north .last-card-call-seat::after,
 .seat.north .pass-call.play-type-call-seat::after {
-  left: 18%;
+  left: 12px;
   right: auto;
-  top: -18px;
+  top: -14px;
   width: 28px;
   height: 18px;
   clip-path: polygon(50% 0, 0 100%, 100% 100%);
   transform: none;
+}
+@media (orientation: landscape) {
+  .seat.north .play-type-call-seat::after,
+  .seat.north .last-card-call-seat::after,
+  .seat.north .pass-call.play-type-call-seat::after {
+    left: -18px;
+    right: auto;
+    top: 52%;
+    width: 30px;
+    height: 22px;
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+    transform: translateY(-50%) rotate(22deg);
+  }
 }
 .play-type-call-self::after,
 .last-card-call-self::after {
@@ -3104,6 +3117,24 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
+  body[data-screen='game'] .east .seat-played {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-end;
+    box-sizing: border-box;
+  }
+  body[data-screen='game'] .center-last-east {
+    right: 8px !important;
+    left: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+  body[data-screen='game'] .center-last-east .seat-played {
+    justify-content: flex-end;
+    padding-right: 2px;
+    box-sizing: border-box;
+    overflow: visible !important;
+  }
   /* Mobile portrait: keep buttons in one row with compact sizing. */
   body[data-screen='game'] .topbar-right .control-row,
   .action-strip .control-row {
