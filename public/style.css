@@ -540,6 +540,59 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   margin-bottom: 8px;
 }
 .intro-head h3 { margin: 0; font-size: 1.08rem; }
+.title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+.title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -1px;
+  line-height: 1;
+  vertical-align: middle;
+}
+.title-icon-log {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ec0ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='2'/%3E%3Cpath d='M8 8h8M8 12h8M8 16h5'/%3E%3C/svg%3E");
+}
+.title-icon-guide {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389d1ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z'/%3E%3Cpath d='M8 7h8M8 11h7'/%3E%3C/svg%3E");
+}
+.title-icon-leaderboard {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd166' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 21h8'/%3E%3Cpath d='M12 17v4'/%3E%3Cpath d='M7 4h10v3a5 5 0 0 1-10 0V4Z'/%3E%3Cpath d='M17 6h2a2 2 0 0 1 0 4h-2'/%3E%3Cpath d='M7 6H5a2 2 0 0 0 0 4h2'/%3E%3C/svg%3E");
+}
+.title-icon-score {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2376e39c' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3Cpath d='M8 8h2M14 8h2M8 12h8M8 16h8'/%3E%3C/svg%3E");
+}
+.title-icon-result {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239fd4ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19h16'/%3E%3Cpath d='M7 15V9'/%3E%3Cpath d='M12 15V5'/%3E%3Cpath d='M17 15v-3'/%3E%3C/svg%3E");
+}
+.title-icon-congrats {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffc857' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.9 4.2L18.5 8l-3.3 3.1.8 4.6-4-2.3-4 2.3.8-4.6L5.5 8l4.6-.8L12 3Z'/%3E%3C/svg%3E");
+}
 .intro-head p { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
 .intro-sheet button.secondary,
 .lb-sheet button.secondary {
@@ -1175,7 +1228,19 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   transform: none;
 }
 .center-last .seat-played-pass {
-  padding: 2px 5px;
+  padding: 4px 8px;
+}
+.center-last .seat-pass-label {
+  padding: 5px 12px;
+  font-size: .84rem;
+  gap: 7px;
+}
+.center-last .seat-pass-icon {
+  width: .95rem;
+  height: .95rem;
+}
+.center-last .seat-pass-text {
+  letter-spacing: .04em;
 }
 .center-last-north { left: 50%; top: 8px; transform: translate(-50%, 0); }
 .center-last-south { left: 50%; bottom: 8px; transform: translate(-50%, 0); }
@@ -1718,19 +1783,39 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .card.mini { width: calc(var(--card-w)*.56); height: calc(var(--card-h)*.56); }
 .seat-pass-label {
-  display: inline-block;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
   border-radius: 999px;
-  font-size: .74rem;
+  font-size: .72rem;
   font-weight: 700;
-  letter-spacing: .01em;
-  color: #f4f9fb;
-  background: rgba(255,255,255,.16);
-  border: 1px solid rgba(255,255,255,.26);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: #f7fcff;
+  background:
+    linear-gradient(180deg, rgba(86, 170, 220, .26), rgba(35, 76, 118, .28));
+  border: 1px solid rgba(126, 200, 245, .48);
+  box-shadow:
+    0 0 0 1px rgba(8, 22, 36, .45) inset,
+    0 3px 10px rgba(0, 0, 0, .26);
+}
+.seat-pass-icon {
+  width: .82rem;
+  height: .82rem;
+  flex: 0 0 auto;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: .95;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9f1ff' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 0 1-15.4 6.4L3 16'/%3E%3Cpath d='M3 12a9 9 0 0 1 15.4-6.4L21 8'/%3E%3C/svg%3E");
+}
+.seat-pass-text {
+  line-height: 1;
 }
 .seat-played-pass {
-  min-height: 20px;
-  padding: 1px 4px;
+  min-height: 22px;
+  padding: 2px 4px;
   justify-content: center;
   align-items: center;
 }
@@ -1769,11 +1854,11 @@ body[data-screen='game'] .side-zone.log-collapsed {
 .history-list {
   display: grid;
   grid-auto-rows: max-content;
-  gap: 8px;
+  gap: 5px;
   min-height: 0;
   max-height: none;
   overflow: auto;
-  padding: 10px;
+  padding: 7px;
   align-content: start;
   justify-content: stretch;
   align-items: start;
@@ -1794,23 +1879,63 @@ body[data-screen='game'] .history-list {
 .side-zone .side-card { align-content: start; }
 .history-item {
   width: 100%;
-  border-radius: 10px;
-  padding: 7px;
-  background: rgba(255,255,255,.08);
+  border-radius: 8px;
+  padding: 5px 6px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 .history-item.mine { border: 1px solid rgba(255,209,102,.45); }
-.history-title { font-size: .88rem; color: var(--muted); }
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.history-title {
+  font-size: .82rem;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.history-time {
+  font-size: .7rem;
+  color: rgba(218, 232, 240, .7);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.history-name {
+  font-weight: 700;
+  color: #f4f9fb;
+}
+.history-meta {
+  font-size: .74rem;
+  color: #e9f3f8;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.history-play-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .log-status {
   width: 100%;
   padding: 6px 7px;
   border-radius: 8px;
   background: rgba(255,255,255,.06);
 }
-.history-name { font-weight: 800; color: #f4f9fb; }
-.history-title .player-color-chip { margin-right: 5px; }
-.history-cards { display: flex; gap: 3px; flex-wrap: wrap; }
+.history-title .player-color-chip {
+  margin-right: 3px;
+  transform: translateY(-.5px);
+}
+.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; }
+.history-cards .card.mini {
+  width: calc(var(--card-w) * .48);
+  height: calc(var(--card-h) * .48);
+}
 .side-card ul { margin: 0; padding-left: 16px; color: var(--muted); line-height: 1.45; font-size: .82rem; }
 
 .reveal-panel { border-radius: 14px; border: 1px solid rgba(255,255,255,.2); background: rgba(5,25,35,.56); padding: 9px; display: grid; gap: 7px; }
@@ -2018,6 +2143,9 @@ body[data-screen='game'] .history-list {
     margin-bottom: 4px;
   }
   .mobile-discard-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: .78rem;
     color: var(--muted);
     font-weight: 700;
@@ -2032,10 +2160,17 @@ body[data-screen='game'] .history-list {
   .mobile-discard-head {
     display: inline-flex;
     align-items: center;
+    justify-content: space-between;
+    width: 100%;
     gap: 5px;
     font-size: .8rem;
     line-height: 1.1;
   }
+.mobile-discard-time {
+  color: rgba(218, 232, 240, .72);
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+}
 .mobile-discard-name {
   color: color-mix(in srgb, var(--player-color, #f4f9fb) 82%, #f4f9fb 18%);
   font-family: inherit;

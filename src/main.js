@@ -39,7 +39,7 @@ const I18N={
     score:'分數',
     suggestCost:'',
     cards:'手牌',
-    log:'已出牌紀錄',
+    log:'遊戲紀錄',
     nolog:'未有紀錄',
     rules:'規則重點',
     ruleItems:[
@@ -169,7 +169,7 @@ const I18N={
     score:'Score',
     suggestCost:'',
     cards:'Cards',
-    log:'Played Log',
+    log:'Game Log',
     nolog:'No history yet',
     rules:'Rule Highlights',
     ruleItems:[
@@ -436,11 +436,11 @@ const inlineCard=`<img class="intro-inline-card-art" src="${withBase('card-asset
     return esc(String(text??'')).replaceAll(token,inlineCard);
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
-  return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3>${esc(it.panelTitle)}</h3>${it.panelSub?`<p>${esc(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${esc(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${esc(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
+  return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${esc(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${esc(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${esc(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
 }
 function leaderboardModalHtml(){
   const closeLabel=state.language==='en'?'Close':'關閉';
-  return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3>${t('lb')}</h3></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
+  return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-leaderboard" aria-hidden="true"></span><span>${t('lb')}</span></h3></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
 }
 const lbText=()=>state.language==='en'
   ?{best:'Best',worst:'Worst',updated:'Updated',wr:'WR',avg:'Avg'}
@@ -907,7 +907,7 @@ function scoreGuideModalHtml(){
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${esc(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${esc(sx.topTwo)}</td></tr>`;
-  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3>${t('scoreGuideTitle')}</h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
+  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
 }
 function speakCallout(text,gender='male'){
   try{
@@ -1473,7 +1473,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
       g.lastCardBreach={seat,threatenedSeat:(seat+1)%4};
     }
   }
-  const ids=new Set(cards.map(cardId));g.players[seat].hand=g.players[seat].hand.filter((c)=>!ids.has(cardId(c)));g.lastPlay={seat,eval:ev,cards:ev.sorted};g.passStreak=0;g.isFirstTrick=false;g.history.push({action:'play',seat,name:g.players[seat].name,cards:ev.sorted,kind:ev.kind});
+  const ids=new Set(cards.map(cardId));g.players[seat].hand=g.players[seat].hand.filter((c)=>!ids.has(cardId(c)));g.lastPlay={seat,eval:ev,cards:ev.sorted};g.passStreak=0;g.isFirstTrick=false;g.history.push({action:'play',seat,name:g.players[seat].name,cards:ev.sorted,kind:ev.kind,ts:Date.now()});
   if(g.players[seat].hand.length===0){
     g.gameOver=true;
     const details=g.players.map((p,i)=>i===seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(p.hand));
@@ -1489,7 +1489,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   g.currentSeat=(seat+1)%4;g.status=`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`;playSound('play');return true;}
-function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)g.status=t('cantPass');return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;g.status=`${g.players[lead].name} ${t('retake')}`;playSound('pass');return true;}g.currentSeat=(seat+1)%4;g.status=`${g.players[seat].name} ${t('pass')}.`;playSound('pass');return true;}
+function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)g.status=t('cantPass');return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;g.status=`${g.players[lead].name} ${t('retake')}`;playSound('pass');return true;}g.currentSeat=(seat+1)%4;g.status=`${g.players[seat].name} ${t('pass')}.`;playSound('pass');return true;}
 function maybeRunSoloAi(){if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}const g=state.solo;if(!g||g.gameOver||g.players[g.currentSeat].isHuman)return;aiTimer=window.setTimeout(()=>{const seat=g.currentSeat;if(g.gameOver||g.players[seat].isHuman)return;const ch=chooseAiPlay(g.players[seat].hand,g,g.aiDifficulty);if(!ch)soloPass(seat);else soloApplyPlay(seat,ch.cards);render();maybeRunSoloAi();},650);}
 
 function unlockAudio(){if(sound.ctx||!sound.enabled)return;try{sound.ctx=new window.AudioContext();}catch{sound.enabled=false;}}
@@ -1507,7 +1507,18 @@ function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const r
 
 function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
 
-function historyHtml(h,self){if(!h.length)return`<div class="hint">${t('nolog')}</div>`;return h.slice().reverse().map((e)=>{const vIdx=seatView(e.seat,self);const cls=seatCls[vIdx]||'south';const color=playerColorByViewClass(cls);const mine=vIdx===0;const tag=`<span class="player-color-chip" style="--player-color:${color};"></span><span class="history-name">${esc(e.name)}</span>`;if(e.action==='pass')return`<div class="history-item ${mine?'mine':''}"><div class="history-title">${tag} ${t('pass')}</div></div>`;const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');return`<div class="history-item ${mine?'mine':''}"><div class="history-title">${tag} · ${kindLabel(e.kind)}</div><div class="history-cards">${cards}</div></div>`;}).join('');}
+function formatGameLogDateTime(ts){
+  const n=Number(ts)||0;
+  if(!n)return'';
+  try{
+    const locale=state.language==='en'?'en-US':'zh-HK';
+    const d=new Date(n);
+    return d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit'});
+  }catch{
+    return'';
+  }
+}
+function historyHtml(h,self){if(!h.length)return`<div class="hint">${t('nolog')}</div>`;return h.slice().reverse().map((e)=>{const vIdx=seatView(e.seat,self);const cls=seatCls[vIdx]||'south';const color=playerColorByViewClass(cls);const mine=vIdx===0;const timeText=formatGameLogDateTime(e.ts);const tag=`<span class="player-color-chip" style="--player-color:${color};"></span><span class="history-name">${esc(e.name)}</span>`;if(e.action==='pass')return`<div class="history-item ${mine?'mine':''}"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-meta">${t('pass')}</div></div>`;const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');return`<div class="history-item ${mine?'mine':''}"><div class="history-head"><div class="history-title">${tag}</div>${timeText?`<div class="history-time">${esc(timeText)}</div>`:''}</div><div class="history-play-row"><div class="history-meta">${kindLabel(e.kind)}</div><div class="history-cards">${cards}</div></div></div>`;}).join('');}
 function isStatusDuplicatedByHistory(v){
   const h=v.history??[];
   if(!h.length)return false;
@@ -1539,19 +1550,20 @@ function seatShortByViewClass(cls){
 }
 function mobileDiscardPanelHtml(history,selfSeat,arr){
   const logs=(history??[]).slice(-8).reverse();
-  if(!logs.length)return`<div class="mobile-discard-panel"><div class="mobile-discard-title">${t('log')}</div><div class="hint">${t('nolog')}</div></div>`;
+  if(!logs.length)return`<div class="mobile-discard-panel"><div class="mobile-discard-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></div><div class="hint">${t('nolog')}</div></div>`;
   void arr;
   const rows=logs.map((e)=>{
     const vIdx=seatView(e.seat,selfSeat);
     const cls=seatCls[vIdx]||'south';
     const color=playerColorByViewClass(cls);
+    const timeText=formatGameLogDateTime(e.ts);
     if(e.action==='pass'){
-      return`<div class="mobile-discard-row" style="--player-color:${color};"><div class="mobile-discard-pass">${t('pass')}</div></div>`;
+      return`<div class="mobile-discard-row" style="--player-color:${color};"><div class="mobile-discard-head">${timeText?`<span class="mobile-discard-time">${esc(timeText)}</span>`:''}</div><div class="mobile-discard-pass">${t('pass')}</div></div>`;
     }
     const cards=(e.cards??[]).map((c)=>renderStaticCard(c,true)).join('');
-    return`<div class="mobile-discard-row" style="--player-color:${color};"><div class="mobile-discard-cards">${cards}</div></div>`;
+    return`<div class="mobile-discard-row" style="--player-color:${color};"><div class="mobile-discard-head">${timeText?`<span class="mobile-discard-time">${esc(timeText)}</span>`:''}<span class="mobile-discard-name">${kindLabel(e.kind)}</span></div><div class="mobile-discard-cards">${cards}</div></div>`;
   }).join('');
-  return`<div class="mobile-discard-panel"><div class="mobile-discard-title">${t('log')}</div>${rows}</div>`;
+  return`<div class="mobile-discard-panel"><div class="mobile-discard-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></div>${rows}</div>`;
 }
 function centerMobileOpponentNamesHtml(arr,currentSeat,gameOver){
   const others=(arr??[]).filter((p)=>p.viewIndex!==0);
@@ -1568,7 +1580,7 @@ function lastActionBySeat(h){
 }
 function seatLastActionHtml(action){
   if(!action)return'';
-  if(action.type==='pass')return`<div class="seat-played seat-played-pass"><span class="seat-pass-label">Pass</span></div>`;
+  if(action.type==='pass')return`<div class="seat-played seat-played-pass"><span class="seat-pass-label"><span class="seat-pass-icon" aria-hidden="true"></span><span class="seat-pass-text">${t('pass')}</span></span></div>`;
   const cards=(action.cards??[]).map((c)=>renderStaticCard(c,true)).join('');
   return`<div class="seat-played">${cards}</div>`;
 }
@@ -1677,7 +1689,7 @@ function resultScreenHtml(v,arr){
   }).join('');
   return`<section class="result-screen">
     <div class="result-card">
-      <h2>${t('resultTitle')}</h2>
+      <h2 class="title-with-icon"><span class="title-icon title-icon-result" aria-hidden="true"></span><span>${t('resultTitle')}</span></h2>
       <div class="hint">${esc(uiStatus(v.status))}</div>
       <div class="result-list">${rows}</div>
       <div class="control-row">
@@ -1689,7 +1701,7 @@ function resultScreenHtml(v,arr){
 }
 function congratsOverlayHtml(v,youWin){
   if(!youWin)return'';
-  return`<div class="congrats-screen"><div class="congrats-card"><h3>${t('congrats')}</h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button><button id="congrats-again" class="primary">${t('again')}</button></div></div></div>`;
+  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button><button id="congrats-again" class="primary">${t('again')}</button></div></div></div>`;
 }
 
 function markComboActive(comboId,value){
@@ -1836,7 +1848,7 @@ function renderGame(){
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title">${t('log')}</h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfPlayCallHtml}${selfLastCardHtml}<div class="control-row"><button id="play-btn" class="primary" ${canPlay?'':'disabled'}>${t('play')}</button><button id="pass-btn" class="danger" ${v.canPass?'':'disabled'}>${t('pass')}</button><button id="suggest-btn" class="secondary" ${canSuggest?'':'disabled'}>${t('suggest')}</button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoSeq')}</button><button id="auto-pattern-btn" class="secondary" ${canAutoSort?'':'disabled'}>${t('autoPattern')}</button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3>${isStatusDuplicatedByHistory(v)?'':`<div class="hint log-status">${esc(uiStatus(v.status))}</div>`}<div class="history-list">${historyHtml(v.history,v.selfSeat)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   bindGameEvents(v,arr);
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
