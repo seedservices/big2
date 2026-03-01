@@ -1382,14 +1382,14 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   left: -18px;
   right: auto;
   top: 52%;
-  transform: translateY(-50%) rotate(-22deg);
+  transform: translateY(-50%) rotate(22deg);
 }
 .seat.east .play-type-call-seat::after,
 .seat.east .last-card-call-seat::after {
   left: auto;
   right: -18px;
   top: 52%;
-  transform: translateY(-50%) rotate(198deg);
+  transform: translateY(-50%) rotate(162deg);
 }
 .seat.north .play-type-call-seat::after,
 .seat.north .last-card-call-seat::after,
@@ -3005,6 +3005,41 @@ body[data-screen='game'] .action-strip.active {
     0 0 30px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent),
     inset 0 0 0 1px rgba(255,255,255,.18),
     0 1px 4px rgba(0,0,0,.1) !important;
+}
+body[data-screen='game'] .action-strip .control-row .game-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 2px 8px rgba(0,0,0,.32);
+  font-weight: 800;
+}
+body[data-screen='game'] .action-strip .control-row #play-btn.game-cta-btn {
+  background: linear-gradient(180deg, #3abfbe 0%, #1f8f98 100%) !important;
+  color: #eaffff !important;
+}
+body[data-screen='game'] .action-strip .control-row #pass-btn.game-cta-btn {
+  background: linear-gradient(180deg, #ff6f77 0%, #df3f49 100%) !important;
+  color: #fff5f5 !important;
+}
+body[data-screen='game'] .action-strip .control-row #suggest-btn.game-cta-btn {
+  background: linear-gradient(180deg, rgba(90,110,122,.88), rgba(56,73,86,.92)) !important;
+  color: #e9f1f6 !important;
+}
+body[data-screen='game'] .action-strip .control-row .game-icon-btn {
+  min-width: 36px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: linear-gradient(180deg, rgba(90,110,122,.88), rgba(56,73,86,.92)) !important;
+  color: #e9f1f6 !important;
+  font-weight: 800;
+}
+body[data-screen='game'] .action-strip .control-row .game-cta-btn:disabled,
+body[data-screen='game'] .action-strip .control-row .game-icon-btn:disabled {
+  opacity: .48;
 }
 /* N/E/W identity block same sizing rhythm as south player tag. */
 body[data-screen='game'] .north > .seat-name-fixed,
