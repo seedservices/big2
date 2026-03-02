@@ -3710,19 +3710,26 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 @media (min-width: 861px) {
   body[data-screen='game'] .side-zone,
   body[data-screen='game'] .side-zone.log-collapsed {
+    grid-template-rows: minmax(0,1fr) !important;
+    align-content: stretch !important;
     align-self: stretch !important;
     height: 100% !important;
     min-height: 0 !important;
   }
-  body[data-screen='game'] .side-zone.log-collapsed {
-    grid-template-rows: minmax(0,1fr) !important;
-    align-content: stretch !important;
-  }
+  body[data-screen='game'] .log-side-card,
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     height: 100% !important;
     min-height: 0 !important;
+    padding: 9px !important;
+    gap: 7px !important;
     display: grid !important;
     grid-template-rows: auto minmax(0,1fr) !important;
+    align-content: stretch !important;
+  }
+  body[data-screen='game'] .log-side-card .log-toggle-title,
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-toggle-title {
+    min-height: 36px !important;
+    height: 36px !important;
   }
 }
 

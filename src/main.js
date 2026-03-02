@@ -1617,7 +1617,21 @@ function maybeRunSoloAi(){
   },wait);
 }
 
-function unlockAudio(){if(sound.ctx||!sound.enabled)return;try{sound.ctx=new window.AudioContext();}catch{sound.enabled=false;}}
+function unlockAudio(){
+  if(!sound.enabled)return;
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx){sound.enabled=false;return;}
+    if(!sound.ctx){
+      sound.ctx=new AudioCtx();
+    }
+    if(sound.ctx?.state==='suspended'){
+      sound.ctx.resume?.().catch(()=>{});
+    }
+  }catch{
+    sound.enabled=false;
+  }
+}
 function primeSpeech(){
   try{
     if(isIOSDevice())return;
@@ -1628,7 +1642,19 @@ function primeSpeech(){
   }catch{}
 }
 function playTone(freq,d,type='sine',g=0.03,delay=0){if(!sound.ctx)return;const c=sound.ctx,o=c.createOscillator(),a=c.createGain();o.type=type;o.frequency.value=freq;a.gain.value=g;o.connect(a);a.connect(c.destination);const now=c.currentTime+delay;o.start(now);a.gain.exponentialRampToValueAtTime(0.0001,now+d);o.stop(now+d);}
-function playSound(kind){if(!sound.enabled||!sound.ctx)return;if(kind==='select')playTone(520,0.08,'triangle',0.02);if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}if(kind==='pass')playTone(210,0.1,'sine',0.02);if(kind==='start'){playTone(330,0.1,'triangle',0.025);playTone(495,0.12,'triangle',0.025,0.05);}if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}}
+function playSound(kind){
+  if(!sound.enabled)return;
+  unlockAudio();
+  if(!sound.ctx)return;
+  if(sound.ctx.state==='suspended'){
+    sound.ctx.resume?.().catch(()=>{});
+  }
+  if(kind==='select')playTone(520,0.08,'triangle',0.02);
+  if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}
+  if(kind==='pass')playTone(210,0.1,'sine',0.02);
+  if(kind==='start'){playTone(330,0.1,'triangle',0.025);playTone(495,0.12,'triangle',0.025,0.05);}
+  if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}
+}
 function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const root=document.documentElement;for(const[k,v]of Object.entries(theme))root.style.setProperty(k,v);}
 
 function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,systemLog:g.systemLog??[],participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
