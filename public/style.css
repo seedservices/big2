@@ -733,8 +733,24 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   border-collapse: collapse;
   border-spacing: 0;
   min-width: 0;
-  table-layout: fixed;
+  table-layout: auto;
   font-size: .84rem;
+}
+.score-guide-table th:nth-child(2),
+.score-guide-table td:nth-child(2) {
+  width: 56px;
+  white-space: nowrap;
+  text-align: center;
+}
+.score-guide-table th:nth-child(1),
+.score-guide-table td:nth-child(1) {
+  width: 1%;
+  white-space: nowrap;
+}
+.score-guide-table td:nth-child(1) .score-guide-cards {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 3px;
 }
 .score-guide-table th,
 .score-guide-table td {
@@ -768,6 +784,12 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,.24);
   background: rgba(5,14,24,.3);
+}
+.suit-red {
+  color: #d9252a;
+}
+.suit-black {
+  color: #111111;
 }
 .score-guide-stack {
   color: #ffd166 !important;
@@ -2146,6 +2168,35 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .history-list { max-height: 24vh; }
 }
 @media (max-width: 860px) {
+  /* Mobile: opponent callouts should appear directly under the opponent avatar. */
+  body[data-screen='game'] .seat.north .play-type-call-seat,
+  body[data-screen='game'] .seat.north .last-card-call-seat,
+  body[data-screen='game'] .seat.north .pass-call.play-type-call-seat,
+  body[data-screen='game'] .seat.west .play-type-call-seat,
+  body[data-screen='game'] .seat.west .last-card-call-seat,
+  body[data-screen='game'] .seat.east .play-type-call-seat,
+  body[data-screen='game'] .seat.east .last-card-call-seat {
+    top: 46px !important;
+    left: 6px !important;
+    right: auto !important;
+    transform: none !important;
+  }
+  body[data-screen='game'] .seat.north .play-type-call-seat::after,
+  body[data-screen='game'] .seat.north .last-card-call-seat::after,
+  body[data-screen='game'] .seat.north .pass-call.play-type-call-seat::after,
+  body[data-screen='game'] .seat.west .play-type-call-seat::after,
+  body[data-screen='game'] .seat.west .last-card-call-seat::after,
+  body[data-screen='game'] .seat.east .play-type-call-seat::after,
+  body[data-screen='game'] .seat.east .last-card-call-seat::after {
+    left: 12px !important;
+    right: auto !important;
+    top: -14px !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 18px !important;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%) !important;
+  }
+
   :root {
     --card-w: clamp(46px, 11vw, 74px);
   }
@@ -3119,6 +3170,9 @@ body[data-screen='game'] .seat-subline,
 body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(234, 246, 240, .96) !important;
 }
+body[data-screen='game'] .action-strip .player-tag .seat-subline {
+  margin-top: 2px !important;
+}
 body[data-screen='game'] .north > .seat-name-fixed .seat-subline,
 body[data-screen='game'] .east > .seat-name-fixed .seat-subline,
 body[data-screen='game'] .west > .seat-name-fixed .seat-subline {
@@ -3296,18 +3350,18 @@ body[data-screen='game'] .seat-count-tag {
 @media (min-width: 861px) {
   /* Web view: bigger south hand cards. */
   body[data-screen='game'] .action-strip .hand .hand-card {
-    width: calc(var(--card-w) * 1.22) !important;
-    height: calc((var(--card-w) * 1.22) * 7 / 5) !important;
+    width: calc(var(--card-w) * 1.36) !important;
+    height: calc((var(--card-w) * 1.36) * 7 / 5) !important;
   }
   body[data-screen='game'] .action-strip .hand {
-    min-height: calc(var(--card-h) * 1.22 + 28px) !important;
+    min-height: calc(var(--card-h) * 1.36 + 32px) !important;
   }
   /* Web view: bigger discarded cards. */
   body[data-screen='game'] .seat-played .card.mini,
   body[data-screen='game'] .center-last .seat-played .card.mini,
   body[data-screen='game'] .seat-last .card.mini {
-    width: calc(var(--card-w) * 1.24) !important;
-    height: calc(var(--card-h) * 1.24) !important;
+    width: calc(var(--card-w) * 1.38) !important;
+    height: calc(var(--card-h) * 1.38) !important;
   }
   body[data-screen='game'] .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
@@ -3324,6 +3378,21 @@ body[data-screen='game'] .seat-count-tag {
     padding: 0 2px !important;
   }
 }
+
+/* Keep game-log header metrics consistent between expanded and collapsed states. */
+body[data-screen='game'] .log-side-card .log-toggle-title {
+  margin: 0 !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  line-height: 1.1 !important;
+  padding: 0 2px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
+  padding: 9px !important;
+  align-content: start !important;
+}
 @media (max-width: 860px) {
   body[data-screen='game'] .seat-name-fixed,
   body[data-screen='game'] .action-strip .player-tag {
@@ -3332,6 +3401,24 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
+  /* Mobile portrait: anchor south player seat panel to table bottom-left edge. */
+  body[data-screen='game'] .action-zone {
+    position: relative;
+    overflow: visible !important;
+  }
+  body[data-screen='game'] .action-strip {
+    position: relative;
+    padding-top: 8px !important;
+  }
+  body[data-screen='game'] .action-strip .player-tag {
+    position: absolute !important;
+    left: 10px !important;
+    top: auto !important;
+    bottom: calc(100% + 9px) !important;
+    transform: none !important;
+    z-index: 12 !important;
+  }
+
   body[data-screen='game'][data-log-open='0'] #app {
     padding-top: max(6px, env(safe-area-inset-top)) !important;
     margin-top: 0 !important;
@@ -3358,13 +3445,13 @@ body[data-screen='game'] .seat-count-tag {
     padding-top: 0 !important;
   }
   body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed {
-    height: 34px !important;
-    min-height: 34px !important;
-    max-height: 34px !important;
-    padding: 0 8px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 9px !important;
     margin: 0 !important;
-    display: flex !important;
-    align-items: center !important;
+    display: grid !important;
+    align-content: start !important;
     gap: 0 !important;
   }
   body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-toggle-title {

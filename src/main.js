@@ -452,11 +452,10 @@ function introPanelHtml(){
   const it=introText();
   const formatIntroLine=(text)=>{
     const token='{{3D}}';
-const inlineCard=`<img class="intro-inline-card-art" src="${withBase('card-assets/diamond-3.png')}" alt="♦3"/>`;
-    return esc(String(text??'')).replaceAll(token,inlineCard);
+    return colorizeSuitText(String(text??'').replaceAll(token,'♦3'));
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
-  return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${esc(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${esc(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${esc(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
+  return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
 }
 function leaderboardModalHtml(){
   const closeLabel=state.language==='en'?'Close':'關閉';
@@ -935,7 +934,7 @@ function scoreGuideModalHtml(){
   const chaoTableRows=sx.chaoTableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
-  const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${esc(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${esc(sx.topTwo)}</td></tr>`;
+  const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
 }
 function speakCallout(text,gender='male'){
@@ -1098,6 +1097,11 @@ function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointe
 window.handleCredentialResponse=handleCredentialResponse;
 function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const colorizeSuitText=(s)=>esc(s)
+  .replaceAll('♦','<span class="suit-red">♦</span>')
+  .replaceAll('♥','<span class="suit-red">♥</span>')
+  .replaceAll('♣','<span class="suit-black">♣</span>')
+  .replaceAll('♠','<span class="suit-black">♠</span>');
 function hashNameSeed(name){
   const s=String(name??'');
   let h=2166136261;
@@ -2124,7 +2128,8 @@ function syncHandStackMode(){
     return;
   }
   const first=cards[0];
-  if(!(first instanceof HTMLElement))return;
+  const last=cards[cards.length-1];
+  if(!(first instanceof HTMLElement)||!(last instanceof HTMLElement))return;
   const cardWidth=first.getBoundingClientRect().width;
   const handBoxWidth=hand.clientWidth||hand.getBoundingClientRect().width;
   const strip=hand.closest('.action-strip');
@@ -2132,14 +2137,21 @@ function syncHandStackMode(){
   const availableCandidates=[handBoxWidth,stripBoxWidth].filter((w)=>Number.isFinite(w)&&w>0);
   const available=availableCandidates.length?Math.min(...availableCandidates):handBoxWidth;
   const cardsCount=cards.length;
-  const spreadTotal=cardWidth*cardsCount;
+  const fitSafetyPx=10;
+  const fitAvailable=Math.max(0,available-fitSafetyPx);
+
+  hand.classList.remove('hand-stacked');
+  hand.style.removeProperty('--hand-overlap-px');
+  const naturalSpreadTotal=(last.offsetLeft-first.offsetLeft)+last.getBoundingClientRect().width;
+
   let overlapPx=0;
-  if(spreadTotal>available&&cardsCount>1){
-    overlapPx=(spreadTotal-available)/(cardsCount-1);
+  if(naturalSpreadTotal>fitAvailable&&cardsCount>1){
+    overlapPx=((naturalSpreadTotal-fitAvailable)/(cardsCount-1))+1;
   }
   overlapPx=Math.max(0,Math.min(overlapPx,Math.max(0,cardWidth-2)));
+  const needsStack=naturalSpreadTotal>fitAvailable;
   if(!roundStarted){
-    const shouldStackInitially=overlapPx>0;
+    const shouldStackInitially=needsStack;
     hand.classList.toggle('hand-stacked',shouldStackInitially);
     if(shouldStackInitially){
       hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
@@ -2148,7 +2160,7 @@ function syncHandStackMode(){
     }
     return;
   }
-  const shouldStack=overlapPx>0;
+  const shouldStack=needsStack;
   hand.classList.toggle('hand-stacked',shouldStack);
   if(shouldStack){
     hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
