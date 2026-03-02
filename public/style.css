@@ -3027,7 +3027,7 @@ body[data-screen='game'] .seat-identity {
   line-height: 1.02;
 }
 body[data-screen='game'] .seat-name-text {
-  font-size: .8rem !important;
+  font-size: .74rem !important;
   font-weight: 800 !important;
   color: #e8f3f2 !important;
   text-shadow: 0 1px 2px rgba(0,0,0,.34) !important;
@@ -3233,12 +3233,17 @@ body[data-screen='game'] .action-strip .control-row .game-icon-btn {
   color: #e9f1f6 !important;
   font-weight: 800;
   line-height: 1;
-  font-size: 1.02rem;
-  font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols2", "Arial Unicode MS", sans-serif;
+  font-size: 1rem;
 }
 body[data-screen='game'] .action-strip .control-row .game-icon-btn > span {
   display: inline-block;
   line-height: 1;
+}
+body[data-screen='game'] .action-strip .control-row .game-icon-btn .sort-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
 }
 /* iOS-safe sort icons: use SVG instead of font glyphs. */
 body[data-screen='game'] #auto-seq-btn,
@@ -3479,7 +3484,7 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 
-/* Stable resized behavior: title row first, buttons row second; buttons shrink to fit row 2. */
+/* Stable resized behavior: title row first, buttons row second. */
 @media (max-width: 1500px) {
   body[data-screen='game'] .topbar {
     display: grid !important;
@@ -3506,19 +3511,29 @@ body[data-screen='game'] .seat-count-tag {
     overflow: visible !important;
   }
   body[data-screen='game'] .topbar-right .control-row button {
-    flex: 0 1 auto !important;
+    flex: 0 0 auto !important;
     width: auto !important;
     min-width: fit-content !important;
-    min-height: 32px !important;
-    padding: 3px 5px !important;
-    font-size: clamp(.56rem, .9vw, .74rem) !important;
-    line-height: 1.15 !important;
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: .82rem !important;
+    line-height: 1.2 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+}
+
+/* Only shrink top-bar buttons when width is still too tight after wrapping. */
+@media (max-width: 1120px) {
+  body[data-screen='game'] .topbar-right .control-row button {
+    min-height: 32px !important;
+    padding: 4px 7px !important;
+    font-size: .74rem !important;
+    line-height: 1.15 !important;
   }
 }
 
@@ -3529,8 +3544,12 @@ body[data-screen='game'] .action-strip .hand {
   align-content: center !important;
   justify-content: flex-start !important;
   gap: 3px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
   overflow: visible !important;
-  overflow-x: visible !important;
+  overflow-x: hidden !important;
   overflow-y: visible !important;
   max-height: none !important;
   padding-right: 0 !important;
@@ -3543,6 +3562,13 @@ body[data-screen='game'] .action-strip .hand.hand-stacked {
 }
 body[data-screen='game'] .action-strip .hand.hand-stacked .hand-card + .hand-card {
   margin-left: calc(-1 * var(--hand-overlap-px, 0px)) !important;
+}
+body[data-screen='game'] .main-zone,
+body[data-screen='game'] .action-zone,
+body[data-screen='game'] .action-strip {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .win-celebrate {
