@@ -59,6 +59,11 @@ body[data-screen='game'] {
 body[data-screen='game'] #app {
   height: 100dvh;
   max-height: 100dvh;
+  padding-bottom: 0 !important;
+}
+body[data-screen='game'] .game-shell {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 h1, h2, h3, p { margin: 0; }
 .game-title {
@@ -754,6 +759,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   height: 100%;
   min-height: 0;
 }
+@media (max-width: 1400px) {
+  .game-shell {
+    grid-template-columns: minmax(0,1fr) clamp(180px, 24vw, 248px);
+  }
+}
 .main-zone {
   display: grid;
   grid-template-rows: auto minmax(0,1fr) auto;
@@ -764,6 +774,18 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .topbar { padding: 9px 11px; border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)); display: flex; justify-content: space-between; gap: 9px; align-items: center; }
 .topbar h2 { font-size: clamp(.95rem, 2.4vw, 1.25rem); }
 .topbar-right { display: grid; gap: 8px; justify-items: end; }
+.topbar-right .control-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+}
+body[data-screen='game'] .topbar,
+body[data-screen='game'] .topbar-right,
+body[data-screen='game'] .topbar-right .control-row,
+body[data-screen='game'] .topbar-right .control-row button {
+  overflow: visible !important;
+}
 .topbar {
   padding: 6px 10px;
   border-radius: 12px;
@@ -1075,13 +1097,13 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   overflow: visible;
 }
 .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.14);
-  height: calc(var(--card-h) * 1.14);
+  width: calc(var(--card-w) * 1.24);
+  height: calc(var(--card-h) * 1.24);
   flex: 0 0 auto;
   transform: none;
 }
 .seat-played .card.mini + .card.mini {
-  margin-left: calc(var(--card-w) * -0.44);
+  margin-left: calc(var(--card-w) * -0.52);
 }
 .seat-played .card.face.mini,
 .table-recent .card.face.mini,
@@ -1179,7 +1201,10 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   object-fit: cover;
   object-position: center center;
   flex: 0 0 auto;
-  background: transparent;
+  background: #F7DFD5;
+}
+.player-avatar.player-avatar-google {
+  background: transparent !important;
 }
 .player-avatar.avatar-female { object-position: center center; }
 .player-avatar.avatar-male { object-position: center center; }
@@ -1224,13 +1249,13 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   justify-content: flex-start;
 }
 .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.14);
-  height: calc(var(--card-h) * 1.14);
+  width: calc(var(--card-w) * 1.24);
+  height: calc(var(--card-h) * 1.24);
 }
 .center-last-west .seat-played .card.mini,
 .center-last-east .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.14);
-  height: calc(var(--card-h) * 1.14);
+  width: calc(var(--card-w) * 1.24);
+  height: calc(var(--card-h) * 1.24);
   transform: none;
 }
 .center-last .seat-played-pass {
@@ -1905,34 +1930,53 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 
 .side-zone {
   display: grid;
-  grid-template-rows: auto minmax(0,1fr) auto;
+  grid-template-rows: minmax(0,1fr);
   gap: 9px;
   min-height: 0;
   overflow: hidden;
-  align-content: start;
+  align-content: stretch;
 }
 .side-zone.log-collapsed {
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto;
   align-content: start;
+  align-self: start;
+  height: auto;
+  min-height: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 body[data-screen='game'] .side-zone.log-collapsed {
-  grid-template-rows: auto auto auto !important;
+  grid-template-rows: auto !important;
   align-content: start !important;
+  align-self: start !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 .side-card { border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: var(--panel-2); padding: 9px; display: grid; gap: 7px; }
 .side-card h3 { font-size: .96rem; }
-.log-toggle-title { cursor: pointer; user-select: none; }
+.log-toggle-title {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  line-height: 1.1;
+  padding: 0 2px;
+}
 .side-card.collapsed ul { display: none; }
 .side-card.collapsed .history-list,
 .side-card.collapsed .log-status { display: none; }
 .log-side-card.collapsed {
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
   gap: 0;
   align-content: center;
 }
 .log-side-card.collapsed .log-toggle-title {
   margin: 0;
+  min-height: 34px;
 }
 .history-list {
   display: grid;
@@ -1950,9 +1994,19 @@ body[data-screen='game'] .side-zone.log-collapsed {
 .side-zone .log-side-card {
   min-height: 0;
   height: 100%;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
-body[data-screen='game'] .history-list {
+body[data-screen='game'] .side-zone:not(.log-collapsed) {
+  height: 100%;
+  min-height: 100%;
+  align-self: stretch;
+}
+body[data-screen='game'] .side-zone:not(.log-collapsed) .log-side-card:not(.collapsed) {
+  height: 100%;
+  min-height: 100%;
+}
+body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
+  height: 100%;
   min-height: 0;
   max-height: 100%;
   overflow-y: auto;
@@ -2061,8 +2115,8 @@ body[data-screen='game'] .history-list {
     overflow-y: auto;
   }
   body[data-screen='game'] #app {
-    height: auto;
-    max-height: none;
+    height: 100dvh;
+    max-height: 100dvh;
     min-height: 100dvh;
   }
   html, body { height: auto; min-height: 100%; }
@@ -2072,6 +2126,13 @@ body[data-screen='game'] .history-list {
     overflow-y: auto;
   }
   #app { padding: 7px; }
+  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 7px 0 !important; }
+  body[data-screen='game'] #app { margin-top: 0 !important; }
+  body[data-screen='game'] .game-shell,
+  body[data-screen='game'] .main-zone,
+  body[data-screen='game'] .topbar {
+    margin-top: 0 !important;
+  }
   body[data-screen='home'] #app { padding: 0 7px 7px !important; }
   #app {
     height: auto;
@@ -2079,13 +2140,14 @@ body[data-screen='game'] .history-list {
     min-height: 100dvh;
   }
   .game-shell {
-    height: auto;
+    height: 100%;
     min-height: 0;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: minmax(0,1fr) auto;
   }
   .main-zone {
-    grid-template-rows: auto minmax(320px, 58dvh) auto;
+    grid-template-rows: auto minmax(260px, 52dvh) auto;
+    min-height: 0;
     overflow: visible;
   }
   .field-grid { grid-template-columns: 1fr; }
@@ -2098,8 +2160,8 @@ body[data-screen='game'] .history-list {
   .table { padding: 4px; gap: 4px; }
   .table {
     height: auto;
-    min-height: 320px;
-    max-height: 68dvh;
+    min-height: 260px;
+    max-height: 52dvh;
   }
   .side-zone { grid-template-columns: 1fr; }
   .topbar { flex-direction: column; align-items: flex-start; }
@@ -2112,6 +2174,34 @@ body[data-screen='game'] .history-list {
   }
   .topbar-right .control-row button {
     min-height: 40px;
+  }
+  body[data-screen='game'] .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  body[data-screen='game'] .topbar-right {
+    width: 100%;
+    justify-items: stretch;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 32px;
+    padding: 3px 5px;
+    font-size: clamp(.58rem, 2.1vw, .72rem);
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .score-panel-list { justify-content: flex-start; }
   .lb-row { grid-template-columns: 40px 1fr; }
@@ -2313,32 +2403,34 @@ body[data-screen='game'] .history-list {
     display: block;
     z-index: 12;
   }
-  .center-last-west,
-  .center-last-east {
+  .center-last-west {
     max-width: 24%;
   }
   .center-last-west { left: 4px; }
-  .center-last-east { right: 4px; }
-  .center-last-west .seat-played,
-  .center-last-east .seat-played {
+  .center-last-east {
+    right: 18px;
+    max-width: none;
+  }
+  .center-last-west .seat-played {
     gap: 0;
     justify-content: flex-start;
   }
+  .center-last-east .seat-played {
+    gap: 0;
+    justify-content: flex-end;
+  }
   .center-last-west .seat-played .card.mini,
   .center-last-east .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.14);
-    height: calc(var(--card-h) * 1.14);
+    width: calc(var(--card-w) * 1.24);
+    height: calc(var(--card-h) * 1.24);
   }
   .center-last-west .seat-played .card.mini + .card.mini,
   .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.48);
+    margin-left: calc(var(--card-w) * -0.52);
   }
-  .center-last-east .seat-played {
-    flex-direction: row;
-    justify-content: flex-start;
-  }
+  .center-last-east .seat-played { flex-direction: row; justify-content: flex-end; }
   .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.48);
+    margin-left: calc(var(--card-w) * -0.52);
     margin-right: 0;
   }
   .action-strip .hand-hint {
@@ -2410,8 +2502,57 @@ body[data-screen='game'] .history-list {
     margin-left: 0 !important;
   }
 }
+@media (max-width: 420px) {
+  body[data-screen='game'] .topbar-right .control-row {
+    gap: 2px;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    min-height: 30px;
+    padding: 2px 4px;
+    font-size: .56rem;
+  }
+}
+@media (max-width: 1220px) {
+  body[data-screen='game'] .topbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  body[data-screen='game'] .topbar > div:first-child {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  body[data-screen='game'] .topbar-right {
+    width: 100%;
+    justify-items: stretch;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 3px;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    flex: 0 0 auto;
+    min-width: max-content;
+    min-height: 28px;
+    padding: 2px 4px;
+    font-size: clamp(.50rem, .95vw, .66rem);
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
 @media (max-width: 600px) {
   #app { padding: 5px; }
+  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 5px 0 !important; }
+  body[data-screen='game'] #app { margin-top: 0 !important; }
+  body[data-screen='game'] .game-shell,
+  body[data-screen='game'] .main-zone,
+  body[data-screen='game'] .topbar {
+    margin-top: 0 !important;
+  }
   body[data-screen='home'] #app { padding: 0 5px 5px !important; }
   .score-guide-table-wrap { overflow-x: auto; }
   .hero { padding: 0 12px; border-radius: 14px; }
@@ -2458,7 +2599,7 @@ body[data-screen='game'] .history-list {
   }
   body[data-screen='game'] .side-zone {
     grid-template-columns: 1fr !important;
-    grid-template-rows: auto minmax(0,1fr) auto;
+    grid-template-rows: minmax(0,1fr);
     min-height: 0;
     max-height: 100%;
   }
@@ -2893,6 +3034,7 @@ body[data-screen='game'] .action-strip .player-tag .player-avatar.player-avatar-
   object-fit: cover;
   object-position: center center;
   filter: none;
+  background: transparent !important;
 }
 body[data-screen='game'] .seat-name-fixed .player-avatar-wrap.player-avatar-wrap-opponent {
   width: 38px;
@@ -3042,6 +3184,9 @@ body[data-screen='game'] .action-strip .control-row #suggest-btn.game-cta-btn {
   color: #e9f1f6 !important;
 }
 body[data-screen='game'] .action-strip .control-row .game-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 36px;
   padding: 4px 8px;
   border-radius: 10px;
@@ -3049,6 +3194,23 @@ body[data-screen='game'] .action-strip .control-row .game-icon-btn {
   background: linear-gradient(180deg, rgba(90,110,122,.88), rgba(56,73,86,.92)) !important;
   color: #e9f1f6 !important;
   font-weight: 800;
+  line-height: 1;
+  font-size: 1.02rem;
+  font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols2", "Arial Unicode MS", sans-serif;
+}
+body[data-screen='game'] .action-strip .control-row .game-icon-btn > span {
+  display: inline-block;
+  line-height: 1;
+}
+/* iOS-safe sort icons: use SVG instead of font glyphs. */
+body[data-screen='game'] #auto-seq-btn,
+body[data-screen='game'] #auto-pattern-btn {
+  font-size: 1rem;
+  color: #e9f1f6;
+}
+body[data-screen='game'] #auto-seq-btn::before,
+body[data-screen='game'] #auto-pattern-btn::before {
+  content: none !important;
 }
 body[data-screen='game'] .action-strip .control-row .game-cta-btn:disabled,
 body[data-screen='game'] .action-strip .control-row .game-icon-btn:disabled {
@@ -3108,6 +3270,16 @@ body[data-screen='game'] .seat-count-tag {
   body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
     margin-left: calc(var(--card-w) * -0.5) !important;
   }
+  /* Keep collapsed game-log header in same position as expanded (desktop). */
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
+    padding: 9px !important;
+    align-content: start !important;
+  }
+  body[data-screen='game'] .side-zone.log-collapsed .log-toggle-title {
+    min-height: 36px !important;
+    margin: 0 !important;
+    padding: 0 2px !important;
+  }
 }
 @media (max-width: 860px) {
   body[data-screen='game'] .seat-name-fixed,
@@ -3117,6 +3289,48 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
+  body[data-screen='game'][data-log-open='0'] #app {
+    padding-top: max(6px, env(safe-area-inset-top)) !important;
+    margin-top: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .game-shell,
+  body[data-screen='game'][data-log-open='0'] .main-zone {
+    align-content: start !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .game-shell {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    grid-template-rows: minmax(0,1fr) auto !important;
+    gap: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .topbar {
+    margin-top: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    align-self: start !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 0 8px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-toggle-title {
+    margin: 0 !important;
+    line-height: 1.1 !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
   body[data-screen='game'] .east .seat-played {
     width: 100%;
     max-width: 100%;
@@ -3135,8 +3349,64 @@ body[data-screen='game'] .seat-count-tag {
     box-sizing: border-box;
     overflow: visible !important;
   }
-  /* Mobile portrait: keep buttons in one row with compact sizing. */
-  body[data-screen='game'] .topbar-right .control-row,
+  body[data-screen='game'] .north .seat-played .card.mini,
+  body[data-screen='game'] .west .seat-played .card.mini,
+  body[data-screen='game'] .east .seat-played .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini {
+    width: calc(var(--card-w) * 1.24) !important;
+    height: calc(var(--card-h) * 1.24) !important;
+  }
+  body[data-screen='game'] .north .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .west .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .east .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
+    margin-left: calc(var(--card-w) * -0.52) !important;
+  }
+  body[data-screen='game'] .side-zone:not(.log-collapsed) {
+    max-height: 30dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body[data-screen='game'] .side-zone:not(.log-collapsed) .log-side-card {
+    height: 100%;
+    min-height: 0;
+  }
+  body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+  }
+  body[data-screen='game'][data-log-open='1'] #app {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100dvh !important;
+  }
+  body[data-screen='game'][data-log-open='1'] .game-shell {
+    height: auto !important;
+    grid-template-rows: auto auto !important;
+  }
+  /* Mobile portrait: keep action buttons compact in one row. */
+  body[data-screen='game'] .topbar-right .control-row {
+    flex-wrap: nowrap !important;
+    gap: 3px !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 3px 6px !important;
+    font-size: clamp(.62rem, 2.4vw, .74rem) !important;
+    min-height: 30px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .action-strip .control-row {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
@@ -3144,7 +3414,6 @@ body[data-screen='game'] .seat-count-tag {
     gap: 4px !important;
     -webkit-overflow-scrolling: touch;
   }
-  body[data-screen='game'] .topbar-right .control-row button,
   .action-strip .control-row button {
     padding: 4px 7px !important;
     font-size: .74rem !important;
@@ -3152,6 +3421,90 @@ body[data-screen='game'] .seat-count-tag {
     min-height: 32px !important;
     white-space: nowrap !important;
     flex: 0 0 auto;
+  }
+  body[data-screen='game'] .action-strip .hand .hand-card {
+    width: calc(var(--card-w) * 1.16) !important;
+    height: calc((var(--card-w) * 1.16) * 7 / 5) !important;
+  }
+  body[data-screen='game'] .action-strip .hand .hand-card + .hand-card {
+    margin-left: calc(var(--card-w) * -0.70) !important;
+  }
+}
+@media (max-width: 420px) and (orientation: portrait) {
+  body[data-screen='game'] .topbar-right .control-row {
+    gap: 2px !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    padding: 2px 4px !important;
+    font-size: .62rem !important;
+    min-height: 28px !important;
+  }
+}
+
+/* Mobile game topbar: same look as home, smaller, and wrap buttons to next row when needed. */
+@media (max-width: 860px) {
+  body[data-screen='game'] .topbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 6px 8px !important;
+    border-radius: 12px !important;
+  }
+  body[data-screen='game'] .topbar .game-title-wrap {
+    flex: 1 1 100% !important;
+    min-width: 0;
+  }
+  body[data-screen='game'] .topbar-right {
+    flex: 1 1 100%;
+    width: 100% !important;
+    justify-items: stretch !important;
+    min-width: 0;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    overflow: visible !important;
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
+    padding: 3px 6px !important;
+    font-size: clamp(.62rem, 2.2vw, .76rem) !important;
+    line-height: 1.15 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+}
+
+/* Resized layout: force title row first, buttons row second. */
+@media (max-width: 2200px) {
+  body[data-screen='game'] .topbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+  }
+  body[data-screen='game'] .topbar .game-title-wrap {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+  body[data-screen='game'] .topbar-right {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    justify-items: stretch !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
   }
 }
 
