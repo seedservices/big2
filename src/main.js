@@ -2175,7 +2175,7 @@ function syncHandStackMode(){
   const availableCandidates=[handBoxWidth,stripBoxWidth].filter((w)=>Number.isFinite(w)&&w>0);
   const available=availableCandidates.length?Math.min(...availableCandidates):handBoxWidth;
   const cardsCount=cards.length;
-  const fitSafetyPx=10;
+  const fitSafetyPx=-35;
   const fitAvailable=Math.max(0,available-fitSafetyPx);
 
   hand.classList.remove('hand-stacked');
