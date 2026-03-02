@@ -2109,6 +2109,45 @@ function renderGame(){
     img.classList.remove('player-avatar-google');
   },{once:true});
   bindGameEvents(v,arr);
+  requestAnimationFrame(syncHandStackMode);
+}
+function syncHandStackMode(){
+  const hand=document.querySelector('.action-strip .hand');
+  if(!(hand instanceof HTMLElement))return;
+  const cards=[...hand.querySelectorAll('.hand-card')];
+  if(cards.length<2){
+    hand.classList.remove('hand-stacked');
+    hand.style.removeProperty('--hand-overlap-px');
+    return;
+  }
+  const first=cards[0];
+  if(!(first instanceof HTMLElement))return;
+  const cardWidth=first.getBoundingClientRect().width;
+  const available=hand.clientWidth||hand.getBoundingClientRect().width;
+  const orientation=document.body.getAttribute('data-orientation');
+  const isPortrait=orientation==='portrait';
+  const cardsCount=cards.length;
+  const spreadTotal=cardWidth*cardsCount;
+  let overlapPx=0;
+  if(spreadTotal>available&&cardsCount>1){
+    overlapPx=(spreadTotal-available)/(cardsCount-1);
+  }
+  overlapPx=Math.max(0,Math.min(overlapPx,Math.max(0,cardWidth-2)));
+  if(isPortrait){
+    const minStackOverlap=cardWidth*0.55;
+    overlapPx=Math.max(overlapPx,minStackOverlap);
+    overlapPx=Math.min(overlapPx,Math.max(0,cardWidth-2));
+    hand.classList.add('hand-stacked');
+    hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
+    return;
+  }
+  const shouldStack=overlapPx>0;
+  hand.classList.toggle('hand-stacked',shouldStack);
+  if(shouldStack){
+    hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
+  }else{
+    hand.style.removeProperty('--hand-overlap-px');
+  }
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
 function autoArrangeCurrent(v,mode='seq'){state.solo.players[0].hand=mode==='pattern'?patternSortCards(state.solo.players[0].hand):[...state.solo.players[0].hand].sort(cmpCard);}
@@ -2251,7 +2290,7 @@ function bindGameEvents(v,arr){
 }
 
 function render(){applyTheme();document.body.setAttribute('data-screen',state.screen);document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');if(state.screen==='home'){renderHome();return;}if(state.screen==='config'){renderConfig();return;}renderGame();}
-function syncViewport(){const root=document.documentElement;const short=Math.min(window.innerWidth,window.innerHeight);const scale=Math.max(0.74,Math.min(1.1,short/520));root.style.setProperty('--card-scale',scale.toFixed(3));const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';document.body.setAttribute('data-orientation',orientation);root.style.setProperty('--table-tilt','0deg');}
+function syncViewport(){const root=document.documentElement;const short=Math.min(window.innerWidth,window.innerHeight);const scale=Math.max(0.74,Math.min(1.1,short/520));root.style.setProperty('--card-scale',scale.toFixed(3));const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';document.body.setAttribute('data-orientation',orientation);root.style.setProperty('--table-tilt','0deg');requestAnimationFrame(syncHandStackMode);}
 
 window.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',syncViewport);document.addEventListener('pointerdown',()=>{unlockAudio();primeSpeech();},{once:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&aiTimer){clearTimeout(aiTimer);aiTimer=null;}});
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});

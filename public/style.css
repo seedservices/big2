@@ -61,6 +61,44 @@ body[data-screen='game'] #app {
   max-height: 100dvh;
   padding-bottom: 0 !important;
 }
+/* Collapsed game log: lock layout to viewport height to avoid page overflow scrollbar. */
+body[data-screen='game'][data-log-open='0'] {
+  overflow: hidden !important;
+}
+body[data-screen='game'][data-log-open='0'] #app {
+  box-sizing: border-box;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+}
+body[data-screen='game'][data-log-open='0'] .game-shell {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  grid-template-rows: minmax(0,1fr) auto !important;
+  gap: 0 !important;
+}
+body[data-screen='game'][data-log-open='0'] .main-zone {
+  min-height: 0 !important;
+  grid-template-rows: auto minmax(0,1fr) auto !important;
+  gap: 0 !important;
+}
+body[data-screen='game'][data-log-open='0'] .table {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+body[data-screen='game'][data-log-open='0'] .action-zone,
+body[data-screen='game'][data-log-open='0'] .action-strip {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed,
+body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
 body[data-screen='game'] .game-shell {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
@@ -3441,71 +3479,70 @@ body[data-screen='game'] .seat-count-tag {
   }
 }
 
-/* Mobile game topbar: same look as home, smaller, and wrap buttons to next row when needed. */
-@media (max-width: 860px) {
+/* Stable resized behavior: title row first, buttons row second; buttons shrink to fit row 2. */
+@media (max-width: 1500px) {
   body[data-screen='game'] .topbar {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: flex-start !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
     gap: 6px !important;
-    padding: 6px 8px !important;
-    border-radius: 12px !important;
+    align-items: start !important;
   }
   body[data-screen='game'] .topbar .game-title-wrap {
-    flex: 1 1 100% !important;
-    min-width: 0;
+    width: 100% !important;
+    min-width: 0 !important;
   }
   body[data-screen='game'] .topbar-right {
-    flex: 1 1 100%;
     width: 100% !important;
+    min-width: 0 !important;
     justify-items: stretch !important;
-    min-width: 0;
   }
   body[data-screen='game'] .topbar-right .control-row {
     display: flex !important;
     flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
     gap: 4px !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
     overflow: visible !important;
-    padding-top: 1px !important;
-    padding-bottom: 1px !important;
   }
   body[data-screen='game'] .topbar-right .control-row button {
     flex: 0 1 auto !important;
-    min-width: 0 !important;
-    min-height: 30px !important;
-    padding: 3px 6px !important;
-    font-size: clamp(.62rem, 2.2vw, .76rem) !important;
+    width: auto !important;
+    min-width: fit-content !important;
+    min-height: 32px !important;
+    padding: 3px 5px !important;
+    font-size: clamp(.56rem, .9vw, .74rem) !important;
     line-height: 1.15 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     white-space: nowrap !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 }
 
-/* Resized layout: force title row first, buttons row second. */
-@media (max-width: 2200px) {
-  body[data-screen='game'] .topbar {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: flex-start !important;
-  }
-  body[data-screen='game'] .topbar .game-title-wrap {
-    flex: 1 1 100% !important;
-    min-width: 0 !important;
-  }
-  body[data-screen='game'] .topbar-right {
-    flex: 1 1 100% !important;
-    width: 100% !important;
-    justify-items: stretch !important;
-  }
-  body[data-screen='game'] .topbar-right .control-row {
-    justify-content: flex-start !important;
-    flex-wrap: wrap !important;
-  }
+/* Global hand behavior: spread if enough space, stack (mobile-style overlap) only when needed. */
+body[data-screen='game'] .action-strip .hand {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-content: center !important;
+  justify-content: flex-start !important;
+  gap: 3px !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+  padding-right: 0 !important;
+}
+body[data-screen='game'] .action-strip .hand .hand-card + .hand-card {
+  margin-left: 0 !important;
+}
+body[data-screen='game'] .action-strip .hand.hand-stacked {
+  gap: 0 !important;
+}
+body[data-screen='game'] .action-strip .hand.hand-stacked .hand-card + .hand-card {
+  margin-left: calc(-1 * var(--hand-overlap-px, 0px)) !important;
 }
 
 .win-celebrate {
