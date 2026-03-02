@@ -291,6 +291,16 @@ const THEMES={
 const seatCls=['south','east','north','west'];
 const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#86d989'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
+const isIOSDevice=()=>{
+  try{
+    const ua=String(navigator?.userAgent??'');
+    const platform=String(navigator?.platform??'');
+    const touchPts=Number(navigator?.maxTouchPoints??0);
+    return /iPad|iPhone|iPod/i.test(ua) || (platform==='MacIntel'&&touchPts>1);
+  }catch{
+    return false;
+  }
+};
 const runtimeProfileStore={players:{}};
 let aiTimer=null;
 let playTypeCallTimer=null;
@@ -939,6 +949,7 @@ function scoreGuideModalHtml(){
 }
 function speakCallout(text,gender='male'){
   try{
+    if(isIOSDevice())return;
     const msg=String(text??'').trim();
     if(!msg||!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return;
     const g=String(gender??'male')==='female'?'female':'male';
@@ -1609,6 +1620,7 @@ function maybeRunSoloAi(){
 function unlockAudio(){if(sound.ctx||!sound.enabled)return;try{sound.ctx=new window.AudioContext();}catch{sound.enabled=false;}}
 function primeSpeech(){
   try{
+    if(isIOSDevice())return;
     const synth=window.speechSynthesis;
     if(!synth)return;
     synth.getVoices?.();
@@ -2231,7 +2243,26 @@ function bindGameEvents(v,arr){
   document.getElementById('home-btn')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
-  document.getElementById('log-toggle')?.addEventListener('click',()=>{state.showLog=!state.showLog;state.logTouched=true;render();});
+  document.getElementById('log-toggle')?.addEventListener('click',(ev)=>{
+    ev.preventDefault();
+    const x=window.scrollX;
+    const y=window.scrollY;
+    const appEl=document.getElementById('app');
+    const appTop=appEl instanceof HTMLElement?appEl.scrollTop:0;
+    const appLeft=appEl instanceof HTMLElement?appEl.scrollLeft:0;
+    state.showLog=!state.showLog;
+    state.logTouched=true;
+    render();
+    const restore=()=>{
+      if(appEl instanceof HTMLElement){
+        appEl.scrollTop=appTop;
+        appEl.scrollLeft=appLeft;
+      }
+      window.scrollTo(x,y);
+    };
+    requestAnimationFrame(restore);
+    setTimeout(restore,0);
+  });
   document.getElementById('score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});

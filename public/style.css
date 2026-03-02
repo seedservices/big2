@@ -30,6 +30,9 @@
   --card-radius: clamp(3px, calc(var(--card-w) * 0.096), 6px);
   --closed-tighten-threshold: 6;
 }
+html {
+  scrollbar-gutter: stable both-edges;
+}
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -2176,10 +2179,12 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .seat.west .last-card-call-seat,
   body[data-screen='game'] .seat.east .play-type-call-seat,
   body[data-screen='game'] .seat.east .last-card-call-seat {
-    top: 46px !important;
-    left: 6px !important;
+    top: auto !important;
+    bottom: -42px !important;
+    left: 50% !important;
     right: auto !important;
-    transform: none !important;
+    transform: translateX(-50%) !important;
+    z-index: 30 !important;
   }
   body[data-screen='game'] .seat.north .play-type-call-seat::after,
   body[data-screen='game'] .seat.north .last-card-call-seat::after,
@@ -2188,13 +2193,18 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .seat.west .last-card-call-seat::after,
   body[data-screen='game'] .seat.east .play-type-call-seat::after,
   body[data-screen='game'] .seat.east .last-card-call-seat::after {
-    left: 12px !important;
+    left: 50% !important;
     right: auto !important;
     top: -14px !important;
-    transform: none !important;
+    transform: translateX(-50%) !important;
     width: 28px !important;
     height: 18px !important;
     clip-path: polygon(50% 0, 0 100%, 100% 100%) !important;
+  }
+  body[data-screen='game'] .seat.north,
+  body[data-screen='game'] .seat.west,
+  body[data-screen='game'] .seat.east {
+    overflow: visible !important;
   }
 
   :root {
@@ -3656,6 +3666,64 @@ body[data-screen='game'] .action-strip {
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+}
+
+/* Final lock: game-log header text must not shift between expanded/collapsed. */
+body[data-screen='game'] .log-side-card .log-toggle-title,
+body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-toggle-title,
+body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-toggle-title {
+  margin: 0 !important;
+  padding: 0 2px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  line-height: 1.1 !important;
+  display: flex !important;
+  align-items: center !important;
+  transform: none !important;
+  top: auto !important;
+}
+body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed,
+body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed {
+  padding: 9px !important;
+  align-content: start !important;
+}
+
+/* Desktop: keep right log column width fixed in both expanded/collapsed to avoid left-panel shift. */
+@media (min-width: 861px) {
+  body[data-screen='game'] .game-shell {
+    --log-col-w: 286px;
+    grid-template-columns: minmax(0, 1fr) var(--log-col-w) !important;
+  }
+  body[data-screen='game'] .side-zone,
+  body[data-screen='game'] .side-zone.log-collapsed {
+    width: var(--log-col-w) !important;
+    min-width: var(--log-col-w) !important;
+    max-width: var(--log-col-w) !important;
+    justify-self: stretch !important;
+  }
+}
+@media (min-width: 861px) and (max-width: 1400px) {
+  body[data-screen='game'] .game-shell {
+    --log-col-w: clamp(180px, 24vw, 248px);
+  }
+}
+@media (min-width: 861px) {
+  body[data-screen='game'] .side-zone,
+  body[data-screen='game'] .side-zone.log-collapsed {
+    align-self: stretch !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  body[data-screen='game'] .side-zone.log-collapsed {
+    grid-template-rows: minmax(0,1fr) !important;
+    align-content: stretch !important;
+  }
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
+    height: 100% !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0,1fr) !important;
+  }
 }
 
 .win-celebrate {
