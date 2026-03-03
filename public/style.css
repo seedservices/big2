@@ -3234,7 +3234,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     overflow-x: auto;
   }
 }
-@media (orientation: landscape) and (pointer: coarse) {
+@media (max-width: 860px) and (orientation: landscape) and (pointer: coarse) {
   body[data-screen='game'] #app {
     height: 100dvh !important;
     max-height: 100dvh !important;
@@ -3337,11 +3337,17 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .intro-head > div {
     min-width: 0;
+    flex: 1 1 auto;
   }
   .intro-head > button.secondary {
-    white-space: nowrap;
+    white-space: nowrap !important;
+    word-break: keep-all;
+    overflow-wrap: normal;
     flex: 0 0 auto;
-    min-width: max-content;
+    min-width: fit-content;
+    line-height: 1.1;
+    padding: 6px 10px;
+    font-size: .76rem;
   }
 }
 body[data-orientation='portrait'] .table { --table-tilt: 0deg; }
@@ -4256,6 +4262,41 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     padding: 4px 7px !important;
     font-size: .74rem !important;
     line-height: 1.15 !important;
+  }
+}
+
+/* Tablet landscape (coarse pointer): keep topbar buttons in one row like web view. */
+@media (min-width: 861px) and (orientation: landscape) and (pointer: coarse) {
+  body[data-screen='game'] .topbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  body[data-screen='game'] .topbar-right {
+    width: auto !important;
+    min-width: 0 !important;
+    justify-items: end !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+    width: auto !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
+    padding: 3px 7px !important;
+    font-size: .72rem !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
   }
 }
 
