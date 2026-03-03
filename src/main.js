@@ -2149,11 +2149,27 @@ function renderBackCombo(){
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function triggerStartGameAd(){
   try{
-    document.querySelectorAll(`script[src^="${START_GAME_AD_SCRIPT_SRC}"]`).forEach((el)=>el.remove());
-    const s=document.createElement('script');
-    s.src=`${START_GAME_AD_SCRIPT_SRC}?t=${Date.now()}`;
-    s.async=true;
-    document.head.appendChild(s);
+    const frame=document.createElement('iframe');
+    frame.style.position='fixed';
+    frame.style.width='1px';
+    frame.style.height='1px';
+    frame.style.left='-9999px';
+    frame.style.top='-9999px';
+    frame.style.opacity='0';
+    frame.style.pointerEvents='none';
+    frame.setAttribute('aria-hidden','true');
+    frame.setAttribute('tabindex','-1');
+    frame.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');
+    document.body.appendChild(frame);
+    const doc=frame.contentWindow?.document;
+    if(!doc){
+      frame.remove();
+      return;
+    }
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8"></head><body><script src="${START_GAME_AD_SCRIPT_SRC}?t=${Date.now()}" async><\/script></body></html>`);
+    doc.close();
+    window.setTimeout(()=>{try{frame.remove();}catch{}},3500);
   }catch{}
 }
 function setSoundEnabled(on){
