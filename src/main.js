@@ -295,16 +295,53 @@ const seatCls=['south','east','north','west'];
 const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#86d989'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
 const NPC_COLOR_POOL=['#ff6b6b','#6bbcff','#86d989','#f78fb3','#8bd3dd','#f3a683','#c4a7e7','#f6bd60','#84dcc6','#b8e986'];
+function colorDistanceSq(a,b){
+  const ra=hexToRgb(a);
+  const rb=hexToRgb(b);
+  if(!ra||!rb)return 0;
+  const dr=ra[0]-rb[0];
+  const dg=ra[1]-rb[1];
+  const db=ra[2]-rb[2];
+  return(dr*dr)+(dg*dg)+(db*db);
+}
 function randomizeNpcColors(){
-  const pool=[...NPC_COLOR_POOL];
-  for(let i=pool.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [pool[i],pool[j]]=[pool[j],pool[i]];
+  const pool=[...new Set(NPC_COLOR_POOL.filter((c)=>c!==PLAYER_COLORS.south))];
+  const fallback=['#ff6b6b','#6bbcff','#86d989'];
+  if(pool.length<3){
+    PLAYER_COLORS.east=fallback[0];
+    PLAYER_COLORS.north=fallback[1];
+    PLAYER_COLORS.west=fallback[2];
+    return;
   }
-  const picks=pool.slice(0,3);
-  PLAYER_COLORS.east=picks[0]??'#ff6b6b';
-  PLAYER_COLORS.north=picks[1]??'#6bbcff';
-  PLAYER_COLORS.west=picks[2]??'#86d989';
+  let bestScore=-1;
+  const bestSets=[];
+  for(let i=0;i<pool.length-2;i++){
+    for(let j=i+1;j<pool.length-1;j++){
+      for(let k=j+1;k<pool.length;k++){
+        const c1=pool[i],c2=pool[j],c3=pool[k];
+        const d12=colorDistanceSq(c1,c2);
+        const d13=colorDistanceSq(c1,c3);
+        const d23=colorDistanceSq(c2,c3);
+        const minPairDist=Math.min(d12,d13,d23);
+        if(minPairDist>bestScore){
+          bestScore=minPairDist;
+          bestSets.length=0;
+          bestSets.push([c1,c2,c3]);
+        }else if(minPairDist===bestScore){
+          bestSets.push([c1,c2,c3]);
+        }
+      }
+    }
+  }
+  const chosen=bestSets.length?bestSets[Math.floor(Math.random()*bestSets.length)]:fallback;
+  const assigned=[...chosen];
+  for(let i=assigned.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [assigned[i],assigned[j]]=[assigned[j],assigned[i]];
+  }
+  PLAYER_COLORS.east=assigned[0]??fallback[0];
+  PLAYER_COLORS.north=assigned[1]??fallback[1];
+  PLAYER_COLORS.west=assigned[2]??fallback[2];
 }
 const isIOSDevice=()=>{
   try{
@@ -2274,7 +2311,7 @@ function renderGame(){
   if(!state.logTouched){
     const rightSidebarDesktop=window.matchMedia('(min-width: 1081px)').matches;
     const rightSidebarMobileLandscape=window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
-    const rightSidebarTabletLandscape=window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape) and (hover: none)').matches;
+    const rightSidebarTabletLandscape=window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches;
     state.showLog=rightSidebarDesktop||rightSidebarMobileLandscape||rightSidebarTabletLandscape;
   }
   if(!v.canControl||v.gameOver){state.recommendation=null;}
