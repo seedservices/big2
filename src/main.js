@@ -990,10 +990,6 @@ function speakCallout(text,gender='male'){
       playTone(430,0.12,'square',0.055);
       playTone(590,0.13,'triangle',0.05,0.06);
     };
-    if(isIOSDevice()){
-      playCalloutToneFallback();
-      return;
-    }
     if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined'){
       playCalloutToneFallback();
       return;
@@ -1042,10 +1038,20 @@ function speakCallout(text,gender='male'){
       // If browser does not expose gender metadata, keep Cantonese-only and bias by pitch.
       if(!voice&&g==='female'){
         voice=chooseAnyCantonese(voices);
-        if(!voice)return;
+        if(!voice&&isIOSDevice())voice=voices[0]??null;
+        if(!voice){playCalloutToneFallback();return;}
         u.pitch=1.62;
       }else if(!voice){
-        return;
+        if(isIOSDevice()){
+          const localeVoice=state.language==='en'
+            ?voices.find((v)=>String(v?.lang??'').toLowerCase().startsWith('en'))
+            :voices.find((v)=>{
+              const lang=String(v?.lang??'').toLowerCase();
+              return /^yue(-|$)/.test(lang) || /^zh[-_]?hk(-|$)/.test(lang) || /^zh/.test(lang);
+            });
+          voice=localeVoice??voices[0]??null;
+        }
+        if(!voice){playCalloutToneFallback();return;}
       }
       const estimatedMs=Math.max(120,Math.min(420,Math.round((msg.length*62)/Math.max(0.55,u.rate))));
       calloutSpeechActive=true;

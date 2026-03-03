@@ -4019,7 +4019,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     position: absolute !important;
     left: 10px !important;
     top: auto !important;
-    bottom: calc(100% + 9px) !important;
+    bottom: calc(100% + 11px) !important;
     transform: none !important;
     z-index: 12 !important;
   }
