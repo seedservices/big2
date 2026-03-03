@@ -281,7 +281,7 @@ const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
 const FIRESTORE_LB_COLLECTION='big2LeaderboardPlayers';
-const START_GAME_AD_SCRIPT_SRC='https://pl28838410.effectivegatecpm.com/68/3a/41/683a4111a9f1f2f416b60a5957b5a704.js';
+const START_GAME_AD_SCRIPT_SRC='https://pl28802960.effectivegatecpm.com/46/03/bd/4603bdb57a28ceb1d4305aeb32284928.js';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -1972,7 +1972,7 @@ function seatLastActionHtml(action){
   if(action.type==='pass')return`<div class="seat-played seat-played-pass"><span class="seat-pass-label"><span class="seat-pass-icon" aria-hidden="true"></span><span class="seat-pass-text">${t('pass')}</span></span></div>`;
   const ts=Number(action.ts)||0;
   const cards=(action.cards??[]).map((c,i)=>{
-    const rot=((fanNoise(`${action.seat}|${ts}|${cardId(c)}`,i,'played')*2)-1)*3.84;
+    const rot=((fanNoise(`${action.seat}|${ts}|${cardId(c)}`,i,'played')*2)-1)*8.84;
     return renderStaticCard(c,true,'',`transform:rotate(${rot.toFixed(2)}deg)`);
   }).join('');
   return`<div class="seat-played">${cards}</div>`;
@@ -2148,29 +2148,7 @@ function renderBackCombo(){
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function triggerStartGameAd(){
-  try{
-    const frame=document.createElement('iframe');
-    frame.style.position='fixed';
-    frame.style.width='1px';
-    frame.style.height='1px';
-    frame.style.left='-9999px';
-    frame.style.top='-9999px';
-    frame.style.opacity='0';
-    frame.style.pointerEvents='none';
-    frame.setAttribute('aria-hidden','true');
-    frame.setAttribute('tabindex','-1');
-    frame.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');
-    document.body.appendChild(frame);
-    const doc=frame.contentWindow?.document;
-    if(!doc){
-      frame.remove();
-      return;
-    }
-    doc.open();
-    doc.write(`<!doctype html><html><head><meta charset="utf-8"></head><body><script src="${START_GAME_AD_SCRIPT_SRC}?t=${Date.now()}" async><\/script></body></html>`);
-    doc.close();
-    window.setTimeout(()=>{try{frame.remove();}catch{}},3500);
-  }catch{}
+  // Popunder is loaded globally in index.html and handles click binding itself.
 }
 function setSoundEnabled(on){
   const enabled=Boolean(on);
@@ -2502,9 +2480,24 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
-  document.getElementById('restart-btn')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
-  document.getElementById('result-again')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
-  document.getElementById('congrats-again')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
+  document.getElementById('restart-btn')?.addEventListener('click',async()=>{
+    triggerStartGameAd();
+    state.recommendation=null;
+    setRecommendHint('');
+    startSoloGame();
+  });
+  document.getElementById('result-again')?.addEventListener('click',async()=>{
+    triggerStartGameAd();
+    state.recommendation=null;
+    setRecommendHint('');
+    startSoloGame();
+  });
+  document.getElementById('congrats-again')?.addEventListener('click',async()=>{
+    triggerStartGameAd();
+    state.recommendation=null;
+    setRecommendHint('');
+    startSoloGame();
+  });
   document.getElementById('auto-seq-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'seq');render();});
   document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'pattern');render();});
   document.getElementById('suggest-btn')?.addEventListener('click',()=>{
@@ -2596,7 +2589,7 @@ function bindGameEvents(v,arr){
       }
     }
     n.addEventListener('click',(e)=>{
-      if(isMobilePointer()){
+      if(isMobilePointer()&&Date.now()-mobileTapAt<500){
         e.preventDefault();
         return;
       }
