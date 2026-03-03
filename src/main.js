@@ -2367,54 +2367,53 @@ function renderGame(){
 function syncHandStackMode(){
   const hand=document.querySelector('.action-strip .hand');
   if(!(hand instanceof HTMLElement))return;
-  const roundStarted=Boolean(
-    state?.solo&&Array.isArray(state.solo.history)&&state.solo.history.some((entry)=>Array.isArray(entry?.cards)&&entry.cards.length>0)
-  );
   const cards=[...hand.querySelectorAll('.hand-card')];
-  if(cards.length<2){
-    hand.classList.remove('hand-stacked');
-    hand.style.removeProperty('--hand-overlap-px');
-    return;
-  }
+  hand.classList.remove('hand-stacked');
+  hand.style.removeProperty('--hand-overlap-px');
+  hand.style.setProperty('overflow-x','hidden','important');
+  if(cards.length<2)return;
   const first=cards[0];
   const last=cards[cards.length-1];
   if(!(first instanceof HTMLElement)||!(last instanceof HTMLElement))return;
-  const cardWidth=first.getBoundingClientRect().width;
-  const handBoxWidth=hand.clientWidth||hand.getBoundingClientRect().width;
-  const strip=hand.closest('.action-strip');
-  const stripBoxWidth=strip instanceof HTMLElement?(strip.clientWidth||strip.getBoundingClientRect().width):0;
-  const availableCandidates=[handBoxWidth,stripBoxWidth].filter((w)=>Number.isFinite(w)&&w>0);
-  const available=availableCandidates.length?Math.min(...availableCandidates):handBoxWidth;
-  const cardsCount=cards.length;
-  const fitSafetyPx=-35;
-  const fitAvailable=Math.max(0,available-fitSafetyPx);
+  const count=cards.length;
+  const cardW=first.getBoundingClientRect().width;
+  const hs=window.getComputedStyle(hand);
+  const gap=Number.parseFloat(hs.columnGap||hs.gap||'0')||0;
+  const available=hand.clientWidth||hand.getBoundingClientRect().width;
+  const natural=(cardW*count)+(gap*Math.max(0,count-1));
+  if(!(natural>available+0.5))return;
 
-  hand.classList.remove('hand-stacked');
-  hand.style.removeProperty('--hand-overlap-px');
-  const naturalSpreadTotal=(last.offsetLeft-first.offsetLeft)+last.getBoundingClientRect().width;
+  let overlap=(natural-available)/(count-1);
+  const maxOverlap=Math.max(0,(cardW+gap)-1);
+  overlap=Math.max(0,Math.min(overlap,maxOverlap));
 
-  let overlapPx=0;
-  if(naturalSpreadTotal>fitAvailable&&cardsCount>1){
-    overlapPx=((naturalSpreadTotal-fitAvailable)/(cardsCount-1))+1;
-  }
-  overlapPx=Math.max(0,Math.min(overlapPx,Math.max(0,cardWidth-2)));
-  const needsStack=naturalSpreadTotal>fitAvailable;
-  if(!roundStarted){
-    const shouldStackInitially=needsStack;
-    hand.classList.toggle('hand-stacked',shouldStackInitially);
-    if(shouldStackInitially){
-      hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
-    }else{
-      hand.style.removeProperty('--hand-overlap-px');
-    }
+  // If fitting requires extreme overlap, fall back to horizontal scroll.
+  const comfortLimit=Math.max(0,cardW*0.82);
+  if(overlap>comfortLimit){
+    hand.style.setProperty('overflow-x','auto','important');
+    hand.style.setProperty('-webkit-overflow-scrolling','touch');
     return;
   }
-  const shouldStack=needsStack;
-  hand.classList.toggle('hand-stacked',shouldStack);
-  if(shouldStack){
-    hand.style.setProperty('--hand-overlap-px',`${overlapPx.toFixed(2)}px`);
-  }else{
-    hand.style.removeProperty('--hand-overlap-px');
+
+  hand.classList.add('hand-stacked');
+  hand.style.setProperty('--hand-overlap-px',`${overlap.toFixed(2)}px`);
+
+  // Measure actual rendered span and correct small browser rounding errors (both overflow and gap).
+  const handRect=hand.getBoundingClientRect();
+  const firstRect=first.getBoundingClientRect();
+  const lastRect=last.getBoundingClientRect();
+  const used=Math.max(0,lastRect.right-firstRect.left);
+  const delta=used-handRect.width;
+  if(Math.abs(delta)>0.75){
+    overlap+=delta/(count-1);
+    overlap=Math.max(0,Math.min(overlap,maxOverlap));
+    hand.style.setProperty('--hand-overlap-px',`${overlap.toFixed(2)}px`);
+  }
+  const overflowRight=last.getBoundingClientRect().right-handRect.right;
+  if(overflowRight>0.5){
+    overlap+=((overflowRight+0.5)/(count-1));
+    overlap=Math.max(0,Math.min(overlap,maxOverlap));
+    hand.style.setProperty('--hand-overlap-px',`${overlap.toFixed(2)}px`);
   }
 }
 function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
@@ -2612,6 +2611,7 @@ function bindGameEvents(v,arr){
 function render(){
   applyTheme();
   document.body.setAttribute('data-screen',state.screen);
+  document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
   if(shouldBlockLandscapeMobile()){
     renderOrientationBlock();
