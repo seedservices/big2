@@ -3159,24 +3159,19 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .option-combo .combo-btn {
     min-height: 40px;
   }
-  .name-with-google { flex-wrap: wrap; gap: 6px; }
-  #google-name-inline {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  #google-name-inline .auth-btn { width: 100%; }
-  .name-with-google.signed-in-auth {
+  .name-with-google {
     flex-wrap: nowrap;
     align-items: center;
+    gap: 6px;
   }
-  .name-with-google.signed-in-auth #google-name-inline {
+  #google-name-inline {
     width: auto;
+    flex: 0 0 auto;
+    justify-content: flex-start;
     flex-wrap: nowrap;
     margin-left: auto;
   }
-  .name-with-google.signed-in-auth #google-name-inline .auth-btn {
-    width: auto;
-  }
+  #google-name-inline .auth-btn { width: auto; }
 }
 @media (max-width: 860px) and (orientation: landscape) {
   body[data-screen='home'] #app {
@@ -3339,6 +3334,14 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-left {
     border-right: 0;
     padding-right: 0;
+  }
+  .intro-head > div {
+    min-width: 0;
+  }
+  .intro-head > button.secondary {
+    white-space: nowrap;
+    flex: 0 0 auto;
+    min-width: max-content;
   }
 }
 body[data-orientation='portrait'] .table { --table-tilt: 0deg; }

@@ -1222,7 +1222,11 @@ function renderGoogleInline(){
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
 function shouldBlockLandscapeMobile(){
-  return window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
+  const isCoarseLandscape=window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
+  if(!isCoarseLandscape)return false;
+  // Block landscape on phones only; allow tablet/iPad landscape.
+  const shortSide=Math.min(window.innerWidth||0,window.innerHeight||0);
+  return shortSide>0&&shortSide<600;
 }
 function renderOrientationBlock(){
   const zh=state.language==='zh-HK';
@@ -1749,7 +1753,16 @@ function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)setSoloSt
 function maybeRunSoloAi(){
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
   const g=state.solo;
-  if(!g||g.gameOver||g.players[g.currentSeat].isHuman)return;
+  const current=g?.players?.[g?.currentSeat];
+  if(!g||g.gameOver||!current||current.isHuman)return;
+  const now=Date.now();
+  // iOS Safari can occasionally miss speech onend/onerror; force-release stale speech lock.
+  if(calloutSpeechActive&&calloutSpeechUntil>0&&now>calloutSpeechUntil+800){
+    calloutSpeechActive=false;
+    calloutSpeechUntil=0;
+    calloutSpeechEndedAt=now;
+    try{window.speechSynthesis?.cancel?.();}catch{}
+  }
   const remaining=Math.max(0,calloutSpeechUntil-Date.now());
   const afterCallout=calloutResumePending;
   if(afterCallout)calloutResumePending=false;
@@ -1759,16 +1772,30 @@ function maybeRunSoloAi(){
     ?Math.max(35,remaining)
     :afterCallout?POST_CALLOUT_DELAY_MS:DEFAULT_AI_DELAY_MS;
   aiTimer=window.setTimeout(()=>{
-    if(calloutSpeechActive||Date.now()<calloutSpeechUntil){
+    try{
+      const tickNow=Date.now();
+      if(calloutSpeechActive&&calloutSpeechUntil>0&&tickNow>calloutSpeechUntil+800){
+        calloutSpeechActive=false;
+        calloutSpeechUntil=0;
+        calloutSpeechEndedAt=tickNow;
+        try{window.speechSynthesis?.cancel?.();}catch{}
+      }
+      if(calloutSpeechActive||tickNow<calloutSpeechUntil){
+        maybeRunSoloAi();
+        return;
+      }
+      const live=state.solo;
+      const seat=live?.currentSeat;
+      const actor=live?.players?.[seat];
+      if(!live||live.gameOver||!actor||actor.isHuman)return;
+      const ch=chooseAiPlay(actor.hand,live,live.aiDifficulty);
+      if(!ch)soloPass(seat);else soloApplyPlay(seat,ch.cards);
+      render();
+    }catch(err){
+      console.error('AI turn tick failed',err);
+    }finally{
       maybeRunSoloAi();
-      return;
     }
-    const seat=g.currentSeat;
-    if(g.gameOver||g.players[seat].isHuman)return;
-    const ch=chooseAiPlay(g.players[seat].hand,g,g.aiDifficulty);
-    if(!ch)soloPass(seat);else soloApplyPlay(seat,ch.cards);
-    render();
-    maybeRunSoloAi();
   },wait);
 }
 
@@ -1824,7 +1851,7 @@ function isSpeechReady(){
 }
 function runtimeDiagnosticsText(){
   const zh=state.language==='zh-HK';
-  const audio=sound.enabled?(zh?'已啟用':'Ready'):(zh?'未啟用':'Off');
+  const audio=isAudioReady()?(zh?'已啟用':'Ready'):(zh?'未啟用':'Off');
   const speech=isSpeechReady()?(zh?'可用':'Ready'):(zh?'不可用':'Unavailable');
   return zh?`診斷: 音效 ${audio} | 報牌語音 ${speech}`:`Diag: Audio ${audio} | Callout Speech ${speech}`;
 }
@@ -2172,14 +2199,13 @@ function bindSoundToggle(comboId){
 function renderHome(){
   const intro=introText();
   const signedIn=signedInWithEmail();
-  const diagText=runtimeDiagnosticsText();
   const maleAvatarSrc=withBase('avatar-male.png');
   const femaleAvatarSrc=withBase('avatar-female.png');
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div><div class="runtime-diagnostic runtime-diagnostic-inline">${esc(diagText)}</div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
