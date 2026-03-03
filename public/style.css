@@ -2415,9 +2415,12 @@ body[data-screen='game'] .topbar-right .control-row button {
     transform: none;
     box-shadow: none;
   }
-  .hand-card:active {
+  .hand-card:active:not(.selected) {
     transform: none;
     box-shadow: none;
+  }
+  .hand-card.selected {
+    transform: translateY(-9px) !important;
   }
 }
 .card.mini { width: calc(var(--card-w)*.56); height: calc(var(--card-h)*.56); }
