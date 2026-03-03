@@ -229,6 +229,17 @@ body[data-screen='game'] .topbar .game-title-sub {
   font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
 }
 .hint { color: var(--muted); font-size: 0.92rem; }
+.runtime-diagnostic {
+  margin-top: 6px;
+  font-size: .72rem;
+  color: color-mix(in srgb, var(--muted) 88%, #d9f0ff 12%);
+  text-align: center;
+  opacity: .92;
+}
+.runtime-diagnostic-inline {
+  text-align: left;
+  margin-top: 5px;
+}
 .control-row, .action-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 #auto-seq-btn { margin-left: auto; }
 button, input, select { font: inherit; }
@@ -2398,6 +2409,16 @@ body[data-screen='game'] .topbar-right .control-row button {
     0 0 0 1px rgba(255, 209, 102, .88),
     0 0 0 2px rgba(7, 16, 24, .92),
     0 6px 12px rgba(255,209,102,.45) !important;
+}
+@media (hover: none), (pointer: coarse) {
+  .hand-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .hand-card:active {
+    transform: none;
+    box-shadow: none;
+  }
 }
 .card.mini { width: calc(var(--card-w)*.56); height: calc(var(--card-h)*.56); }
 .seat-pass-label {

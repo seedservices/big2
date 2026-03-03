@@ -115,6 +115,7 @@ const I18N={
     useGoogleName:'使用 Google 名稱',
     signOut:'登出',
     lb:'排行榜',
+    lbHeadingDesc:'根據分數變動、勝場與勝率等表現指標即時更新排名。',
     lbRefresh:'更新排行榜',
     lbSort:'排序',
     lbPeriod:'期間',
@@ -245,6 +246,7 @@ const I18N={
     useGoogleName:'Use Google Name',
     signOut:'Sign out',
     lb:'Leaderboard',
+    lbHeadingDesc:'Live ranking updates based on score delta, wins, and win rate.',
     lbRefresh:'Refresh Leaderboard',
     lbSort:'Sort',
     lbPeriod:'Period',
@@ -279,6 +281,7 @@ const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
 const FIRESTORE_LB_COLLECTION='big2LeaderboardPlayers';
+const START_GAME_AD_SCRIPT_SRC='https://pl28838410.effectivegatecpm.com/68/3a/41/683a4111a9f1f2f416b60a5957b5a704.js';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -291,6 +294,18 @@ const THEMES={
 const seatCls=['south','east','north','west'];
 const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#86d989'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
+const NPC_COLOR_POOL=['#ff6b6b','#6bbcff','#86d989','#f78fb3','#8bd3dd','#f3a683','#c4a7e7','#f6bd60','#84dcc6','#b8e986'];
+function randomizeNpcColors(){
+  const pool=[...NPC_COLOR_POOL];
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  const picks=pool.slice(0,3);
+  PLAYER_COLORS.east=picks[0]??'#ff6b6b';
+  PLAYER_COLORS.north=picks[1]??'#6bbcff';
+  PLAYER_COLORS.west=picks[2]??'#86d989';
+}
 const isIOSDevice=()=>{
   try{
     const ua=String(navigator?.userAgent??'');
@@ -404,9 +419,9 @@ const introText=()=>state.language==='en'
     btnShow:'Guide',
     btnHide:'Close',
     panelTitle:'Guide',
-    panelSub:'',
+    panelSub:'Quick reference for core rules, hand rankings, and standard round flow.',
     historyTitle:'Background',
-    historyBody:'Big 2 (Cho Dai Di) is a four-player climbing card game played with a full 52-card deck, 13 cards each, with no jokers. The Hong Kong ruleset emphasizes tempo control: players follow the same card count (single, pair, triple, or 5-card hand) and compete to shed all cards first, while suit order (♦ < ♣ < ♥ < ♠) resolves ties. In local play culture, Big 2 became a staple social game because rounds are short, decisions are tactical, and score swings reward both efficient hand management and timely pressure on opponents.',
+    historyBody:'Big 2 (Cho Dai Di) is a four-player shedding game played with a standard 52-card deck (no jokers), with 13 cards dealt to each player. Under the Hong Kong ruleset, players must follow the same card count (single, pair, triple, or 5-card hand), and ties at equal rank are resolved by suit order (♦ < ♣ < ♥ < ♠). With clear turn structure, strong strategic depth, and practical round length, the game has remained one of Hong Kong’s most representative social card activities.',
     playTitle:'Gameplay Highlights',
     playList:['Opening trick must include {{3D}}','Follow the same card count: single, pair, triple, or 5-card hand','5-card strength: Straight < Flush < Full House < Four of a Kind < Straight Flush','After three passes, lead returns to the last successful player'],
     flowTitle:'Opening Flow',
@@ -419,9 +434,9 @@ const introText=()=>state.language==='en'
     btnShow:'玩法指南',
     btnHide:'關閉',
     panelTitle:'玩法指南',
-    panelSub:'',
+    panelSub:'提供核心規則、牌型大小與標準回合流程的快速說明。',
     historyTitle:'歷史背景',
-    historyBody:'鋤大D係四人玩法、每人13張牌、使用一副52張撲克牌（唔用鬼牌）嘅鬥快出清遊戲。香港玩法重視節奏同話事權：要跟相同張數（單張、一對、三條、五張牌型），同點數時再按花色次序（♦ < ♣ < ♥ < ♠）決勝。由於一局時間短但策略密度高，玩家要喺保留關鍵大牌、拆牌取捨、同壓制對手之間平衡，所以一直係香港最常見嘅社交牌局之一。',
+    historyBody:'《鋤大D》（Big Two）為四人出清型撲克牌遊戲，採用標準52張牌（不含鬼牌），每位玩家派發13張。按香港常用規則，玩家須跟隨相同張數（單張、一對、三條或五張牌型）出牌；同點數時，按花色次序（♦ < ♣ < ♥ < ♠）判定大小。憑藉回合結構清晰、策略深度充足及對局時間適中等特點，本遊戲長期為香港具代表性的社交牌類活動之一。',
     playTitle:'玩法重點',
     playList:['開局第一手必須包含 {{3D}}','要跟相同張數：單張／一對／三條／五張牌型','五張牌型大小：蛇 < 花 < 俘虜 < 四條 < 同花順','連續三家過牌後，由最後出牌者重新話事'],
     flowTitle:'開局流程',
@@ -470,7 +485,7 @@ function introPanelHtml(){
 }
 function leaderboardModalHtml(){
   const closeLabel=state.language==='en'?'Close':'關閉';
-  return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-leaderboard" aria-hidden="true"></span><span>${t('lb')}</span></h3></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
+  return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-leaderboard" aria-hidden="true"></span><span>${t('lb')}</span></h3><p>${esc(t('lbHeadingDesc'))}</p></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
 }
 const lbText=()=>state.language==='en'
   ?{best:'Best',worst:'Worst',updated:'Updated',wr:'WR',avg:'Avg'}
@@ -721,7 +736,7 @@ function clearGoogleSession(){
 }
 function normalizeAuthProvider(provider){
   const v=String(provider??'').trim().toLowerCase();
-  if(v==='apple'||v==='facebook'||v==='google')return v;
+  if(v==='google')return v;
   return 'google';
 }
 function authProviderPrefix(){
@@ -746,8 +761,6 @@ function identityLookupIds(identity){
   if(email){
     out.push(`account:${email}`);
     out.push(`google:${email}`);
-    out.push(`apple:${email}`);
-    out.push(`facebook:${email}`);
   }
   const uid=String(state.home.google?.uid??'').trim();
   if(uid)out.push(`uid:${uid}`);
@@ -900,11 +913,12 @@ function leaderboardPanelHtml(){
 }
 function scoreGuideText(){
   return state.language==='en'
-    ?{
-      close:'Close',
-      baseTitle:'Base Scoring',
-      mulTitle:'Multiplier Penalties',
-      summary:'Round deduction = Base deduction x multiplier. Winner gains total deductions from all losers.',
+      ?{
+        close:'Close',
+        headingDesc:'Round deductions are calculated from remaining cards and multiplier penalties, then transferred to the winner.',
+        baseTitle:'Base Scoring',
+        mulTitle:'Multiplier Penalties',
+        summary:'Round deduction = Base deduction x multiplier. Winner gains total deductions from all losers.',
       tableHeaders:['Remaining Cards','Base Multiplier','Base Deduction'],
       tableRows:[
         ['1-9','x1','remaining cards x1'],
@@ -923,11 +937,12 @@ function scoreGuideText(){
       topTwo:'Hold ♠2 (top 2): another x2',
       stack:'Multipliers stack when conditions are met.'
     }
-    :{
-      close:'關閉',
-      baseTitle:'基本計分',
-      mulTitle:'加乘罰則',
-      summary:'每位輸家扣分 = 基本扣分 x 加乘倍數；所有輸家扣分總和加到贏家。',
+      :{
+        close:'關閉',
+        headingDesc:'每局扣分由剩餘張數與加乘罰則計算，最後由贏家獲得所有輸家扣分總和。',
+        baseTitle:'基本計分',
+        mulTitle:'加乘罰則',
+        summary:'每位輸家扣分 = 基本扣分 x 加乘倍數；所有輸家扣分總和加到贏家。',
       tableHeaders:['剩餘張數','基本倍數','基本扣分'],
       tableRows:[
         ['1-9 張','x1','按剩餘張數 x1'],
@@ -960,7 +975,7 @@ function scoreGuideModalHtml(){
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
-  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
+  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p>${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
 }
 function speakCallout(text,gender='male'){
   try{
@@ -1117,19 +1132,9 @@ async function signInWithProvider(providerId){
   const fb=window.firebase;
   if(!fb?.auth||!firebaseAuth)return false;
   const p=normalizeAuthProvider(providerId);
-  let provider=null;
-  if(p==='google'){
-    provider=new fb.auth.GoogleAuthProvider();
-    provider.addScope?.('email');
-  }else if(p==='apple'){
-    provider=new fb.auth.OAuthProvider('apple.com');
-    provider.addScope?.('email');
-    provider.addScope?.('name');
-  }else if(p==='facebook'){
-    provider=new fb.auth.FacebookAuthProvider();
-    provider.addScope?.('email');
-  }
-  if(!provider)return false;
+  if(p!=='google')return false;
+  const provider=new fb.auth.GoogleAuthProvider();
+  provider.addScope?.('email');
   try{
     const result=await firebaseAuth.signInWithPopup(provider);
     const user=result?.user;
@@ -1166,10 +1171,7 @@ function signOutCurrentProvider(){
   try{firebaseAuth?.signOut?.();}catch{}
 }
 function authProviderBadgeHtml(provider){
-  const p=normalizeAuthProvider(provider);
-  if(p==='apple'){
-    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.57c.02 2.31 2.03 3.08 2.05 3.09-.02.05-.32 1.1-1.04 2.18-.62.93-1.26 1.85-2.27 1.87-.98.02-1.3-.58-2.42-.58-1.12 0-1.48.56-2.39.6-0.97.04-1.71-.98-2.34-1.9-1.27-1.84-2.24-5.2-.94-7.45.65-1.12 1.8-1.82 3.03-1.84.95-.02 1.84.64 2.42.64.58 0 1.67-.79 2.82-.68.48.02 1.81.2 2.67 1.45-.07.04-1.59.93-1.59 2.62Zm-2.22-5.65c.52-.63.88-1.51.79-2.39-.75.03-1.65.5-2.19 1.12-.49.57-.93 1.46-.81 2.32.83.06 1.68-.42 2.21-1.05Z"/></svg>`;
-  }
+  void provider;
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.31h6.44a5.5 5.5 0 0 1-2.39 3.61v3h3.86c2.26-2.08 3.58-5.15 3.58-8.65Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.86-3A7.17 7.17 0 0 1 12 19.3c-3.12 0-5.77-2.11-6.72-4.96H1.3v3.11A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.28 14.34a7.2 7.2 0 0 1 0-4.68V6.55H1.3a12 12 0 0 0 0 10.9l3.98-3.11Z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.43-3.43C17.94 1.23 15.24 0 12 0A12 12 0 0 0 1.3 6.55l3.98 3.11C6.23 6.88 8.88 4.77 12 4.77Z"/></svg>`;
 }
 function queueGoogleInlineRender(){
@@ -1196,32 +1198,26 @@ function renderGoogleInline(){
     slot.classList.add('signed-in');
     nameRow?.classList.add('signed-in-auth');
     const current=authProviderPrefix();
-    const label=current==='apple'?'Apple':'Google';
+    const label='Google';
     slot.innerHTML=`<span class="auth-provider-badge auth-provider-${current}" role="img" aria-label="${label}" title="${label}">${authProviderBadgeHtml(current)}</span><button id="google-signout" class="auth-btn auth-btn-signout">${t('signOut')}</button>`;
     document.getElementById('google-signout')?.addEventListener('click',()=>{signOutCurrentProvider();render();});
     return;
   }
   slot.classList.remove('signed-in');
   nameRow?.classList.remove('signed-in-auth');
-  const hasFirebaseAuth=Boolean(initFirebaseIfReady()&&firebaseAuth&&window.firebase?.auth);
   const hasGsi=Boolean(window.google?.accounts?.id&&ensureGoogleIdentityInitialized());
-  slot.innerHTML=`<div id="google-login-slot"></div><button id="login-apple" class="auth-btn auth-btn-apple" ${hasFirebaseAuth?'':'disabled'}>Apple</button>`;
+  slot.innerHTML=`<div id="google-login-slot"></div>`;
+  const gSlot=document.getElementById('google-login-slot');
   if(hasGsi){
-    const gSlot=document.getElementById('google-login-slot');
     if(gSlot){
       try{
         window.google.accounts.id.renderButton(gSlot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
       }catch{
-        gSlot.innerHTML=`<button id="login-google" class="auth-btn auth-btn-google" ${hasFirebaseAuth?'':'disabled'}>Google</button>`;
+        gSlot.innerHTML='';
       }
     }
   }else{
-    const gSlot=document.getElementById('google-login-slot');
-    if(gSlot)gSlot.innerHTML=`<button id="login-google" class="auth-btn auth-btn-google" ${hasFirebaseAuth?'':'disabled'}>Google</button>`;
-  }
-  if(hasFirebaseAuth){
-    document.getElementById('login-google')?.addEventListener('click',()=>{void signInWithProvider('google');});
-    document.getElementById('login-apple')?.addEventListener('click',()=>{void signInWithProvider('apple');});
+    if(gSlot)gSlot.innerHTML='';
   }
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
@@ -1489,8 +1485,38 @@ function shouldForceMaxAgainstLastCard(game,seat){
   const next=(seat+1)%4;
   return !game.gameOver&&(game.players?.[next]?.hand?.length===1);
 }
-function suggestPlay(hand,lastPlay,isFirstTrick){let legal=allValidPlays(hand);if(isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));if(lastPlay)legal=legal.filter((e)=>canBeat(e.eval,lastPlay.eval));if(!legal.length)return null;if(!lastPlay){legal.sort((a,b)=>b.eval.count-a.eval.count||((a.eval.count===5&&a.eval.kind!==b.eval.kind)?FIVE_KIND_POWER[b.eval.kind]-FIVE_KIND_POWER[a.eval.kind]:comparePower(b.eval.power,a.eval.power)));return legal[0];}legal.sort((a,b)=>((a.eval.count===5&&a.eval.kind!==b.eval.kind)?FIVE_KIND_POWER[a.eval.kind]-FIVE_KIND_POWER[b.eval.kind]:comparePower(a.eval.power,b.eval.power)));return legal[0];}
-function shouldRecommendPass(hand,lastPlay,isFirstTrick,canPass){if(!canPass||!lastPlay||isFirstTrick)return false;const rec=suggestPlay(hand,lastPlay,isFirstTrick);if(!rec)return true;if(rec.eval.count===1&&rec.cards[0].rank>=11&&hand.length>=5)return true;if(rec.eval.count===2&&rec.cards[0].rank>=10&&hand.length>=6)return true;return false;}
+function suggestPlay(hand,lastPlay,isFirstTrick,game){
+  if(game&&Array.isArray(game.players)){
+    const seat=Number.isInteger(game.currentSeat)?game.currentSeat:0;
+    const sim={
+      ...game,
+      isFirstTrick:Boolean(isFirstTrick),
+      lastPlay:lastPlay?{...lastPlay}:null,
+      gameOver:false,
+      players:game.players.map((p,i)=>({...p,hand:i===seat?[...hand]:[...(p?.hand??[])]}))
+    };
+    const hardRec=chooseAiPlay([...hand],sim,'hard');
+    if(hardRec)return hardRec;
+  }
+  let legal=allValidPlays(hand);
+  if(isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));
+  if(lastPlay)legal=legal.filter((e)=>canBeat(e.eval,lastPlay.eval));
+  if(!legal.length)return null;
+  if(!lastPlay){
+    legal.sort((a,b)=>b.eval.count-a.eval.count||((a.eval.count===5&&a.eval.kind!==b.eval.kind)?FIVE_KIND_POWER[b.eval.kind]-FIVE_KIND_POWER[a.eval.kind]:comparePower(b.eval.power,a.eval.power)));
+    return legal[0];
+  }
+  legal.sort((a,b)=>((a.eval.count===5&&a.eval.kind!==b.eval.kind)?FIVE_KIND_POWER[a.eval.kind]-FIVE_KIND_POWER[b.eval.kind]:comparePower(a.eval.power,b.eval.power)));
+  return legal[0];
+}
+function shouldRecommendPass(hand,lastPlay,isFirstTrick,canPass,game){
+  if(!canPass||!lastPlay||isFirstTrick)return false;
+  const rec=suggestPlay(hand,lastPlay,isFirstTrick,game);
+  if(!rec)return true;
+  if(rec.eval.count===1&&rec.cards[0].rank>=11&&hand.length>=5)return true;
+  if(rec.eval.count===2&&rec.cards[0].rank>=10&&hand.length>=6)return true;
+  return false;
+}
 function chooseAiPlay(hand,game,diff){
   let legal=legalTurnPlays(hand,game);
   if(!legal.length)return null;
@@ -1692,7 +1718,7 @@ function clearCalloutStates(except=''){
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
@@ -1750,7 +1776,7 @@ function unlockAudio(){
   if(!sound.enabled)return;
   try{
     const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx){sound.enabled=false;return;}
+    if(!AudioCtx)return;
     if(!sound.ctx){
       sound.ctx=new AudioCtx();
     }
@@ -1772,7 +1798,7 @@ function unlockAudio(){
       }catch{}
     }
   }catch{
-    sound.enabled=false;
+    // Keep user preference unchanged even if runtime audio context cannot initialize.
   }
 }
 function primeSpeech(){
@@ -1783,6 +1809,24 @@ function primeSpeech(){
     synth.getVoices?.();
     speechPrimed=true;
   }catch{}
+}
+function isAudioReady(){
+  return Boolean(sound.enabled&&sound.ctx&&sound.ctx.state==='running');
+}
+function isSpeechReady(){
+  try{
+    if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return false;
+    const voices=window.speechSynthesis.getVoices?.()??[];
+    return voices.length>0;
+  }catch{
+    return false;
+  }
+}
+function runtimeDiagnosticsText(){
+  const zh=state.language==='zh-HK';
+  const audio=sound.enabled?(zh?'已啟用':'Ready'):(zh?'未啟用':'Off');
+  const speech=isSpeechReady()?(zh?'可用':'Ready'):(zh?'不可用':'Unavailable');
+  return zh?`診斷: 音效 ${audio} | 報牌語音 ${speech}`:`Diag: Audio ${audio} | Callout Speech ${speech}`;
 }
 function playTone(freq,d,type='sine',g=0.03,delay=0){if(!sound.ctx)return;const c=sound.ctx,o=c.createOscillator(),a=c.createGain();o.type=type;o.frequency.value=freq;a.gain.value=g;o.connect(a);a.connect(c.destination);const now=c.currentTime+delay;o.start(now);a.gain.exponentialRampToValueAtTime(0.0001,now+d);o.stop(now+d);}
 function playSound(kind){
@@ -2103,6 +2147,15 @@ function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
+function triggerStartGameAd(){
+  try{
+    document.querySelectorAll(`script[src^="${START_GAME_AD_SCRIPT_SRC}"]`).forEach((el)=>el.remove());
+    const s=document.createElement('script');
+    s.src=`${START_GAME_AD_SCRIPT_SRC}?t=${Date.now()}`;
+    s.async=true;
+    document.head.appendChild(s);
+  }catch{}
+}
 function setSoundEnabled(on){
   const enabled=Boolean(on);
   if(enabled){
@@ -2119,18 +2172,20 @@ function bindSoundToggle(comboId){
     if(v!=='on'&&v!=='off')return;
     setSoundEnabled(v==='on');
     markComboActive(comboId,v);
+    document.querySelectorAll('.runtime-diagnostic-inline').forEach((el)=>{el.textContent=runtimeDiagnosticsText();});
   }));
 }
 function renderHome(){
   const intro=introText();
   const signedIn=signedInWithEmail();
+  const diagText=runtimeDiagnosticsText();
   const maleAvatarSrc=withBase('avatar-male.png');
   const femaleAvatarSrc=withBase('avatar-female.png');
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div><div class="runtime-diagnostic runtime-diagnostic-inline">${esc(diagText)}</div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -2157,6 +2212,7 @@ function renderHome(){
   bindSoundToggle('sound-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInWithEmail())return;
+    triggerStartGameAd();
     unlockAudio();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
@@ -2215,7 +2271,7 @@ function renderGame(){
   const canReorder=!isMobilePointer()&&!v.gameOver&&v.hand.length>0;
   const canAutoSort=!v.gameOver&&v.hand.length>0;
   const selfScoreValue=v.mode==='solo'?(state.solo.totals?.[0]??state.score):state.score;
-  const canSuggest=v.canControl&&!state.recommendation;
+  const canSuggest=v.canControl;
   const self=arr.find((p)=>p.viewIndex===0);
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
@@ -2431,19 +2487,14 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
-  document.getElementById('restart-btn')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
-  document.getElementById('result-again')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
-  document.getElementById('congrats-again')?.addEventListener('click',()=>{state.recommendation=null;setRecommendHint('');startSoloGame();});
+  document.getElementById('restart-btn')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
+  document.getElementById('result-again')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
+  document.getElementById('congrats-again')?.addEventListener('click',()=>{triggerStartGameAd();state.recommendation=null;setRecommendHint('');startSoloGame();});
   document.getElementById('auto-seq-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'seq');render();});
   document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'pattern');render();});
   document.getElementById('suggest-btn')?.addEventListener('click',()=>{
     if(!v.canControl)return;
-    if(state.recommendation){
-      setRecommendHint(t('recReady'));
-      render();
-      return;
-    }
-    if(shouldRecommendPass(v.hand,v.lastPlay,v.isFirstTrick,v.canPass)){
+    if(shouldRecommendPass(v.hand,v.lastPlay,v.isFirstTrick,v.canPass,state.solo)){
       state.recommendation={action:'pass',cardIds:[]};
       state.selected.clear();
       setRecommendHint(t('recPass'));
@@ -2451,7 +2502,7 @@ function bindGameEvents(v,arr){
       render();
       return;
     }
-    const rec=suggestPlay(v.hand,v.lastPlay,v.isFirstTrick);
+    const rec=suggestPlay(v.hand,v.lastPlay,v.isFirstTrick,state.solo);
     if(!rec){
       setRecommendHint(t('noSuggest'));
       render();
@@ -2465,6 +2516,13 @@ function bindGameEvents(v,arr){
   });
   app.querySelectorAll('[data-card-id]').forEach((n)=>{
     const id=n.getAttribute('data-card-id');
+    let pointerTapActive=false;
+    let pointerTapId=-1;
+    let pointerStartX=0;
+    let pointerStartY=0;
+    let touchTapActive=false;
+    let touchStartX=0;
+    let touchStartY=0;
     const toggleSelect=()=>{
       unlockAudio();
       if(!v.canControl||!id)return;
@@ -2483,26 +2541,47 @@ function bindGameEvents(v,arr){
         n.addEventListener('pointerdown',(e)=>{
           if(e.pointerType==='mouse')return;
           hideDragPopup();
+          pointerTapActive=true;
+          pointerTapId=e.pointerId;
+          pointerStartX=e.clientX;
+          pointerStartY=e.clientY;
         });
         n.addEventListener('pointerup',(e)=>{
           if(e.pointerType==='mouse')return;
+          if(!pointerTapActive||e.pointerId!==pointerTapId)return;
+          pointerTapActive=false;
+          const moved=Math.hypot(e.clientX-pointerStartX,e.clientY-pointerStartY);
+          if(moved>12)return;
           e.preventDefault();
           mobileTapAt=Date.now();
           toggleSelect();
         });
-        n.addEventListener('pointercancel',()=>{hideDragPopup();});
+        n.addEventListener('pointercancel',()=>{pointerTapActive=false;hideDragPopup();});
       }else{
-        n.addEventListener('touchstart',()=>{hideDragPopup();},{passive:true});
+        n.addEventListener('touchstart',(e)=>{
+          hideDragPopup();
+          const t=e.changedTouches?.[0];
+          if(!t)return;
+          touchTapActive=true;
+          touchStartX=t.clientX;
+          touchStartY=t.clientY;
+        },{passive:true});
         n.addEventListener('touchend',(e)=>{
+          if(!touchTapActive)return;
+          touchTapActive=false;
+          const t=e.changedTouches?.[0];
+          if(!t)return;
+          const moved=Math.hypot(t.clientX-touchStartX,t.clientY-touchStartY);
+          if(moved>12)return;
           e.preventDefault();
           mobileTapAt=Date.now();
           toggleSelect();
         },{passive:false});
-        n.addEventListener('touchcancel',()=>{hideDragPopup();},{passive:true});
+        n.addEventListener('touchcancel',()=>{touchTapActive=false;hideDragPopup();},{passive:true});
       }
     }
     n.addEventListener('click',(e)=>{
-      if(isMobilePointer()&&Date.now()-mobileTapAt<500){
+      if(isMobilePointer()){
         e.preventDefault();
         return;
       }
