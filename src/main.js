@@ -2274,7 +2274,8 @@ function renderGame(){
   if(!state.logTouched){
     const rightSidebarDesktop=window.matchMedia('(min-width: 1081px)').matches;
     const rightSidebarMobileLandscape=window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
-    state.showLog=rightSidebarDesktop||rightSidebarMobileLandscape;
+    const rightSidebarTabletLandscape=window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape) and (hover: none)').matches;
+    state.showLog=rightSidebarDesktop||rightSidebarMobileLandscape||rightSidebarTabletLandscape;
   }
   if(!v.canControl||v.gameOver){state.recommendation=null;}
   if(state.recommendation?.action==='play'){
