@@ -23,7 +23,7 @@ const I18N={
     normal:'中級',
     hard:'高級',
     solo:'開局',
-    loginToStart:'請先使用 Google 登入先可以開始遊戲。',
+    loginToStart:'請先登入才可以開始遊戲。',
     config:'設定',
     soundFx:'音效',
     soundOn:'開',
@@ -153,7 +153,7 @@ const I18N={
     normal:'Intermediate',
     hard:'Advanced',
     solo:'Start',
-    loginToStart:'Please sign in with Google before starting the game.',
+    loginToStart:'Please sign in before starting the game.',
     config:'Config',
     soundFx:'Sound Effects',
     soundOn:'On',
@@ -274,7 +274,7 @@ const KIND={
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
@@ -699,7 +699,7 @@ function loadGoogleSession(){
     const parsed=raw?JSON.parse(raw):null;
     const email=String(parsed?.email??'').trim().toLowerCase().slice(0,120);
     if(!email)return;
-    state.home.google={...state.home.google,signedIn:true,email};
+    state.home.google={...state.home.google,signedIn:true,provider:'google',email};
     if(initFirebaseIfReady()){
       void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
     }
@@ -718,12 +718,21 @@ function saveGoogleSession(){
 function clearGoogleSession(){
   try{localStorage.removeItem(GOOGLE_SESSION_KEY);}catch{}
 }
+function normalizeAuthProvider(provider){
+  const v=String(provider??'').trim().toLowerCase();
+  if(v==='apple'||v==='facebook'||v==='google')return v;
+  return 'google';
+}
+function authProviderPrefix(){
+  return normalizeAuthProvider(state.home.google?.provider);
+}
+function signedInWithEmail(){return Boolean(state.home.google.signedIn&&state.home.google.email);}
 function currentLeaderboardIdentity(){
   const g=state.home.google;
   const gender=state.home.gender==='female'?'female':'male';
   if(g.signedIn&&g.email){
     const email=String(g.email).toLowerCase();
-    return{id:`google:${email}`,name:String(state.home.name||g.name||'Player').slice(0,32),email,gender};
+    return{id:`account:${email}`,name:String(state.home.name||g.name||'Player').slice(0,32),email,gender};
   }
   const fallback=String(state.home.name??'').trim().slice(0,32)||'Player';
   return{id:`name:${fallback.toLowerCase()}`,name:fallback,email:'',gender};
@@ -733,7 +742,12 @@ function identityLookupIds(identity){
   const id=String(identity?.id??'').trim();
   if(id)out.push(id);
   const email=String(identity?.email??'').trim().toLowerCase();
-  if(email)out.push(`google:${email}`);
+  if(email){
+    out.push(`account:${email}`);
+    out.push(`google:${email}`);
+    out.push(`apple:${email}`);
+    out.push(`facebook:${email}`);
+  }
   const uid=String(state.home.google?.uid??'').trim();
   if(uid)out.push(`uid:${uid}`);
   const seen=new Set();
@@ -755,7 +769,7 @@ function ensureLeaderboardEntry(store,identity){
   if(!safe)return null;
   const email=String(identity?.email??'').trim().toLowerCase().slice(0,120);
   const gender=String(identity?.gender??state.home.gender??'male')==='female'?'female':'male';
-  const key=String(identity?.id??(email?`google:${email}`:`name:${safe.toLowerCase()}`)).trim().slice(0,180);
+  const key=String(identity?.id??(email?`account:${email}`:`name:${safe.toLowerCase()}`)).trim().slice(0,180);
   if(!key)return null;
   if(!store.players[key]){
     store.players[key]={id:key,name:safe,email,gender,settings:collectMainSettings(),games:0,wins:0,totalScore:5000,updatedAt:Date.now()};
@@ -1039,7 +1053,7 @@ async function handleCredentialResponse(response){
   const gRaw=String(p.gender??p.sex??'').trim().toLowerCase();
   const googleGender=(gRaw==='female'||gRaw==='male')?gRaw:'';
   const signedIn=Boolean(email);
-  state.home.google={signedIn,name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token,picture:pic,gender:googleGender};
+  state.home.google={signedIn,provider:'google',name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token,picture:pic,gender:googleGender};
   if(signedIn){
     const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
     void hydrated;
@@ -1066,6 +1080,66 @@ function ensureGoogleIdentityInitialized(){
     return false;
   }
 }
+async function signInWithProvider(providerId){
+  initFirebaseIfReady();
+  const fb=window.firebase;
+  if(!fb?.auth||!firebaseAuth)return false;
+  const p=normalizeAuthProvider(providerId);
+  let provider=null;
+  if(p==='google'){
+    provider=new fb.auth.GoogleAuthProvider();
+    provider.addScope?.('email');
+  }else if(p==='apple'){
+    provider=new fb.auth.OAuthProvider('apple.com');
+    provider.addScope?.('email');
+    provider.addScope?.('name');
+  }else if(p==='facebook'){
+    provider=new fb.auth.FacebookAuthProvider();
+    provider.addScope?.('email');
+  }
+  if(!provider)return false;
+  try{
+    const result=await firebaseAuth.signInWithPopup(provider);
+    const user=result?.user;
+    const email=String(user?.email??'').trim().toLowerCase().slice(0,120);
+    if(!email)return false;
+    state.home.google={
+      signedIn:true,
+      provider:p,
+      name:String(user?.displayName??'').slice(0,18),
+      email,
+      uid:String(user?.uid??'').slice(0,128),
+      sub:String(user?.uid??'').slice(0,64),
+      token:'',
+      picture:String(user?.photoURL??'').trim(),
+      gender:''
+    };
+    const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
+    void hydrated;
+    if(state.home.google.name)state.home.name=state.home.google.name;
+    saveGoogleSession();
+    await syncLeaderboardProfile(currentLeaderboardIdentity());
+    if(state.home.showLeaderboard)refreshLeaderboard(true);
+    render();
+    return true;
+  }catch(err){
+    console.error(`sign in failed for provider: ${p}`,err);
+    return false;
+  }
+}
+function signOutCurrentProvider(){
+  state.home.google={signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''};
+  clearGoogleSession();
+  try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}
+  try{firebaseAuth?.signOut?.();}catch{}
+}
+function authProviderBadgeHtml(provider){
+  const p=normalizeAuthProvider(provider);
+  if(p==='apple'){
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.57c.02 2.31 2.03 3.08 2.05 3.09-.02.05-.32 1.1-1.04 2.18-.62.93-1.26 1.85-2.27 1.87-.98.02-1.3-.58-2.42-.58-1.12 0-1.48.56-2.39.6-0.97.04-1.71-.98-2.34-1.9-1.27-1.84-2.24-5.2-.94-7.45.65-1.12 1.8-1.82 3.03-1.84.95-.02 1.84.64 2.42.64.58 0 1.67-.79 2.82-.68.48.02 1.81.2 2.67 1.45-.07.04-1.59.93-1.59 2.62Zm-2.22-5.65c.52-.63.88-1.51.79-2.39-.75.03-1.65.5-2.19 1.12-.49.57-.93 1.46-.81 2.32.83.06 1.68-.42 2.21-1.05Z"/></svg>`;
+  }
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.31h6.44a5.5 5.5 0 0 1-2.39 3.61v3h3.86c2.26-2.08 3.58-5.15 3.58-8.65Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.86-3A7.17 7.17 0 0 1 12 19.3c-3.12 0-5.77-2.11-6.72-4.96H1.3v3.11A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.28 14.34a7.2 7.2 0 0 1 0-4.68V6.55H1.3a12 12 0 0 0 0 10.9l3.98-3.11Z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.43-3.43C17.94 1.23 15.24 0 12 0A12 12 0 0 0 1.3 6.55l3.98 3.11C6.23 6.88 8.88 4.77 12 4.77Z"/></svg>`;
+}
 function queueGoogleInlineRender(){
   window.setTimeout(()=>{if(state.screen==='home')renderGoogleInline();},0);
   window.requestAnimationFrame(()=>{if(state.screen==='home')renderGoogleInline();});
@@ -1073,7 +1147,7 @@ function queueGoogleInlineRender(){
 window.onGoogleScriptLoaded=()=>{if(state.screen==='home')queueGoogleInlineRender();};
 function bootFirebase(attempt=0){
   if(initFirebaseIfReady()){
-    if(state.home.google.signedIn&&state.home.google.email){
+    if(signedInWithEmail()){
       void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
     }
     refreshLeaderboard(true);
@@ -1085,21 +1159,38 @@ function renderGoogleInline(attempt=0){
   clearGoogleInlineRetry();
   const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');
   if(!slot)return;
-  if(state.home.google.signedIn){
-    slot.innerHTML=`<button id="google-signout" class="secondary">${t('signOut')}</button>`;
-    document.getElementById('google-signout')?.addEventListener('click',()=>{state.home.google={signedIn:false,name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''};clearGoogleSession();try{window.google?.accounts?.id?.disableAutoSelect?.();}catch{}try{firebaseAuth?.signOut?.();}catch{}render();});
+  const nameRow=slot.parentElement;
+  if(signedInWithEmail()){
+    slot.classList.add('signed-in');
+    nameRow?.classList.add('signed-in-auth');
+    const current=authProviderPrefix();
+    const label=current==='apple'?'Apple':'Google';
+    slot.innerHTML=`<span class="auth-provider-badge auth-provider-${current}" role="img" aria-label="${label}" title="${label}">${authProviderBadgeHtml(current)}</span><button id="google-signout" class="auth-btn auth-btn-signout">${t('signOut')}</button>`;
+    document.getElementById('google-signout')?.addEventListener('click',()=>{signOutCurrentProvider();render();});
     return;
   }
-  try{
-    if(window.google?.accounts?.id){
-      if(ensureGoogleIdentityInitialized()){
-        slot.innerHTML='';
-        window.google.accounts.id.renderButton(slot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
-        if(slot.childElementCount>0)return;
+  slot.classList.remove('signed-in');
+  nameRow?.classList.remove('signed-in-auth');
+  const hasFirebaseAuth=Boolean(initFirebaseIfReady()&&firebaseAuth&&window.firebase?.auth);
+  const hasGsi=Boolean(window.google?.accounts?.id&&ensureGoogleIdentityInitialized());
+  slot.innerHTML=`<div id="google-login-slot"></div><button id="login-apple" class="auth-btn auth-btn-apple" ${hasFirebaseAuth?'':'disabled'}>Apple</button>`;
+  if(hasGsi){
+    const gSlot=document.getElementById('google-login-slot');
+    if(gSlot){
+      try{
+        window.google.accounts.id.renderButton(gSlot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
+      }catch{
+        gSlot.innerHTML=`<button id="login-google" class="auth-btn auth-btn-google" ${hasFirebaseAuth?'':'disabled'}>Google</button>`;
       }
     }
-  }catch{}
-  if(!slot.innerHTML.trim())slot.innerHTML=`<button class="secondary" disabled>Google...</button>`;
+  }else{
+    const gSlot=document.getElementById('google-login-slot');
+    if(gSlot)gSlot.innerHTML=`<button id="login-google" class="auth-btn auth-btn-google" ${hasFirebaseAuth?'':'disabled'}>Google</button>`;
+  }
+  if(hasFirebaseAuth){
+    document.getElementById('login-google')?.addEventListener('click',()=>{void signInWithProvider('google');});
+    document.getElementById('login-apple')?.addEventListener('click',()=>{void signInWithProvider('apple');});
+  }
   if(attempt<40){
     googleInlineRetryTimer=window.setTimeout(()=>renderGoogleInline(attempt+1),250);
   }
@@ -1258,14 +1349,14 @@ function avatarDataUri(name,color,gender='male'){
   scheduleAvatarRecolor(g,c);
   return AVATAR_BASE_SRC[g];
 }
-function googlePictureUrl(){
+function authPictureUrl(){
   const pic=String(state.home.google?.picture??'').trim();
   if(!pic)return'';
   try{
     let url=pic;
+    if(/^data:|^blob:/i.test(url))return url;
     if(/^\/\//.test(url))url=`https:${url}`;
-    if(!/^https?:\/\//i.test(url)&&/^(?:lh3|lh4|lh5|lh6)\.googleusercontent\.com\//i.test(url))url=`https://${url}`;
-    if(!/^https?:\/\//i.test(url)&&/^googleusercontent\.com\//i.test(url))url=`https://${url}`;
+    if(!/^https?:\/\//i.test(url))url=`https://${url.replace(/^\/+/,'')}`;
     if(!/^https?:\/\//i.test(url))return'';
     return url;
   }catch{
@@ -1273,8 +1364,8 @@ function googlePictureUrl(){
   }
 }
 function selfAvatarDataUri(name,color,gender='male'){
-  const googlePic=googlePictureUrl();
-  if(state.home.google?.signedIn&&googlePic)return googlePic;
+  const authPic=authPictureUrl();
+  if(state.home.google?.signedIn&&authPic)return authPic;
   const g=String(gender??'male')==='female'?'female':'male';
   return AVATAR_BASE_SRC[g];
 }
@@ -1957,19 +2048,37 @@ function backAssetFile(value){
   return found?.file??'back-red-clean2.png';
 }
 function renderBackCombo(){
-  return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/><span class="back-label">${opt.label[state.language]??opt.value}</span></button>`).join('');
+  return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
+function setSoundEnabled(on){
+  const enabled=Boolean(on);
+  if(enabled){
+    sound.enabled=true;
+    try{sound.ctx?.resume?.();}catch{}
+    return;
+  }
+  sound.enabled=false;
+  try{sound.ctx?.suspend?.();}catch{}
+}
+function bindSoundToggle(comboId){
+  document.querySelectorAll(`#${comboId} .combo-btn`).forEach((btn)=>btn.addEventListener('click',()=>{
+    const v=String(btn.getAttribute('data-value')??'');
+    if(v!=='on'&&v!=='off')return;
+    setSoundEnabled(v==='on');
+    markComboActive(comboId,v);
+  }));
+}
 function renderHome(){
   const intro=introText();
-  const signedIn=Boolean(state.home.google.signedIn&&state.home.google.email);
+  const signedIn=signedInWithEmail();
   const maleAvatarSrc=withBase('avatar-male.png');
   const femaleAvatarSrc=withBase('avatar-female.png');
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field"><span>${t('gender')}</span><div class="option-combo gender-image-combo" id="gender-combo"><button class="combo-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/><span>${t('male')}</span></button><button class="combo-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/><span>${t('female')}</span></button></div></label><label class="field"><span>${t('ai')}</span><div class="option-combo" id="difficulty-combo"><button class="combo-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div><div class="action-row"><button id="solo-start" class="primary" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -1981,7 +2090,7 @@ function renderHome(){
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
-  document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}});
+  document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;if(signedInWithEmail()){void syncLeaderboardProfile(currentLeaderboardIdentity());}});
   document.querySelectorAll('#gender-combo .gender-image-btn').forEach((btn)=>btn.addEventListener('click',()=>{
     const v=String(btn.getAttribute('data-value')??'');
     if(v!=='male'&&v!=='female')return;
@@ -1989,24 +2098,13 @@ function renderHome(){
     if(v==='male'||v==='female')state.home.gender=v;
     markComboActive('gender-combo',state.home.avatarChoice);
     saveGoogleSession();
-    if(state.home.google.signedIn&&state.home.google.email){void syncLeaderboardProfile(currentLeaderboardIdentity());}
+    if(signedInWithEmail()){void syncLeaderboardProfile(currentLeaderboardIdentity());}
   }));
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
-  document.getElementById('sound-switch')?.addEventListener('change',(e)=>{
-    const on=Boolean(e.target.checked);
-    if(on){
-      sound.enabled=true;
-      try{sound.ctx?.resume?.();}catch{}
-    }else{
-      sound.enabled=false;
-      try{sound.ctx?.suspend?.();}catch{}
-    }
-    const lb=document.querySelector('.sound-switch-label');
-    if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
-  });
+  bindSoundToggle('sound-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
-    if(!(state.home.google.signedIn&&state.home.google.email))return;
+    if(!signedInWithEmail())return;
     unlockAudio();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
@@ -2036,21 +2134,10 @@ function renderHome(){
   queueGoogleInlineRender();
 }
 function renderConfig(){
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><label class="sound-switch"><input type="checkbox" id="config-sound-switch" ${sound.enabled?'checked':''}/><span class="sound-switch-track"></span><span class="sound-switch-label">${sound.enabled?t('soundOn'):t('soundOff')}</span></label></label></div></section></section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></section></section>`;
   document.getElementById('config-back')?.addEventListener('click',()=>{state.screen='home';render();});
   document.getElementById('config-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
-  document.getElementById('config-sound-switch')?.addEventListener('change',(e)=>{
-    const on=Boolean(e.target.checked);
-    if(on){
-      sound.enabled=true;
-      try{sound.ctx?.resume?.();}catch{}
-    }else{
-      sound.enabled=false;
-      try{sound.ctx?.suspend?.();}catch{}
-    }
-    const lb=document.querySelector('.sound-switch-label');
-    if(lb)lb.textContent=sound.enabled?t('soundOn'):t('soundOff');
-  });
+  bindSoundToggle('config-sound-combo');
 }
 function renderGame(){
   const v=buildView();
@@ -2134,8 +2221,8 @@ function renderGame(){
   const selfGender=self?.gender??state.home.gender??'male';
   const selfSeatColor=playerColorByViewClass('south');
   const selfAvatarSrc=selfAvatarDataUri(selfName,selfSeatColor,selfGender);
-  const googlePic=googlePictureUrl();
-  const useGoogleSelfAvatar=Boolean(state.home.google?.signedIn&&googlePic&&selfAvatarSrc===googlePic);
+  const authPic=authPictureUrl();
+  const useGoogleSelfAvatar=Boolean(state.home.google?.signedIn&&authPic&&selfAvatarSrc===authPic);
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/></span>`;
   const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
   const isMobile=isMobilePointer();
@@ -2371,6 +2458,7 @@ function syncViewport(){const root=document.documentElement;const short=Math.min
 window.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',syncViewport);document.addEventListener('pointerdown',()=>{unlockAudio();primeSpeech();},{once:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&aiTimer){clearTimeout(aiTimer);aiTimer=null;}});
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
+
 
 
 

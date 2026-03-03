@@ -1,0 +1,32 @@
+﻿Backup created: 2026-03-03
+
+Background source (Unsplash):
+- https://images.unsplash.com/photo-1511193311914-0346f16efe90
+Saved files:
+- public/backup/images/home-background-unsplash.jpg
+- public/backup/images/home-bg-mobile.webp
+- public/backup/images/home-bg-tablet.webp
+- public/backup/images/home-bg-desktop.webp
+- public/backup/images/home-bg-mobile.jpg
+- public/backup/images/home-bg-tablet.jpg
+- public/backup/images/home-bg-desktop.jpg
+
+Font CSS source:
+- https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;700&display=swap
+Saved as:
+- public/backup/fonts/google-fonts.css
+
+Font binaries (served by fonts.gstatic.com):
+- https://fonts.gstatic.com/s/mashanzheng/v17/NaPecZTRCLxvwo41b4gvzkXaRMQ.ttf
+- https://fonts.gstatic.com/s/notoseriftc/v35/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX9aMOpD.ttf
+- https://fonts.gstatic.com/s/notoseriftc/v35/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX-9N-pD.ttf
+
+WOFF2 subset CSS (requested with modern browser UA + text subset):
+- public/backup/fonts/mashan-woff2.css
+- public/backup/fonts/notoseriftc-400-woff2.css
+- public/backup/fonts/notoseriftc-700-woff2.css
+
+WOFF2 subset binaries:
+- public/backup/fonts/MaShanZheng-subset.woff2
+- public/backup/fonts/NotoSerifTC-400-subset.woff2
+- public/backup/fonts/NotoSerifTC-700-subset.woff2
