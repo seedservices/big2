@@ -327,6 +327,7 @@ let calloutSpeechActive=false;
 let calloutSpeechUntil=0;
 let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
+let orientationBlockActive=false;
 const BOT_PROFILES={
   zh:[
     {name:'志明',gender:'male'},
@@ -976,18 +977,18 @@ function speakCallout(text,gender='male'){
       unlockAudio();
       if(!sound.enabled||!sound.ctx)return;
       if(lower.includes('pass')||msg==='大'){
-        playTone(210,0.09,'sine',0.024);
-        playTone(170,0.08,'sine',0.02,0.06);
+        playTone(240,0.12,'square',0.05);
+        playTone(180,0.12,'square',0.04,0.07);
         return;
       }
       if(lower.includes('last')||msg===t('lastCardCall')){
-        playTone(700,0.08,'triangle',0.026);
-        playTone(860,0.09,'triangle',0.022,0.07);
+        playTone(740,0.12,'triangle',0.06);
+        playTone(920,0.14,'triangle',0.05,0.06);
         return;
       }
       // play-type callout (pair/straight/etc.)
-      playTone(420,0.08,'square',0.024);
-      playTone(560,0.09,'triangle',0.022,0.06);
+      playTone(430,0.12,'square',0.055);
+      playTone(590,0.13,'triangle',0.05,0.06);
     };
     if(isIOSDevice()){
       playCalloutToneFallback();
@@ -1180,7 +1181,7 @@ function bootFirebase(attempt=0){
   }
   if(attempt<120)window.setTimeout(()=>bootFirebase(attempt+1),250);
 }
-function renderGoogleInline(attempt=0){
+function renderGoogleInline(){
   clearGoogleInlineRetry();
   const slot=document.getElementById('google-name-inline')??document.getElementById('google-inline');
   if(!slot)return;
@@ -1216,11 +1217,17 @@ function renderGoogleInline(attempt=0){
     document.getElementById('login-google')?.addEventListener('click',()=>{void signInWithProvider('google');});
     document.getElementById('login-apple')?.addEventListener('click',()=>{void signInWithProvider('apple');});
   }
-  if(attempt<40){
-    googleInlineRetryTimer=window.setTimeout(()=>renderGoogleInline(attempt+1),250);
-  }
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
+function shouldBlockLandscapeMobile(){
+  return window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
+}
+function renderOrientationBlock(){
+  const zh=state.language==='zh-HK';
+  const title=zh?'請使用直向模式':'Portrait Mode Required';
+  const body=zh?'此遊戲僅支援手機直向模式，請將裝置旋轉為直向再繼續。':'This game supports portrait mode on mobile only. Please rotate your device to continue.';
+  app.innerHTML=`<section class="orientation-block"><div class="orientation-card"><h2>${esc(title)}</h2><p>${esc(body)}</p></div></section>`;
+}
 window.handleCredentialResponse=handleCredentialResponse;
 function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2466,17 +2473,27 @@ function bindGameEvents(v,arr){
     n.addEventListener('drop',(e)=>{if(!dragEnabled||!id)return;e.preventDefault();hideDragPopup();const fromId=state.drag.id||e.dataTransfer?.getData('text/plain');if(!fromId||fromId===id)return;reorderCurrent(v,fromId,id);state.drag.moved=true;render();});
     n.addEventListener('dragend',()=>{hideDragPopup();setTimeout(()=>{state.drag.id=null;},0);});
     if(isMobilePointer()){
-      n.addEventListener('pointerdown',(e)=>{
-        if(e.pointerType==='mouse')return;
-        hideDragPopup();
-      });
-      n.addEventListener('pointerup',(e)=>{
-        if(e.pointerType==='mouse')return;
-        e.preventDefault();
-        mobileTapAt=Date.now();
-        toggleSelect();
-      });
-      n.addEventListener('pointercancel',()=>{hideDragPopup();});
+      if(window.PointerEvent){
+        n.addEventListener('pointerdown',(e)=>{
+          if(e.pointerType==='mouse')return;
+          hideDragPopup();
+        });
+        n.addEventListener('pointerup',(e)=>{
+          if(e.pointerType==='mouse')return;
+          e.preventDefault();
+          mobileTapAt=Date.now();
+          toggleSelect();
+        });
+        n.addEventListener('pointercancel',()=>{hideDragPopup();});
+      }else{
+        n.addEventListener('touchstart',()=>{hideDragPopup();},{passive:true});
+        n.addEventListener('touchend',(e)=>{
+          e.preventDefault();
+          mobileTapAt=Date.now();
+          toggleSelect();
+        },{passive:false});
+        n.addEventListener('touchcancel',()=>{hideDragPopup();},{passive:true});
+      }
     }
     n.addEventListener('click',(e)=>{
       if(isMobilePointer()&&Date.now()-mobileTapAt<500){
@@ -2491,8 +2508,34 @@ function bindGameEvents(v,arr){
   document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));runPlay(cards);});
 }
 
-function render(){applyTheme();document.body.setAttribute('data-screen',state.screen);document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');if(state.screen==='home'){renderHome();return;}if(state.screen==='config'){renderConfig();return;}renderGame();}
-function syncViewport(){const root=document.documentElement;const short=Math.min(window.innerWidth,window.innerHeight);const scale=Math.max(0.74,Math.min(1.1,short/520));root.style.setProperty('--card-scale',scale.toFixed(3));const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';document.body.setAttribute('data-orientation',orientation);root.style.setProperty('--table-tilt','0deg');requestAnimationFrame(syncHandStackMode);}
+function render(){
+  applyTheme();
+  document.body.setAttribute('data-screen',state.screen);
+  document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
+  if(shouldBlockLandscapeMobile()){
+    renderOrientationBlock();
+    return;
+  }
+  if(state.screen==='home'){renderHome();return;}
+  if(state.screen==='config'){renderConfig();return;}
+  renderGame();
+}
+function syncViewport(){
+  const root=document.documentElement;
+  const short=Math.min(window.innerWidth,window.innerHeight);
+  const scale=Math.max(0.74,Math.min(1.1,short/520));
+  root.style.setProperty('--card-scale',scale.toFixed(3));
+  const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';
+  document.body.setAttribute('data-orientation',orientation);
+  root.style.setProperty('--table-tilt','0deg');
+  const blocked=shouldBlockLandscapeMobile();
+  if(blocked!==orientationBlockActive){
+    orientationBlockActive=blocked;
+    render();
+    return;
+  }
+  requestAnimationFrame(syncHandStackMode);
+}
 
 window.addEventListener('resize',syncViewport);
 window.addEventListener('orientationchange',syncViewport);

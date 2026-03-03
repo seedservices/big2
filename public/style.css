@@ -3215,7 +3215,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     overflow-x: auto;
   }
 }
-@media (orientation: landscape) and (pointer: coarse) and (max-height: 560px) {
+@media (orientation: landscape) and (pointer: coarse) {
   body[data-screen='game'] #app {
     height: 100dvh !important;
     max-height: 100dvh !important;
@@ -4364,6 +4364,32 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   animation: confettiBurst 900ms ease-out both;
 }
 
+/* Mobile landscape is blocked: show rotate-to-portrait notice. */
+.orientation-block {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.orientation-card {
+  width: min(92vw, 520px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(160deg, rgba(16, 45, 72, .95), rgba(8, 30, 49, .95));
+  box-shadow: 0 14px 34px rgba(0,0,0,.32);
+  padding: 18px 16px;
+  text-align: center;
+}
+.orientation-card h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.2rem, 3.6vw, 1.5rem);
+}
+.orientation-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 @keyframes winPop {
   from { transform: translateY(10px) scale(.82); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
@@ -4374,6 +4400,3 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   35% { opacity: 1; }
   100% { transform: scale(1.04); opacity: 0; }
 }
-
-
-
