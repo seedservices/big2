@@ -963,15 +963,40 @@ function scoreGuideModalHtml(){
 }
 function speakCallout(text,gender='male'){
   try{
-    if(isIOSDevice())return;
     const msg=String(text??'').trim();
-    if(!msg||!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined')return;
+    if(!msg)return;
     const g=String(gender??'male')==='female'?'female':'male';
     const key=`${state.language}|${g}|${msg}`;
     const now=Date.now();
     if(key===lastSpokenCalloutKey&&now-lastSpokenCalloutAt<900)return;
     lastSpokenCalloutKey=key;
     lastSpokenCalloutAt=now;
+    const lower=msg.toLowerCase();
+    const playCalloutToneFallback=()=>{
+      unlockAudio();
+      if(!sound.enabled||!sound.ctx)return;
+      if(lower.includes('pass')||msg==='大'){
+        playTone(210,0.09,'sine',0.024);
+        playTone(170,0.08,'sine',0.02,0.06);
+        return;
+      }
+      if(lower.includes('last')||msg===t('lastCardCall')){
+        playTone(700,0.08,'triangle',0.026);
+        playTone(860,0.09,'triangle',0.022,0.07);
+        return;
+      }
+      // play-type callout (pair/straight/etc.)
+      playTone(420,0.08,'square',0.024);
+      playTone(560,0.09,'triangle',0.022,0.06);
+    };
+    if(isIOSDevice()){
+      playCalloutToneFallback();
+      return;
+    }
+    if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined'){
+      playCalloutToneFallback();
+      return;
+    }
     const synth=window.speechSynthesis;
     const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|sinji|mei[-\s]?jia|xiaoxiao|xiaoyi|xiaomeng|xiaohan|jia[-\s]?yi|yi[-\s]?ting|tracy|hiumaan|standard[-_\s]?a|standard[-_\s]?c|neural[-_\s]?a|neural[-_\s]?c|yue[-_\s]?hk[-_\s]?(female|a|c))/i;
     const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang|xiaoming|xiaogang|james|tom|kevin|danny|hiugaai|wanlung|aasing|standard[-_\s]?b|standard[-_\s]?d|neural[-_\s]?b|neural[-_\s]?d|yue[-_\s]?hk[-_\s]?(male|b|d))/i;
@@ -1719,6 +1744,20 @@ function unlockAudio(){
     if(sound.ctx?.state==='suspended'){
       sound.ctx.resume?.().catch(()=>{});
     }
+    // iOS Safari often needs a real node start/stop in a user gesture to unlock playback.
+    if(sound.ctx?.state==='running'){
+      try{
+        const c=sound.ctx;
+        const o=c.createOscillator();
+        const g=c.createGain();
+        g.gain.value=0.00001;
+        o.connect(g);
+        g.connect(c.destination);
+        const t=c.currentTime;
+        o.start(t);
+        o.stop(t+0.01);
+      }catch{}
+    }
   }catch{
     sound.enabled=false;
   }
@@ -2455,7 +2494,18 @@ function bindGameEvents(v,arr){
 function render(){applyTheme();document.body.setAttribute('data-screen',state.screen);document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');if(state.screen==='home'){renderHome();return;}if(state.screen==='config'){renderConfig();return;}renderGame();}
 function syncViewport(){const root=document.documentElement;const short=Math.min(window.innerWidth,window.innerHeight);const scale=Math.max(0.74,Math.min(1.1,short/520));root.style.setProperty('--card-scale',scale.toFixed(3));const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';document.body.setAttribute('data-orientation',orientation);root.style.setProperty('--table-tilt','0deg');requestAnimationFrame(syncHandStackMode);}
 
-window.addEventListener('resize',syncViewport);window.addEventListener('orientationchange',syncViewport);document.addEventListener('pointerdown',()=>{unlockAudio();primeSpeech();},{once:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&aiTimer){clearTimeout(aiTimer);aiTimer=null;}});
+window.addEventListener('resize',syncViewport);
+window.addEventListener('orientationchange',syncViewport);
+const bootstrapAudioAndSpeech=()=>{unlockAudio();primeSpeech();};
+document.addEventListener('pointerdown',bootstrapAudioAndSpeech,{once:true});
+document.addEventListener('touchstart',bootstrapAudioAndSpeech,{once:true,passive:true});
+document.addEventListener('click',bootstrapAudioAndSpeech,{once:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&aiTimer){
+    clearTimeout(aiTimer);
+    aiTimer=null;
+  }
+});
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
 

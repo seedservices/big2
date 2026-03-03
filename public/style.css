@@ -4,8 +4,8 @@
   font-weight: 400;
   font-display: swap;
   src:
-    url('/backup/fonts/MaShanZheng-subset.woff2') format('woff2'),
-    url('/backup/fonts/NaPecZTRCLxvwo41b4gvzkXaRMQ.ttf') format('truetype');
+    url('./backup/fonts/MaShanZheng-subset.woff2') format('woff2'),
+    url('./backup/fonts/NaPecZTRCLxvwo41b4gvzkXaRMQ.ttf') format('truetype');
 }
 @font-face {
   font-family: 'Noto Serif TC';
@@ -13,8 +13,8 @@
   font-weight: 400;
   font-display: swap;
   src:
-    url('/backup/fonts/NotoSerifTC-400-subset.woff2') format('woff2'),
-    url('/backup/fonts/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX9aMOpD.ttf') format('truetype');
+    url('./backup/fonts/NotoSerifTC-400-subset.woff2') format('woff2'),
+    url('./backup/fonts/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX9aMOpD.ttf') format('truetype');
 }
 @font-face {
   font-family: 'Noto Serif TC';
@@ -22,8 +22,8 @@
   font-weight: 700;
   font-display: swap;
   src:
-    url('/backup/fonts/NotoSerifTC-700-subset.woff2') format('woff2'),
-    url('/backup/fonts/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX-9N-pD.ttf') format('truetype');
+    url('./backup/fonts/NotoSerifTC-700-subset.woff2') format('woff2'),
+    url('./backup/fonts/XLYzIZb5bJNDGYxLBibeHZ0BnHwmuanx8cUaGX-9N-pD.ttf') format('truetype');
 }
 
 :root {
@@ -69,9 +69,12 @@ body {
   font-family: var(--ui-font);
   background:
     linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
+    url('./backup/images/home-bg-desktop.jpg');
+  background:
+    linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
     image-set(
-      url('/backup/images/home-bg-desktop.webp') type('image/webp') 1x,
-      url('/backup/images/home-bg-desktop.jpg') type('image/jpeg') 1x
+      url('./backup/images/home-bg-desktop.webp') type('image/webp') 1x,
+      url('./backup/images/home-bg-desktop.jpg') type('image/jpeg') 1x
     );
   background-size: cover;
   background-position: center;
@@ -82,9 +85,12 @@ body {
   body {
     background:
       linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
+      url('./backup/images/home-bg-tablet.jpg');
+    background:
+      linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
       image-set(
-        url('/backup/images/home-bg-tablet.webp') type('image/webp') 1x,
-        url('/backup/images/home-bg-tablet.jpg') type('image/jpeg') 1x
+        url('./backup/images/home-bg-tablet.webp') type('image/webp') 1x,
+        url('./backup/images/home-bg-tablet.jpg') type('image/jpeg') 1x
       );
     background-size: cover;
     background-position: center;
@@ -94,9 +100,12 @@ body {
   body {
     background:
       linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
+      url('./backup/images/home-bg-mobile.jpg');
+    background:
+      linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
       image-set(
-        url('/backup/images/home-bg-mobile.webp') type('image/webp') 1x,
-        url('/backup/images/home-bg-mobile.jpg') type('image/jpeg') 1x
+        url('./backup/images/home-bg-mobile.webp') type('image/webp') 1x,
+        url('./backup/images/home-bg-mobile.jpg') type('image/jpeg') 1x
       );
     background-size: cover;
     background-position: center;
@@ -3204,6 +3213,87 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .topbar-right .control-row {
     flex-wrap: nowrap;
     overflow-x: auto;
+  }
+}
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 560px) {
+  body[data-screen='game'] #app {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding: max(4px, env(safe-area-inset-top)) 6px 0 !important;
+  }
+  body[data-screen='game'] .game-shell {
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: 4px !important;
+  }
+  body[data-screen='game'] .main-zone {
+    min-height: 0 !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    gap: 4px !important;
+  }
+  body[data-screen='game'] .table {
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+  body[data-screen='game'] .side-zone {
+    grid-template-columns: 1fr !important;
+    max-height: 24dvh !important;
+    min-height: 0 !important;
+  }
+  body[data-screen='game'] .side-zone .log-side-card {
+    min-height: 0 !important;
+  }
+  body[data-screen='game'] .history-list {
+    max-height: 100% !important;
+    overflow-y: auto !important;
+  }
+  body[data-screen='game'] .topbar {
+    padding: 6px 8px !important;
+    gap: 5px !important;
+  }
+  body[data-screen='game'] .topbar-right .control-row button {
+    min-height: 28px !important;
+    padding: 2px 6px !important;
+    font-size: clamp(.58rem, 1.8vh, .7rem) !important;
+  }
+  body[data-screen='game'] .action-strip {
+    padding: 6px 8px 4px !important;
+    gap: 4px !important;
+  }
+  body[data-screen='game'] .action-strip .control-row button {
+    min-height: 30px !important;
+    padding: 3px 7px !important;
+    font-size: .72rem !important;
+  }
+  body[data-screen='game'] .action-strip .hand {
+    min-height: calc(var(--card-h) * 1.02 + 10px) !important;
+    padding-top: 4px !important;
+    padding-bottom: 0 !important;
+  }
+  body[data-screen='game'] .action-strip .hand .hand-card {
+    width: calc(var(--card-w) * 1.02) !important;
+    height: calc((var(--card-w) * 1.02) * 7 / 5) !important;
+  }
+  body[data-screen='game'] .north .seat-played .card.mini,
+  body[data-screen='game'] .west .seat-played .card.mini,
+  body[data-screen='game'] .east .seat-played .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini {
+    width: calc(var(--card-w) * 1.08) !important;
+    height: calc(var(--card-h) * 1.08) !important;
+  }
+  body[data-screen='game'] .north .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .west .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .east .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
+    margin-left: calc(var(--card-w) * -0.46) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
