@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -231,13 +231,31 @@ body[data-screen='home'] #app {
   font-family: 'Ma Shan Zheng', cursive;
 }
 .home-topbar .game-title-sub {
-  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
+  font-family: Garamond, 'EB Garamond', 'Cormorant Garamond', 'Times New Roman', serif;
+  margin-top: 6px !important;
+  display: block;
+  letter-spacing: .34em;
+  text-shadow:
+    -1px -1px 0 rgba(39, 24, 9, .88),
+    1px -1px 0 rgba(39, 24, 9, .88),
+    -1px 1px 0 rgba(39, 24, 9, .88),
+    1px 1px 0 rgba(39, 24, 9, .88),
+    0 2px 6px rgba(0,0,0,.32);
 }
 body[data-screen='game'] .topbar .game-title {
   font-family: 'Ma Shan Zheng', cursive;
 }
 body[data-screen='game'] .topbar .game-title-sub {
-  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
+  font-family: Garamond, 'EB Garamond', 'Cormorant Garamond', 'Times New Roman', serif;
+  display: block;
+  margin-top: 6px !important;
+  letter-spacing: .34em;
+  text-shadow:
+    -1px -1px 0 rgba(39, 24, 9, .88),
+    1px -1px 0 rgba(39, 24, 9, .88),
+    -1px 1px 0 rgba(39, 24, 9, .88),
+    1px 1px 0 rgba(39, 24, 9, .88),
+    0 2px 6px rgba(0,0,0,.32);
 }
 .hint { color: var(--muted); font-size: 0.92rem; }
 .runtime-diagnostic {
@@ -362,12 +380,19 @@ body[data-screen='home'] .home-wrap {
   font-size: clamp(2.7rem, 5.8vw, 4.1rem);
 }
 .royal-game-title-sub {
-  font-family: 'Noto Serif TC', 'PingFang HK', 'Microsoft JhengHei', serif;
+  font-family: Garamond, 'EB Garamond', 'Cormorant Garamond', 'Times New Roman', serif;
   font-size: .82rem;
   font-weight: 600;
   letter-spacing: .31em;
   text-transform: uppercase;
   line-height: 1;
+  margin-top: 6px !important;
+  text-shadow:
+    -1px -1px 0 rgba(39, 24, 9, .88),
+    1px -1px 0 rgba(39, 24, 9, .88),
+    -1px 1px 0 rgba(39, 24, 9, .88),
+    1px 1px 0 rgba(39, 24, 9, .88),
+    0 2px 6px rgba(0,0,0,.32);
   color: rgba(240, 226, 188, .95);
 }
 .royal-home-body {
@@ -2510,6 +2535,13 @@ body[data-screen='game'] .side-zone.log-collapsed {
   line-height: 1.1;
   padding: 0 2px;
 }
+.log-toggle-state {
+  margin-left: auto;
+  font-size: .96rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: .92;
+}
 .side-card.collapsed ul { display: none; }
 .side-card.collapsed .history-list,
 .side-card.collapsed .log-status { display: none; }
@@ -2624,23 +2656,16 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   overflow-wrap: anywhere;
 }
 .history-detail-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
-  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .history-detail-row .history-detail {
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1 1 220px;
 }
 .history-detail-row .history-cards {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: hidden;
+  flex: 0 0 auto;
   justify-content: flex-start;
 }
 .history-play-row {
@@ -2658,7 +2683,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   margin-right: 3px;
   transform: translateY(-.5px);
 }
-.history-cards { display: flex; gap: 2px; flex-wrap: wrap; overflow-x: hidden; min-width: 0; max-width: 100%; }
+.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
   width: calc(var(--card-w) * .48);
   height: calc(var(--card-h) * .48);
@@ -3865,22 +3890,9 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
   font-size: .73rem !important;
   font-weight: 800 !important;
 }
-/* Active S/N/E/W: unified glow style across all players. */
-body[data-screen='game'] .seat.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent) !important;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 52%, transparent) !important;
-  background: inherit !important;
-}
-body[data-screen='game'] .seat.active::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 50%, transparent);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--player-color, #ffd166) 24%, transparent);
-  pointer-events: none;
-  z-index: 1;
-}
+/* Active S/N/E/W: keep original baseline behavior globally. */
+body[data-screen='game'] .seat.active { background: inherit !important; }
+body[data-screen='game'] .seat.active::before { content: none; }
 body[data-screen='game'] .seat.north.active .seat-section,
 body[data-screen='game'] .seat.east.active .seat-section,
 body[data-screen='game'] .seat.west.active .seat-section {
@@ -4065,24 +4077,24 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
-  /* Portrait game view: keep south panel in normal top area (web-like), not bottom-left pinned. */
+  /* Portrait mobile: place south seat panel back into the green table area. */
   body[data-screen='game'] .action-zone {
     position: relative;
     overflow: visible !important;
   }
   body[data-screen='game'] .action-strip {
     position: relative;
-    padding-top: 0 !important;
+    padding-top: 8px !important;
   }
   body[data-screen='game'] .action-strip .player-tag {
-    position: static !important;
-    left: auto !important;
+    position: absolute !important;
+    left: 10px !important;
     right: auto !important;
     top: auto !important;
-    bottom: auto !important;
+    bottom: calc(100% + 9px) !important;
     transform: none !important;
-    z-index: auto !important;
-    margin: 0 auto 6px !important;
+    z-index: 12 !important;
+    margin: 0 !important;
   }
   body[data-screen='game'] .topbar {
     display: flex !important;
@@ -4208,7 +4220,12 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   }
   body[data-screen='game'][data-log-open='1'] .game-shell {
     height: auto !important;
+    min-height: 100dvh !important;
     grid-template-rows: auto auto !important;
+    gap: 6px !important;
+  }
+  body[data-screen='game'][data-log-open='1'] .side-zone:not(.log-collapsed) {
+    margin-top: 2px !important;
   }
   /* Mobile portrait: keep action buttons compact in one row. */
   body[data-screen='game'] .topbar-right .control-row {
@@ -4575,6 +4592,51 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 
 /* Desktop: keep right log column width fixed in both expanded/collapsed to avoid left-panel shift. */
 @media (min-width: 861px) {
+  /* Desktop/tablet only: compact no-jump log row layout. */
+  .history-detail-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    min-width: 0;
+  }
+  .history-detail-row .history-detail {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .history-detail-row .history-cards {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    justify-content: flex-start;
+  }
+  .history-cards {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* Desktop/tablet only: visible but non-expanding active glow for all seats. */
+  body[data-screen='game'] .seat.active {
+    border-color: color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent) !important;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 52%, transparent) !important;
+    background: inherit !important;
+  }
+  body[data-screen='game'] .seat.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 50%, transparent);
+    box-shadow: inset 0 0 12px color-mix(in srgb, var(--player-color, #ffd166) 24%, transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
   body[data-screen='game'][data-log-open='0'] #app,
   body[data-screen='game'][data-log-open='1'] #app {
     height: 100dvh !important;
@@ -4775,4 +4837,4 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   0% { transform: scale(.86); opacity: 0; }
   35% { opacity: 1; }
   100% { transform: scale(1.04); opacity: 0; }
-}
+}
