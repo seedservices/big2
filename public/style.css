@@ -3125,7 +3125,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   body[data-screen='home'] #app { padding: 0 5px 5px !important; }
   body[data-screen='home'] .royal-home-wrap {
-    margin-top: 0 !important;
+    margin-top: clamp(0px, 4vh, 24px) !important;
   }
   .score-guide-table-wrap { overflow-x: auto; }
   .hero { padding: 0 12px; border-radius: 14px; }
@@ -4402,22 +4402,24 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   }
 }
 
-/* Tablet portrait: keep south seat panel placement like web (inside panel top area). */
-@media (min-width: 700px) and (max-width: 1200px) and (orientation: portrait) {
+/* Tablet portrait: keep south seat name top-center of south panel (web-style). */
+@media (min-width: 861px) and (max-width: 1200px) and (orientation: portrait) {
   body[data-screen='game'] .action-zone {
     overflow: visible !important;
   }
   body[data-screen='game'] .action-strip {
-    padding-top: 0 !important;
+    position: relative !important;
+    padding-top: 8px !important;
   }
   body[data-screen='game'] .action-strip .player-tag {
-    position: static !important;
-    left: auto !important;
+    position: absolute !important;
+    left: 50% !important;
     right: auto !important;
-    top: auto !important;
+    top: -12px !important;
     bottom: auto !important;
-    transform: none !important;
-    z-index: auto !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    z-index: 20 !important;
   }
 }
 
@@ -4561,7 +4563,7 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 }
 @media (min-width: 861px) and (max-width: 1400px) {
   body[data-screen='game'] .game-shell {
-    --log-col-w: clamp(180px, 24vw, 248px);
+    --log-col-w: 248px;
   }
 }
 @media (min-width: 861px) {
@@ -4587,6 +4589,10 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-toggle-title {
     min-height: 36px !important;
     height: 36px !important;
+  }
+  body[data-screen='game'] .history-list {
+    overflow-y: auto !important;
+    scrollbar-gutter: stable !important;
   }
 }
 
