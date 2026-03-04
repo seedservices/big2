@@ -4583,18 +4583,18 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-toggle
     white-space: nowrap !important;
   }
   body[data-screen='game'] .action-strip {
-    padding-top: 0 !important;
+    position: relative !important;
+    padding-top: 8px !important;
   }
   body[data-screen='game'] .action-strip .player-tag {
-    position: static !important;
-    justify-self: center !important;
-    align-self: start !important;
-    margin: 0 auto 6px !important;
-    left: auto !important;
+    position: absolute !important;
+    left: 50% !important;
     right: auto !important;
-    top: auto !important;
+    top: 2px !important;
     bottom: auto !important;
-    transform: none !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+    z-index: 20 !important;
   }
 }
 body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed,
