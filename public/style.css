@@ -195,6 +195,10 @@ h1, h2, h3, p { margin: 0; }
     1px 1px 0 rgba(39, 24, 9, .9),
     0 5px 10px rgba(0,0,0,.38);
 }
+.title-d-lower {
+  display: inline-block;
+  transform: translateY(.08em);
+}
 .game-title-wrap {
   display: inline-flex;
   align-items: center;
@@ -4091,7 +4095,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     left: 10px !important;
     right: auto !important;
     top: auto !important;
-    bottom: calc(100% + 9px) !important;
+    bottom: calc(100% + 12px) !important;
     transform: none !important;
     z-index: 12 !important;
     margin: 0 !important;
