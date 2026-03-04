@@ -112,7 +112,7 @@ body {
   }
 }
 #app {
-  width: min(1320px, 100vw);
+  width: min(1320px, 100%);
   min-height: 100dvh;
   height: auto;
   max-height: none;
@@ -164,6 +164,17 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed,
 body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed {
   margin-top: 0 !important;
   padding-top: 0 !important;
+}
+/* Desktop/tablet: keep expanded/collapsed shell metrics identical to avoid visual jump on log toggle. */
+@media (min-width: 861px) {
+  body[data-screen='game'][data-log-open='0'] .game-shell {
+    grid-template-rows: minmax(0,1fr) !important;
+    gap: 8px !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .main-zone {
+    grid-template-rows: auto minmax(0,1fr) auto !important;
+    gap: 7px !important;
+  }
 }
 body[data-screen='game'] .game-shell {
   margin-bottom: 0 !important;
@@ -2621,11 +2632,15 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .history-detail-row .history-detail {
   width: 100%;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .history-detail-row .history-cards {
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  overflow-x: hidden;
   justify-content: flex-start;
 }
 .history-play-row {
@@ -2643,7 +2658,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   margin-right: 3px;
   transform: translateY(-.5px);
 }
-.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
+.history-cards { display: flex; gap: 2px; flex-wrap: wrap; overflow-x: hidden; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
   width: calc(var(--card-w) * .48);
   height: calc(var(--card-h) * .48);
@@ -3850,27 +3865,19 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
   font-size: .73rem !important;
   font-weight: 800 !important;
 }
-/* Active N/E/W: keep visible turn cue but avoid competing with cards. */
-body[data-screen='game'] .seat.north.active,
-body[data-screen='game'] .seat.east.active,
-body[data-screen='game'] .seat.west.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 68%, transparent) !important;
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 48%, transparent),
-    0 0 18px color-mix(in srgb, var(--player-color, #ffd166) 44%, transparent) !important;
+/* Active S/N/E/W: unified glow style across all players. */
+body[data-screen='game'] .seat.active {
+  border-color: color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent) !important;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 52%, transparent) !important;
   background: inherit !important;
 }
-body[data-screen='game'] .seat.north.active::before,
-body[data-screen='game'] .seat.east.active::before,
-body[data-screen='game'] .seat.west.active::before {
+body[data-screen='game'] .seat.active::before {
   content: '';
   position: absolute;
-  inset: -2px;
+  inset: 0;
   border-radius: 14px;
-  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 40%, transparent),
-    0 0 20px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent);
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 50%, transparent);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--player-color, #ffd166) 24%, transparent);
   pointer-events: none;
   z-index: 1;
 }
@@ -4568,6 +4575,64 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 
 /* Desktop: keep right log column width fixed in both expanded/collapsed to avoid left-panel shift. */
 @media (min-width: 861px) {
+  body[data-screen='game'][data-log-open='0'] #app,
+  body[data-screen='game'][data-log-open='1'] #app {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .game-shell,
+  body[data-screen='game'][data-log-open='1'] .game-shell {
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-columns: minmax(0, 1fr) var(--log-col-w) !important;
+    grid-template-rows: minmax(0,1fr) !important;
+    gap: 8px !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .main-zone,
+  body[data-screen='game'][data-log-open='1'] .main-zone {
+    min-height: 0 !important;
+    grid-template-rows: auto minmax(0,1fr) auto !important;
+    gap: 7px !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .table,
+  body[data-screen='game'][data-log-open='1'] .table {
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .action-zone,
+  body[data-screen='game'][data-log-open='1'] .action-zone,
+  body[data-screen='game'][data-log-open='0'] .action-strip,
+  body[data-screen='game'][data-log-open='1'] .action-strip {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .side-zone,
+  body[data-screen='game'][data-log-open='1'] .side-zone,
+  body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed,
+  body[data-screen='game'][data-log-open='1'] .side-zone.log-collapsed {
+    height: 100% !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
+    align-content: stretch !important;
+    grid-template-rows: minmax(0,1fr) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body[data-screen='game'][data-log-open='0'] .log-side-card,
+  body[data-screen='game'][data-log-open='1'] .log-side-card,
+  body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-card.collapsed,
+  body[data-screen='game'][data-log-open='1'] .side-zone.log-collapsed .log-side-card.collapsed {
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 9px !important;
+    gap: 7px !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0,1fr) !important;
+    align-content: stretch !important;
+  }
   body[data-screen='game'] .game-shell {
     --log-col-w: 286px;
     grid-template-columns: minmax(0, 1fr) var(--log-col-w) !important;
@@ -4606,6 +4671,17 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
     align-content: stretch !important;
     min-width: 0 !important;
     max-width: 100% !important;
+  }
+  /* Keep collapsed log card geometry identical to expanded; hide list visually only. */
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .history-list {
+    display: grid !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-status {
+    display: block !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
   body[data-screen='game'] .log-side-card .log-toggle-title,
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-toggle-title {
