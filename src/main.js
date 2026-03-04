@@ -438,17 +438,17 @@ function mainPageLegalMiniHtml(){
     ?{privacy:'私隱政策',about:'關於我們',contact:'聯絡我們',terms:'使用條款'}
     :{privacy:'Privacy',about:'About',contact:'Contact',terms:'Terms'};
   const privacy=zh
-    ?'我們可能收集及處理以下資料：你提供的帳戶資料（例如 Google 名稱、電郵）、遊戲紀錄與分數、裝置/瀏覽器基本技術資料，以及 Cookies 相關資料。這些資料主要用於登入狀態管理、排行榜功能、防止濫用、統計分析及改善遊戲體驗。我們不會出售你的個人資料。你可透過瀏覽器設定管理或停用 Cookies，但部份功能可能受影響。'
-    :'We may collect and process the following data: account information you provide (for example Google name and email), gameplay records and scores, basic device/browser technical data, and cookie-related data. This data is used for sign-in session management, leaderboard features, abuse prevention, analytics, and improving gameplay experience. We do not sell your personal data. You may manage or disable cookies in your browser settings, but some features may be affected.';
+    ?'我們重視你的私隱，並以透明方式處理資料。網站可能收集及處理以下資訊：你主動提供的帳戶資料（例如顯示名稱、登入電郵）、遊戲設定、對戰紀錄、分數與排行相關資料，以及裝置與瀏覽器技術資訊（例如裝置類型、作業系統、瀏覽器版本、語言與基本錯誤記錄）。我們亦可能使用 Cookies 或同類技術，以維持登入狀態、保存偏好設定、提升系統安全、分析使用情況及改善功能體驗。上述資料主要用於帳戶識別、遊戲運作、排行榜與統計分析、防止濫用與技術維護，不會用於出售或轉讓你的個人資料作第三方行銷用途。資料可能在合理期限內保留，以支援服務運作、偵錯、風險管理及紀錄完整性。你可透過瀏覽器設定管理或停用 Cookies；惟停用後，登入、偏好保存或部分互動功能可能受到影響。若你對資料處理方式有任何查詢，可透過網站提供的聯絡方式與我們聯絡。'
+    :'We value your privacy and handle data transparently. The website may collect and process the following information: account details you provide (such as display name and sign-in email), game settings, match records, scores and leaderboard-related data, and device/browser technical information (such as device type, operating system, browser version, language, and basic error logs). We may also use cookies or similar technologies to maintain sign-in sessions, preserve preference settings, improve security, analyze usage, and enhance product experience. This information is used primarily for account identification, core gameplay operation, leaderboard/statistical functions, abuse prevention, and technical maintenance. We do not sell or transfer your personal data for third-party marketing purposes. Data may be retained for a reasonable period to support service operation, debugging, risk control, and record integrity. You may manage or disable cookies in your browser settings; however, disabling them may affect sign-in, preference persistence, or certain interactive features. If you have questions about data handling, please contact us through the contact channel provided on this website.';
   const about=zh
-    ?'本網站由 Seed Services 維護，提供《鋤大D / Big Two》網頁版體驗。網站目標是提供跨裝置、易上手且規則清晰的香港玩法環境，並透過排行榜與設定功能提升可玩性與持續性。'
-    :'This site is maintained by Seed Services and provides a browser-based Big Two experience. Our goal is to offer a cross-device, easy-to-use game environment based on Hong Kong rules, with leaderboard and quality-of-life features for long-term playability.';
+    ?'本網站提供《鋤大D（Big Two）》網頁版遊戲體驗，目標是讓玩家在手機、平板與桌面裝置上，均可獲得一致、流暢且易上手的操作感受。平台設計重視對局節奏與資訊清晰度，透過直觀介面、即時狀態提示、玩法說明與計分展示，協助玩家快速理解牌局狀況並作出判斷。為提升整體可玩性，網站整合排行榜、個人設定、對戰紀錄與成績追蹤等功能，讓玩家可持續觀察自身表現，逐步優化出牌策略。系統亦會持續進行效能優化與介面調整，包括讀取速度、互動回饋、版面適配與穩定性改善，以維持長時間遊玩的舒適度。我們重視公平與品質，致力提供清晰、可靠且具持續更新能力的棋牌娛樂環境，讓新手與進階玩家都能在同一平台獲得良好體驗。'
+    :'This website provides a browser-based Big Two experience, with the goal of delivering consistent, smooth, and easy-to-use gameplay across mobile phones, tablets, and desktop devices. The platform emphasizes match pacing and information clarity through intuitive UI, real-time status cues, gameplay guidance, and scoring display, helping players quickly understand table state and make decisions. To improve long-term playability, the site includes leaderboard, personal settings, match records, and performance tracking features, allowing players to monitor progress and refine strategy over time. The system is continuously optimized in areas such as loading performance, interaction feedback, responsive layout adaptation, and runtime stability to support comfortable extended play sessions. We prioritize fairness and quality, and remain committed to maintaining a clear, reliable, and continuously improving card-gaming environment for both new and experienced players.';
   const contact=zh
     ?'如有查詢，請電郵至 seedservices32@gmail.com。'
     :'For enquiries, email seedservices32@gmail.com.';
   const terms=zh
-    ?'使用本網站即表示你同意：1) 遵守遊戲規則與公平使用原則；2) 不以自動化程式或異常行為干擾服務；3) 排行榜數據以系統記錄為準；4) 我們可在不另行通知下調整功能、規則或介面；5) 對於因網絡、裝置或第三方服務造成的中斷或資料延遲，網站不作保證。'
-    :'By using this site, you agree to: (1) follow the game rules and fair-use principles, (2) not use automation or abusive behavior to disrupt the service, (3) accept system records as the source of truth for leaderboard data, (4) allow us to update features/rules/UI without prior notice, and (5) acknowledge that uninterrupted service is not guaranteed due to network/device/third-party dependencies.';
+    ?'使用本網站即表示你同意並接受以下條款：1) 你將以合法及公平方式使用本服務，不進行作弊、濫用、騷擾、惡意干擾或任何破壞系統穩定性的行為；2) 你不得使用外掛、自動化程式、爬蟲、模擬器腳本或其他非正常手段影響對局結果、排行數據或服務運作；3) 帳戶與個人資料須由使用者自行妥善管理，因裝置共享、帳戶外洩或第三方登入風險所造成之影響，使用者須自行承擔；4) 排行榜、戰績與相關統計以系統最終記錄為準，系統有權在發現異常時進行修正、重算或移除可疑資料；5) 我們可按需要調整功能、介面、規則、活動安排或服務內容，並可在維護、安全或法規要求下暫停、限制或終止部分功能；6) 對於因網絡狀態、裝置效能、瀏覽器差異、第三方服務中斷或不可抗力造成之延遲、錯誤、資料遺失或服務中斷，本網站不作任何明示或默示保證；7) 使用者使用本服務即代表理解並同意上述條款，若不同意，請停止使用本網站。'
+    :'By using this website, you agree to the following terms: (1) you will use the service lawfully and fairly, and will not engage in cheating, abuse, harassment, malicious interference, or any activity that harms system stability; (2) you must not use plugins, automation tools, crawlers, scripted emulators, or other non-standard methods to influence match outcomes, leaderboard data, or service operation; (3) you are responsible for safeguarding your account and personal access, and any impact caused by shared devices, account leakage, or third-party sign-in risk remains your responsibility; (4) leaderboard records, match history, and related statistics are subject to final system records, and we reserve the right to correct, recalculate, or remove suspicious data when anomalies are detected; (5) we may update features, interface, rules, event arrangements, or service content as needed, and may suspend, restrict, or terminate certain functions for maintenance, security, legal, or compliance reasons; (6) we make no express or implied guarantee of uninterrupted service, and are not liable for delays, errors, data loss, or interruption caused by network conditions, device limitations, browser differences, third-party service outages, or force majeure; and (7) continued use of this service constitutes your understanding and acceptance of these terms. If you do not agree, please discontinue use of this website.';
   return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>。`:`For enquiries, email <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
 }
 const introText=()=>state.language==='en'
@@ -456,30 +456,56 @@ const introText=()=>state.language==='en'
     btnShow:'Guide',
     btnHide:'Close',
     panelTitle:'Guide',
-    panelSub:'Quick reference for core rules, hand rankings, and standard round flow.',
+    panelSub:'Official quick reference covering core rules, hand hierarchy, opening flow, and practical table strategy.',
     historyTitle:'Background',
-    historyBody:'Big 2 (Cho Dai Di) is a four-player shedding game played with a standard 52-card deck (no jokers), with 13 cards dealt to each player. Under the Hong Kong ruleset, players must follow the same card count (single, pair, triple, or 5-card hand), and ties at equal rank are resolved by suit order (♦ < ♣ < ♥ < ♠). With clear turn structure, strong strategic depth, and practical round length, the game has remained one of Hong Kong’s most representative social card activities.',
+    historyBody:'Big Two (Cho Dai Di) is a four-player shedding card game using a standard 52-card deck without jokers. Each player receives 13 cards, and the objective is to empty your hand before all opponents. The game is known for high decision density, compact round duration, and strong strategic interaction between tempo control, hand preservation, and timing of power cards.',
     playTitle:'Gameplay Highlights',
-    playList:['Opening trick must include {{3D}}','Follow the same card count: single, pair, triple, or 5-card hand','5-card strength: Straight < Flush < Full House < Four of a Kind < Straight Flush','After three passes, lead returns to the last successful player'],
+    playList:[
+      'Opening lead of the first round must contain {{3D}}.',
+      'Follow play must match card count: single, pair, triple, or 5-card hand.',
+      'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
+      'For equal ranks, compare suit order: ♦ < ♣ < ♥ < ♠.',
+      'After three consecutive passes, initiative returns to the last successful player.',
+      'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
+    ],
     flowTitle:'Opening Flow',
-    flowList:['Deal 13 cards to each of 4 players','Player holding {{3D}} opens the first trick','Others either beat with same card count or pass','Round continues until one player empties hand'],
+    flowList:[
+      'Deal 13 cards to each of the 4 players.',
+      'The player holding {{3D}} must open the first trick.',
+      'Other players either beat with matching card count or pass.',
+      'After three passes, the previous winning play resets the lead.',
+      'Round ends immediately when one player plays all cards.'
+    ],
     howTitle:'Hand Types',
-    howBody:'Same card count is required to follow. For 5-card hands, compare hand type first.',
+    howBody:'To follow, card count must match the active play. For 5-card contests, compare hand category first, then compare the relevant high cards and suits under game rules.',
     howList:[]
   }
   :{
     btnShow:'玩法指南',
     btnHide:'關閉',
     panelTitle:'玩法指南',
-    panelSub:'提供核心規則、牌型大小與標準回合流程的快速說明。',
+    panelSub:'提供核心規則、牌型次序、開局流程與實戰節奏的官方速覽。',
     historyTitle:'歷史背景',
-    historyBody:'《鋤大D》（Big Two）為四人出清型撲克牌遊戲，採用標準52張牌（不含鬼牌），每位玩家派發13張。按香港常用規則，玩家須跟隨相同張數（單張、一對、三條或五張牌型）出牌；同點數時，按花色次序（♦ < ♣ < ♥ < ♠）判定大小。憑藉回合結構清晰、策略深度充足及對局時間適中等特點，本遊戲長期為香港具代表性的社交牌類活動之一。',
+    historyBody:'《鋤大D》（Big Two）為四人出清型撲克牌遊戲，使用標準52張牌（不含鬼牌），每位玩家派發13張。玩家的目標是在其他對手之前出清手牌。此遊戲特色在於回合節奏明確、決策密度高，並重視控場、保留關鍵牌與出牌時機的策略取捨。',
     playTitle:'玩法重點',
-    playList:['開局第一手必須包含 {{3D}}','要跟相同張數：單張／一對／三條／五張牌型','五張牌型大小：蛇 < 花 < 俘虜 < 四條 < 同花順','連續三家過牌後，由最後出牌者重新話事'],
+    playList:[
+      '首圈開局第一手必須包含 {{3D}}。',
+      '跟牌必須跟相同張數：單張／一對／三條／五張牌型。',
+      '五張牌型大小：蛇 < 花 < 俘虜 < 四條 < 同花順。',
+      '同點數比較花色：♦ < ♣ < ♥ < ♠。',
+      '連續三家過牌後，由最後有效出牌者重新話事。',
+      '當你話事時，應平衡節奏控制與大牌保留，避免被對手一手出清。'
+    ],
     flowTitle:'開局流程',
-    flowList:['4 位玩家每人派 13 張','持有 {{3D}} 玩家先開第一手','其餘玩家要用相同張數壓過，或選擇過牌','直到有人出清手牌為止'],
+    flowList:[
+      '4 位玩家每人派發 13 張手牌。',
+      '持有 {{3D}} 的玩家必須先開第一手。',
+      '其餘玩家需以相同張數壓過，或選擇過牌。',
+      '連續三家過牌後，回到上一手有效出牌者重新話事。',
+      '直至有玩家先出清手牌，該局立即結束。'
+    ],
     howTitle:'牌型',
-    howBody:'香港鋤大D要先跟相同張數；5張牌時先比牌型。',
+    howBody:'跟牌時必須符合相同張數。若為五張牌對比，先比較牌型等級，再按規則比較相關主牌點數與花色。',
     howList:[]
   };
 function introHandSamples(){
@@ -952,10 +978,10 @@ function scoreGuideText(){
   return state.language==='en'
       ?{
         close:'Close',
-        headingDesc:'Round deductions are calculated from remaining cards and multiplier penalties, then transferred to the winner.',
+        headingDesc:'At round end, each loser is deducted based on remaining cards, then multiplied by penalty conditions. The winner receives the total deductions from all losers.',
         baseTitle:'Base Scoring',
         mulTitle:'Multiplier Penalties',
-        summary:'Round deduction = Base deduction x multiplier. Winner gains total deductions from all losers.',
+        summary:'Per-loser deduction formula: Base deduction x total multiplier. The winner gains the combined deductions from all losing players.',
       tableHeaders:['Remaining Cards','Base Multiplier','Base Deduction'],
       tableRows:[
         ['1-9','x1','remaining cards x1'],
@@ -970,16 +996,16 @@ function scoreGuideText(){
         ['12','x4','Chao Four'],
         ['13','x5','Big Chao']
       ],
-      anyTwo:'Hold any 2 card (♦2/♣2/♥2/♠2): x2',
-      topTwo:'Hold ♠2 (top 2): another x2',
-      stack:'Multipliers stack when conditions are met.'
+      anyTwo:'Holding any 2 card (♦2/♣2/♥2/♠2) applies x2.',
+      topTwo:'Holding ♠2 (top 2) applies an additional x2.',
+      stack:'If multiple conditions apply, multipliers stack (multiply together).'
     }
       :{
         close:'關閉',
-        headingDesc:'每局扣分由剩餘張數與加乘罰則計算，最後由贏家獲得所有輸家扣分總和。',
+        headingDesc:'每局結算時，先按各輸家剩餘張數計算基本扣分，再套用加乘罰則；最後由贏家獲得所有輸家扣分總和。',
         baseTitle:'基本計分',
         mulTitle:'加乘罰則',
-        summary:'每位輸家扣分 = 基本扣分 x 加乘倍數；所有輸家扣分總和加到贏家。',
+        summary:'每位輸家扣分公式：基本扣分 x 總加乘倍數；贏家加分為所有輸家扣分總和。',
       tableHeaders:['剩餘張數','基本倍數','基本扣分'],
       tableRows:[
         ['1-9 張','x1','按剩餘張數 x1'],
@@ -987,16 +1013,16 @@ function scoreGuideText(){
         ['13 張','x3','13 x3']
       ],
       mulTableHeaders:['條件','倍率','說明'],
-      chaoTableHeaders:['餘版張數','倍率','稱呼'],
+      chaoTableHeaders:['剩餘張數','倍率','稱呼'],
       chaoTableRows:[
         ['8-9張','x2','炒雙'],
         ['10-11','x3','炒三'],
         ['12','x4','炒四'],
         ['13張','x5','大炒']
       ],
-      anyTwo:'持有任意 2（♦2/♣2/♥2/♠2）：x2',
-      topTwo:'持有 ♠2（頂大）：再 x2',
-      stack:'以上加乘條件可疊乘。'
+      anyTwo:'持有任意 2（♦2/♣2/♥2/♠2）會套用 x2。',
+      topTwo:'持有 ♠2（頂大）會額外再套用 x2。',
+      stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
     };
 }
 function scoreGuideModalHtml(){
@@ -1012,7 +1038,7 @@ function scoreGuideModalHtml(){
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
   const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
-  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p>${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p>${esc(sx.summary)}</p></article></div></section></div>`;
+  return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p class="score-guide-heading">${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p class="score-guide-summary">${esc(sx.summary)}</p></article></div></section></div>`;
 }
 function speakCallout(text,gender='male'){
   try{
@@ -1258,6 +1284,23 @@ function renderGoogleInline(){
   }
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
+const MIN_WEB_GAME_WIDTH=980;
+const MIN_WEB_GAME_HEIGHT=620;
+function isWebViewportTooSmall(){
+  const coarse=window.matchMedia('(pointer: coarse)').matches;
+  if(coarse)return false;
+  const w=window.innerWidth||0;
+  const h=window.innerHeight||0;
+  return w>0&&h>0&&(w<MIN_WEB_GAME_WIDTH||h<MIN_WEB_GAME_HEIGHT);
+}
+function syncWebViewportGuardAttrs(){
+  const tooSmall=isWebViewportTooSmall();
+  document.body.setAttribute('data-web-too-small',tooSmall?'1':'0');
+  const msg=state.language==='zh-HK'
+    ?`視窗太小，請將瀏覽器放大至至少 ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT} 後繼續。`
+    :`Window too small. Please resize to at least ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT}.`;
+  document.body.setAttribute('data-web-too-small-msg',msg);
+}
 function shouldBlockLandscapeMobile(){
   const isCoarseLandscape=window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
   if(!isCoarseLandscape)return false;
@@ -2242,7 +2285,7 @@ function renderHome(){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大D</h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><h2 class="game-title royal-game-title">鋤大<span class="title-d-lower">D</span></h2><div class="game-title-sub royal-game-title-sub">Traditional Big Two</div></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -2308,12 +2351,15 @@ function renderGame(){
   const v=buildView();
   if(!v){state.screen='home';renderHome();return;}
   const intro=introText();
+  const rightSidebarDesktop=window.matchMedia('(min-width: 1081px)').matches;
+  const rightSidebarMobileLandscape=window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
+  const rightSidebarTabletLandscape=window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches;
+  const fullHeightLogLayout=rightSidebarDesktop||rightSidebarMobileLandscape||rightSidebarTabletLandscape;
+  const logUnderSouthPanel=window.matchMedia('(max-width: 1080px)').matches&&!rightSidebarMobileLandscape&&!rightSidebarTabletLandscape;
   if(!state.logTouched){
-    const rightSidebarDesktop=window.matchMedia('(min-width: 1081px)').matches;
-    const rightSidebarMobileLandscape=window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
-    const rightSidebarTabletLandscape=window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches;
-    state.showLog=rightSidebarDesktop||rightSidebarMobileLandscape||rightSidebarTabletLandscape;
+    state.showLog=logUnderSouthPanel?false:fullHeightLogLayout;
   }
+  if(fullHeightLogLayout)state.showLog=true;
   if(!v.canControl||v.gameOver){state.recommendation=null;}
   if(state.recommendation?.action==='play'){
     const inHand=state.recommendation.cardIds.every((id)=>v.hand.some((c)=>cardId(c)===id));
@@ -2394,7 +2440,9 @@ function renderGame(){
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大D</h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  const logToggleStateIcon=state.showLog?'▾':'▸';
+  const logToggleStateText=state.showLog?(state.language==='zh-HK'?'收起':'Collapse'):(state.language==='zh-HK'?'展開':'Expand');
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><h2 class="game-title">鋤大<span class="title-d-lower">D</span></h2><div class="game-title-sub">Traditional Big Two</div></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   document.getElementById('self-avatar-img')?.addEventListener('error',(e)=>{
     const img=e?.target;
     if(!(img instanceof HTMLImageElement))return;
@@ -2523,6 +2571,15 @@ function bindGameEvents(v,arr){
   document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('log-toggle')?.addEventListener('click',(ev)=>{
     ev.preventDefault();
+    const lockOpen=window.matchMedia('(min-width: 1081px)').matches||window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches||window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
+    if(lockOpen){
+      if(!state.showLog){
+        state.showLog=true;
+        state.logTouched=false;
+        render();
+      }
+      return;
+    }
     const x=window.scrollX;
     const y=window.scrollY;
     const appEl=document.getElementById('app');
@@ -2670,6 +2727,7 @@ function render(){
   document.body.setAttribute('data-screen',state.screen);
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
+  syncWebViewportGuardAttrs();
   if(shouldBlockLandscapeMobile()){
     renderOrientationBlock();
     return;
@@ -2685,6 +2743,7 @@ function syncViewport(){
   root.style.setProperty('--card-scale',scale.toFixed(3));
   const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';
   document.body.setAttribute('data-orientation',orientation);
+  syncWebViewportGuardAttrs();
   root.style.setProperty('--table-tilt','0deg');
   const blocked=shouldBlockLandscapeMobile();
   if(blocked!==orientationBlockActive){
@@ -2709,6 +2768,8 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
+
+
 
 
 

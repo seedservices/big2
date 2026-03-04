@@ -1225,6 +1225,14 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   color: #ffd166 !important;
   font-weight: 700;
 }
+.score-guide-heading,
+.score-guide-summary {
+  text-align: left;
+  line-height: 1.5;
+  letter-spacing: 0;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
 #google-inline { display: inline-flex; align-items: center; min-height: 36px; }
 .name-with-google {
   display: flex;
@@ -3937,9 +3945,9 @@ body[data-screen='game'] .action-strip {
 body[data-screen='game'] .action-strip.active {
   border-color: color-mix(in srgb, var(--player-color, #ffd166) 80%, transparent) !important;
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 60%, transparent),
-    0 0 30px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent),
     inset 0 0 0 1px rgba(255,255,255,.18),
+    inset 0 0 14px color-mix(in srgb, var(--player-color, #ffd166) 26%, transparent),
     0 1px 4px rgba(0,0,0,.1) !important;
 }
 body[data-screen='game'] .action-strip .control-row .game-cta-btn {
@@ -4839,6 +4847,28 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+/* Desktop/web guard: block gameplay when viewport is too small. */
+body[data-screen='game'][data-web-too-small='1'] .game-shell {
+  pointer-events: none !important;
+  user-select: none !important;
+  filter: blur(1.2px) saturate(.86);
+}
+body[data-screen='game'][data-web-too-small='1'] #app::after {
+  content: attr(data-web-too-small-msg);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #f5fbff;
+  background: rgba(4, 11, 18, .78);
+  pointer-events: auto;
 }
 
 @keyframes winPop {
