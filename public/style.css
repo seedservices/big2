@@ -2550,6 +2550,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .side-zone .side-card { align-content: start; }
 .history-item {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 8px;
   padding: 5px 6px;
   background: rgba(255,255,255,.06);
@@ -2562,6 +2564,10 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+  min-width: 0;
+}
+.history-head > * {
+  min-width: 0;
 }
 .history-title {
   font-size: .82rem;
@@ -2569,6 +2575,10 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .history-time {
   font-size: .7rem;
@@ -2585,9 +2595,14 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   color: #e9f3f8;
   font-weight: 700;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .history-system-line {
   display: block;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -2598,16 +2613,20 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   overflow-wrap: anywhere;
 }
 .history-detail-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  min-width: 0;
 }
 .history-detail-row .history-detail {
-  flex: 1 1 220px;
+  width: 100%;
+  min-width: 0;
 }
 .history-detail-row .history-cards {
-  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  justify-content: flex-start;
 }
 .history-play-row {
   display: flex;
@@ -2624,7 +2643,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   margin-right: 3px;
   transform: translateY(-.5px);
 }
-.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; }
+.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
   width: calc(var(--card-w) * .48);
   height: calc(var(--card-h) * .48);
@@ -4402,7 +4421,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   }
 }
 
-/* Tablet portrait: keep south seat name top-center of south panel (web-style). */
+/* Tablet portrait: keep south seat name top-center of south panel like web view. */
 @media (min-width: 861px) and (max-width: 1200px) and (orientation: portrait) {
   body[data-screen='game'] .action-zone {
     overflow: visible !important;
@@ -4574,6 +4593,7 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
     align-self: stretch !important;
     height: 100% !important;
     min-height: 0 !important;
+    overflow-x: hidden !important;
   }
   body[data-screen='game'] .log-side-card,
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
@@ -4584,6 +4604,8 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
     display: grid !important;
     grid-template-rows: auto minmax(0,1fr) !important;
     align-content: stretch !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
   body[data-screen='game'] .log-side-card .log-toggle-title,
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-toggle-title {
@@ -4593,6 +4615,19 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   body[data-screen='game'] .history-list {
     overflow-y: auto !important;
     scrollbar-gutter: stable !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  body[data-screen='game'] .history-item,
+  body[data-screen='game'] .history-head,
+  body[data-screen='game'] .history-title,
+  body[data-screen='game'] .history-meta,
+  body[data-screen='game'] .history-detail-row,
+  body[data-screen='game'] .history-detail,
+  body[data-screen='game'] .history-system-line {
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 }
 
