@@ -1105,6 +1105,8 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
       }
       a.src=src;
       try{
+        a.muted=false;
+        a.volume=1;
         a.pause?.();
         a.currentTime=0;
         await a.play();
@@ -2024,16 +2026,17 @@ function unlockAudio(){
         }
         const a=iosSharedCalloutAudio;
         if(!a.src)a.src=withBase('audio/callout/zh-HK/pass.mp3');
-        const prevMuted=Boolean(a.muted);
-        a.muted=true;
+        const prevVolume=Number.isFinite(a.volume)?a.volume:1;
+        a.muted=false;
+        a.volume=0;
         const p=a.play?.();
         if(p?.then){
           p.then(()=>{
             try{a.pause?.();a.currentTime=0;}catch{}
-            a.muted=prevMuted;
-          }).catch(()=>{a.muted=prevMuted;});
+            a.volume=prevVolume;
+          }).catch(()=>{a.volume=prevVolume;});
         }else{
-          a.muted=prevMuted;
+          a.volume=prevVolume;
         }
       }
     }catch{}
