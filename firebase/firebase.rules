@@ -55,6 +55,7 @@ service cloud.firestore {
             'aiDifficulty',
             'backColor',
             'soundEnabled',
+            'calloutVoiceMode',
             'gender',
             'avatarChoice'
           ]) &&
@@ -68,6 +69,12 @@ service cloud.firestore {
             d.settings.backColor == 'purple'
           ))) &&
           (!('soundEnabled' in d.settings) || d.settings.soundEnabled is bool) &&
+          (!('calloutVoiceMode' in d.settings) || (d.settings.calloutVoiceMode is string && (
+            d.settings.calloutVoiceMode == 'auto' ||
+            d.settings.calloutVoiceMode == 'recorded' ||
+            d.settings.calloutVoiceMode == 'tts' ||
+            d.settings.calloutVoiceMode == 'off'
+          ))) &&
           (!('gender' in d.settings) || (d.settings.gender is string && (d.settings.gender == 'male' || d.settings.gender == 'female'))) &&
           (!('avatarChoice' in d.settings) || (d.settings.avatarChoice is string && (
             d.settings.avatarChoice == 'male' ||

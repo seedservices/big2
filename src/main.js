@@ -26,6 +26,10 @@ const I18N={
     loginToStart:'請先登入才可以開始遊戲。',
     config:'設定',
     soundFx:'音效',
+    voiceMode:'報牌語音',
+    voiceAuto:'自動',
+    voiceTts:'語音',
+    voiceOff:'關',
     soundOn:'開',
     soundOff:'關',
     home:'返回主頁',
@@ -157,6 +161,10 @@ const I18N={
     loginToStart:'Please sign in before starting the game.',
     config:'Config',
     soundFx:'Sound Effects',
+    voiceMode:'Callout Voice',
+    voiceAuto:'Auto',
+    voiceTts:'TTS',
+    voiceOff:'Off',
     soundOn:'On',
     soundOff:'Off',
     home:'Home',
@@ -419,6 +427,10 @@ const BACK_OPTIONS=[
 ];
 const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
 const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
+const normalizeCalloutVoiceMode=(v)=>{
+  const mode=String(v??'').toLowerCase();
+  return mode==='tts'||mode==='off'||mode==='recorded'||mode==='auto'?mode:'auto';
+};
 
 const t=(k)=>I18N[state.language][k]??k;
 const kindLabel=(k)=>KIND[state.language][k]??k;
@@ -582,6 +594,7 @@ function collectMainSettings(){
     aiDifficulty:['easy','normal','hard'].includes(state.home.aiDifficulty)?state.home.aiDifficulty:'normal',
     backColor:BACK_OPTIONS.some((x)=>x.value===state.home.backColor)?state.home.backColor:'red',
     soundEnabled:Boolean(sound.enabled),
+    calloutVoiceMode:normalizeCalloutVoiceMode(calloutVoiceMode),
     gender:state.home.gender==='female'?'female':'male',
     avatarChoice:['male','female','google'].includes(state.home.avatarChoice)?state.home.avatarChoice:'male'
   };
@@ -595,6 +608,7 @@ function applyMainSettings(settings){
   const back=String(settings.backColor??'');
   if(BACK_OPTIONS.some((x)=>x.value===back))state.home.backColor=back;
   if(typeof settings.soundEnabled==='boolean')sound.enabled=Boolean(settings.soundEnabled);
+  calloutVoiceMode=normalizeCalloutVoiceMode(settings.calloutVoiceMode);
   const gender=String(settings.gender??'');
   if(gender==='male'||gender==='female')state.home.gender=gender;
   const avatarChoice=String(settings.avatarChoice??'');
@@ -2353,6 +2367,14 @@ function bindSoundToggle(comboId){
     document.querySelectorAll('.runtime-diagnostic-inline').forEach((el)=>{el.textContent=runtimeDiagnosticsText();});
   }));
 }
+function bindCalloutVoiceToggle(comboId){
+  document.querySelectorAll(`#${comboId} .combo-btn`).forEach((btn)=>btn.addEventListener('click',()=>{
+    const v=normalizeCalloutVoiceMode(btn.getAttribute('data-value'));
+    if(v!=='auto'&&v!=='tts'&&v!=='off')return;
+    calloutVoiceMode=v;
+    markComboActive(comboId,v);
+  }));
+}
 function renderHome(){
   const intro=introText();
   const signedIn=signedInForPlay();
@@ -2362,7 +2384,7 @@ function renderHome(){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -2387,6 +2409,7 @@ function renderHome(){
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   bindSoundToggle('sound-combo');
+  bindCalloutVoiceToggle('voice-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
     triggerStartGameAd();
@@ -2419,10 +2442,11 @@ function renderHome(){
   queueGoogleInlineRender();
 }
 function renderConfig(){
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></section></section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="config-voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></section></section>`;
   document.getElementById('config-back')?.addEventListener('click',()=>{state.screen='home';render();});
   document.getElementById('config-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   bindSoundToggle('config-sound-combo');
+  bindCalloutVoiceToggle('config-voice-combo');
 }
 function renderGame(){
   const v=buildView();
