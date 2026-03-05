@@ -2041,6 +2041,7 @@ function playSound(kind){
   if(kind==='select')playTone(520,0.08,'triangle',0.02);
   if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}
   if(kind==='pass')playTone(210,0.1,'sine',0.02);
+  if(kind==='last'){playTone(880,0.08,'triangle',0.035);playTone(1320,0.1,'triangle',0.03,0.09);}
   if(kind==='start'){playTone(330,0.1,'triangle',0.025);playTone(495,0.12,'triangle',0.025,0.05);}
   if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}
 }
@@ -2225,6 +2226,7 @@ function currentLastCardSeat(v){
   lastCardCallState.startedAt=now;
   lastCardCallState.nonce=newCalloutNonce();
   clearCalloutStates('last');
+  playSound('last');
   speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat),{clipKey:'last'});
   if(lastCardCallTimer)clearTimeout(lastCardCallTimer);
   lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;lastCardCallState.nonce='';render();},1550);
