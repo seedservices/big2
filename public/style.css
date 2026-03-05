@@ -192,8 +192,7 @@ h1, h2, h3, p { margin: 0; }
     -1px -1px 0 rgba(39, 24, 9, .9),
     1px -1px 0 rgba(39, 24, 9, .9),
     -1px 1px 0 rgba(39, 24, 9, .9),
-    1px 1px 0 rgba(39, 24, 9, .9),
-    0 5px 10px rgba(0,0,0,.38);
+    1px 1px 0 rgba(39, 24, 9, .9);
 }
 .title-d-lower {
   display: inline-block;
@@ -209,6 +208,33 @@ h1, h2, h3, p { margin: 0; }
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+.title-logo-picture {
+  display: inline-block;
+  line-height: 0;
+}
+.title-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.title-logo-home {
+  width: min(36.8vw, 272px);
+  filter:
+    drop-shadow(-.6px 0 0 rgba(0,0,0,.62))
+    drop-shadow(.6px 0 0 rgba(0,0,0,.62))
+    drop-shadow(0 -.6px 0 rgba(0,0,0,.62))
+    drop-shadow(0 .6px 0 rgba(0,0,0,.62));
+}
+.title-logo-game {
+  width: clamp(211.7px, 30.2vw, 443.5px);
+}
+@media (max-width: 860px) {
+  .title-logo-game {
+    width: clamp(171.4px, 46.4vw, 302.4px);
+  }
 }
 .game-title-sub {
   font-family: var(--ui-font);
@@ -243,8 +269,7 @@ body[data-screen='home'] #app {
     -1px -1px 0 rgba(39, 24, 9, .88),
     1px -1px 0 rgba(39, 24, 9, .88),
     -1px 1px 0 rgba(39, 24, 9, .88),
-    1px 1px 0 rgba(39, 24, 9, .88),
-    0 2px 6px rgba(0,0,0,.32);
+    1px 1px 0 rgba(39, 24, 9, .88);
 }
 body[data-screen='game'] .topbar .game-title {
   font-family: 'Ma Shan Zheng', cursive;
@@ -258,8 +283,19 @@ body[data-screen='game'] .topbar .game-title-sub {
     -1px -1px 0 rgba(39, 24, 9, .88),
     1px -1px 0 rgba(39, 24, 9, .88),
     -1px 1px 0 rgba(39, 24, 9, .88),
-    1px 1px 0 rgba(39, 24, 9, .88),
-    0 2px 6px rgba(0,0,0,.32);
+    1px 1px 0 rgba(39, 24, 9, .88);
+}
+body[data-screen='game'] .topbar .game-title-wrap {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+body[data-screen='game'] .topbar .game-title-sub-right {
+  margin-top: 0 !important;
+  font-size: clamp(.64rem, .94vw, .8rem);
+  line-height: 1;
+  letter-spacing: .28em;
+  padding-bottom: .1em;
 }
 .hint { color: var(--muted); font-size: 0.92rem; }
 .runtime-diagnostic {
@@ -395,8 +431,7 @@ body[data-screen='home'] .home-wrap {
     -1px -1px 0 rgba(39, 24, 9, .88),
     1px -1px 0 rgba(39, 24, 9, .88),
     -1px 1px 0 rgba(39, 24, 9, .88),
-    1px 1px 0 rgba(39, 24, 9, .88),
-    0 2px 6px rgba(0,0,0,.32);
+    1px 1px 0 rgba(39, 24, 9, .88);
   color: rgba(240, 226, 188, .95);
 }
 .royal-home-body {
@@ -4045,20 +4080,20 @@ body[data-screen='game'] .seat-count-tag {
   display: none !important;
 }
 @media (min-width: 861px) {
-  /* Web view: bigger south hand cards. */
+  /* Web view: reduce south hand cards. */
   body[data-screen='game'] .action-strip .hand .hand-card {
-    width: calc(var(--card-w) * 1.36) !important;
-    height: calc((var(--card-w) * 1.36) * 7 / 5) !important;
+    width: calc(var(--card-w) * 1.2) !important;
+    height: calc((var(--card-w) * 1.2) * 7 / 5) !important;
   }
   body[data-screen='game'] .action-strip .hand {
-    min-height: calc(var(--card-h) * 1.36 + 32px) !important;
+    min-height: calc(var(--card-h) * 1.2 + 26px) !important;
   }
-  /* Web view: bigger discarded cards. */
+  /* Web view: reduce discarded cards. */
   body[data-screen='game'] .seat-played .card.mini,
   body[data-screen='game'] .center-last .seat-played .card.mini,
   body[data-screen='game'] .seat-last .card.mini {
-    width: calc(var(--card-w) * 1.38) !important;
-    height: calc(var(--card-h) * 1.38) !important;
+    width: calc(var(--card-w) * 1.2) !important;
+    height: calc(var(--card-h) * 1.2) !important;
   }
   body[data-screen='game'] .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
