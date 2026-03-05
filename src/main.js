@@ -292,7 +292,7 @@ const THEMES={
   cyber:{'--bg-a':'#041a25','--bg-b':'#0a3c54','--bg-c':'#0f6378','--panel':'rgba(255,255,255,0.09)','--panel-2':'rgba(6,23,35,0.68)','--table-a':'#0c2f43','--table-b':'#11506a','--table-c':'#16718a','--seat-a':'rgba(8,46,63,.84)','--seat-b':'rgba(7,31,43,.8)','--line-a':'rgba(104,225,255,.62)','--line-b':'rgba(104,225,255,.36)','--center-a':'rgba(17,97,56,.92)','--center-b':'rgba(10,66,38,.9)','--accent':'#ffe66d','--danger':'#ff5d8f','--ok':'#5ce1a7'}
 };
 const seatCls=['south','east','north','west'];
-const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#86d989'};
+const PLAYER_COLORS={south:'#ffd166',east:'#ff6b6b',north:'#6bbcff',west:'#a77bff'};
 const playerColorByViewClass=(cls)=>PLAYER_COLORS[cls]??'#f4f9fb';
 const NPC_COLOR_POOL=['#ff6b6b','#6bbcff','#86d989','#f78fb3','#8bd3dd','#f3a683','#c4a7e7','#f6bd60','#84dcc6','#b8e986'];
 function colorDistanceSq(a,b){
@@ -306,7 +306,7 @@ function colorDistanceSq(a,b){
 }
 function randomizeNpcColors(){
   const pool=[...new Set(NPC_COLOR_POOL.filter((c)=>c!==PLAYER_COLORS.south))];
-  const fallback=['#ff6b6b','#6bbcff','#86d989'];
+  const fallback=['#ff6b6b','#6bbcff','#a77bff'];
   if(pool.length<3){
     PLAYER_COLORS.east=fallback[0];
     PLAYER_COLORS.north=fallback[1];
@@ -379,6 +379,8 @@ let calloutSpeechActive=false;
 let calloutSpeechUntil=0;
 let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
+let calloutVoiceMode='auto'; // auto | recorded | tts | off
+const calloutAudioCache=new Map();
 let orientationBlockActive=false;
 const BOT_PROFILES={
   zh:[
@@ -1044,10 +1046,51 @@ function scoreGuideModalHtml(){
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p class="score-guide-heading">${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p class="score-guide-summary">${esc(sx.summary)}</p></article></div></section></div>`;
 }
-function speakCallout(text,gender='male'){
+function deriveCalloutClipKey(msg='',meta={}){
+  const explicit=String(meta?.clipKey??meta?.key??'').trim().toLowerCase();
+  if(explicit)return explicit;
+  const raw=String(msg??'').trim();
+  const lower=raw.toLowerCase();
+  if(lower==='pass'||raw==='大')return'pass';
+  if(lower.includes('last')||raw===t('lastCardCall'))return'last';
+  const kindMap=KIND[state.language]??KIND['zh-HK'];
+  for(const[k,v] of Object.entries(kindMap)){
+    if(raw.startsWith(String(v)))return`kind-${k}`;
+  }
+  return'generic';
+}
+async function playRecordedCalloutClip(clipKey=''){
+  const key=String(clipKey??'').trim().toLowerCase();
+  if(!key)return false;
+  const lang=state.language==='en'?'en':'zh-HK';
+  const cacheKey=`${lang}|${key}`;
+  const exts=['m4a','mp3','wav'];
+  for(const ext of exts){
+    const src=withBase(`audio/callout/${lang}/${key}.${ext}`);
+    const token=`${cacheKey}|${ext}`;
+    let a=calloutAudioCache.get(token);
+    if(!a){
+      a=new Audio(src);
+      a.preload='auto';
+      calloutAudioCache.set(token,a);
+    }else{
+      a.src=src;
+    }
+    try{
+      a.currentTime=0;
+      await a.play();
+      return true;
+    }catch{
+      // try next extension
+    }
+  }
+  return false;
+}
+function speakCallout(text,gender='male',meta={}){
   try{
     const msg=String(text??'').trim();
     if(!msg)return;
+    if(calloutVoiceMode==='off')return;
     const g=String(gender??'male')==='female'?'female':'male';
     const key=`${state.language}|${g}|${msg}`;
     const now=Date.now();
@@ -1072,8 +1115,21 @@ function speakCallout(text,gender='male'){
       playTone(430,0.12,'square',0.055);
       playTone(590,0.13,'triangle',0.05,0.06);
     };
+    const clipKey=deriveCalloutClipKey(msg,meta);
+    const tryRecorded=()=>playRecordedCalloutClip(clipKey);
+    const useTts=(calloutVoiceMode==='auto'||calloutVoiceMode==='tts');
+    const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
+
     if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined'){
-      playCalloutToneFallback();
+      if(useRecorded){
+        void tryRecorded().then((ok)=>{if(!ok)playCalloutToneFallback();});
+      }else{
+        playCalloutToneFallback();
+      }
+      return;
+    }
+    if(!useTts&&useRecorded){
+      void tryRecorded().then((ok)=>{if(!ok)playCalloutToneFallback();});
       return;
     }
     const synth=window.speechSynthesis;
@@ -1145,15 +1201,31 @@ function speakCallout(text,gender='male'){
       synth.resume?.();
       synth.speak(u);
     };
+    const speakTts=()=>{
+      const voices=synth.getVoices?.()??[];
+      if(!voices.length){
+        const onVoices=()=>{speechPrimed=true;speakNow();};
+        synth.addEventListener('voiceschanged',onVoices,{once:true});
+        setTimeout(()=>{if(!speechPrimed)speakNow();},0);
+        return;
+      }
+      speechPrimed=true;
+      speakNow();
+    };
     const voices=synth.getVoices?.()??[];
     if(!voices.length){
-      const onVoices=()=>{speechPrimed=true;speakNow();};
-      synth.addEventListener('voiceschanged',onVoices,{once:true});
-      setTimeout(()=>{if(!speechPrimed)speakNow();},0);
+      if(useRecorded&&calloutVoiceMode==='auto'){
+        void tryRecorded().then((ok)=>{if(!ok)speakTts();});
+      }else{
+        speakTts();
+      }
       return;
     }
-    speechPrimed=true;
-    speakNow();
+    if(useRecorded&&calloutVoiceMode==='auto'){
+      void tryRecorded().then((ok)=>{if(!ok)speakTts();});
+    }else{
+      speakTts();
+    }
   }catch{}
 }
 function parseJwtPayload(token){try{const p=String(token??'').split('.')[1];if(!p)return null;const b=p.replace(/-/g,'+').replace(/_/g,'/');const json=decodeURIComponent(atob(b).split('').map((c)=>`%${c.charCodeAt(0).toString(16).padStart(2,'0')}`).join(''));return JSON.parse(json);}catch{return null;}}
@@ -2135,7 +2207,7 @@ function currentLastCardSeat(v){
   lastCardCallState.startedAt=now;
   lastCardCallState.nonce=newCalloutNonce();
   clearCalloutStates('last');
-  speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat));
+  speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat),{clipKey:'last'});
   if(lastCardCallTimer)clearTimeout(lastCardCallTimer);
   lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;lastCardCallState.nonce='';render();},1550);
   return latest.seat;
@@ -2161,7 +2233,7 @@ function currentPlayTypeCall(v){
     playTypeCallState.startedAt=now;
     playTypeCallState.nonce=newCalloutNonce();
     clearCalloutStates('play');
-    speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat));
+    speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat),{clipKey:`kind-${String(lastPlay.kind||'').toLowerCase()}`});
     if(playTypeCallTimer)clearTimeout(playTypeCallTimer);
     playTypeCallTimer=window.setTimeout(()=>{playTypeCallTimer=null;playTypeCallState.until=0;playTypeCallState.startedAt=0;playTypeCallState.nonce='';render();},1550);
   }
@@ -2193,7 +2265,7 @@ function currentPassCall(v){
     passCallState.startedAt=now;
     passCallState.nonce=newCalloutNonce();
     clearCalloutStates('pass');
-    speakCallout(state.language==='zh-HK'?'大':'pass',seatGenderBySeat(v,latest.seat));
+    speakCallout(state.language==='zh-HK'?'大':'pass',seatGenderBySeat(v,latest.seat),{clipKey:'pass'});
     if(passCallTimer)clearTimeout(passCallTimer);
     passCallTimer=window.setTimeout(()=>{passCallTimer=null;passCallState.until=0;passCallState.startedAt=0;passCallState.nonce='';render();},1450);
   }
@@ -2422,9 +2494,13 @@ function renderGame(){
   const seatHtml=arr.filter((p)=>p.viewIndex!==0).map((p)=>{
     const active=v.currentSeat===p.seat&&!v.gameOver;
     const pColor=playerColorByViewClass(p.cls);
+    const dangerLast=Boolean(!v.gameOver&&p.count===1);
+    const badgeHtml=dangerLast
+      ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">!</span>`
+      :(active?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
-    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"/></span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span></div>`;
+    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span></div>`;
     const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
     const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
@@ -2440,7 +2516,12 @@ function renderGame(){
   const selfAvatarSrc=selfAvatarDataUri(selfName,selfSeatColor,selfGender);
   const authPic=authPictureUrl();
   const useGoogleSelfAvatar=Boolean(state.home.google?.signedIn&&authPic&&selfAvatarSrc===authPic);
-  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/></span>`;
+  const selfDangerLast=Boolean(!v.gameOver&&self&&self.count===1);
+  const selfActive=Boolean(!v.gameOver&&self&&v.currentSeat===self.seat);
+  const selfBadgeHtml=selfDangerLast
+    ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">!</span>`
+    :(selfActive?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
+  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfBadgeHtml}</span>`;
   const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';

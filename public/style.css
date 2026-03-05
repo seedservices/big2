@@ -28,7 +28,7 @@
 
 :root {
   --ui-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'PingFang TC', 'PingFang HK', 'Hiragino Sans GB', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
-  --avatar-bg: #a79bbd;
+  --avatar-bg: #d9dce3;
   --bg-a: #071a2f;
   --bg-b: #0f4469;
   --bg-c: #15808f;
@@ -1369,6 +1369,8 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   }
 }
 .main-zone {
+  position: relative;
+  z-index: 3;
   display: grid;
   grid-template-rows: auto minmax(0,1fr) auto;
   gap: 7px;
@@ -1884,7 +1886,7 @@ body[data-screen='game'] .topbar-right .control-row button {
 .center-last-east { right: 8px; top: 50%; transform: translate(0, -50%); }
 .last-card-call {
   position: absolute;
-  z-index: 24;
+  z-index: 2600;
   display: inline-flex;
   align-items: center;
   gap: .35em;
@@ -1927,7 +1929,7 @@ body[data-screen='game'] .topbar-right .control-row button {
 .last-card-call-south { bottom: 16%; left: 50%; transform: translate(-50%, 50%); }
 .play-type-call {
   position: absolute;
-  z-index: 24;
+  z-index: 2600;
   display: inline-flex;
   align-items: center;
   gap: .35em;
@@ -2546,6 +2548,8 @@ body[data-screen='game'] .topbar-right .control-row button {
 }
 
 .side-zone {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-rows: minmax(0,1fr);
   gap: 9px;
@@ -3850,9 +3854,8 @@ body[data-screen='game'] .player-avatar {
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,.97);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 72%, white 28%),
-    0 0 10px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 60%, transparent 40%),
-    0 0 18px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 40%, transparent 60%);
+    0 0 0 1px color-mix(in srgb, var(--avatar-outline, #f4f9fb) 42%, white 58%),
+    0 1px 3px rgba(0, 0, 0, .28);
 }
 body[data-screen='game'] .player-avatar-wrap {
   position: relative;
@@ -3860,12 +3863,51 @@ body[data-screen='game'] .player-avatar-wrap {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   flex: 0 0 auto;
 }
 body[data-screen='game'] .player-avatar-wrap > .player-avatar {
   width: 100% !important;
   height: 100% !important;
+  border-radius: 50%;
+}
+body[data-screen='game'] .player-avatar-wrap.avatar-rim::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--avatar-rim, #f4f9fb);
+  box-shadow: none;
+  pointer-events: none;
+}
+body[data-screen='game'] .avatar-status-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .72rem;
+  font-weight: 900;
+  line-height: 1;
+  border: 2px solid rgba(255,255,255,.92);
+  box-shadow: 0 2px 8px rgba(0,0,0,.52);
+  z-index: 3;
+  pointer-events: none;
+}
+body[data-screen='game'] .avatar-status-badge.turn {
+  background: #44cf67;
+  color: transparent;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.52),
+    0 0 12px rgba(68, 207, 103, .8);
+}
+body[data-screen='game'] .avatar-status-badge.warning {
+  background: #ef476f;
+  color: #fff8f8;
 }
 body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent {
   width: 38px !important;
