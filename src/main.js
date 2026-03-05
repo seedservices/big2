@@ -389,6 +389,7 @@ let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
 let calloutVoiceMode='auto'; // auto | recorded | tts | off
 const calloutAudioCache=new Map();
+let iosSharedCalloutAudio=null;
 let orientationBlockActive=false;
 const BOT_PROFILES={
   zh:[
@@ -1085,15 +1086,26 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
     for(const ext of exts){
       const src=withBase(`audio/callout/${lang}/${baseName}.${ext}`);
       const token=`${cacheKey}|${baseName}|${ext}`;
-      let a=calloutAudioCache.get(token);
-      if(!a){
-        a=new Audio(src);
-        a.preload='auto';
-        calloutAudioCache.set(token,a);
+      let a=null;
+      if(isIOSDevice()){
+        if(!iosSharedCalloutAudio){
+          iosSharedCalloutAudio=new Audio();
+          iosSharedCalloutAudio.preload='auto';
+          iosSharedCalloutAudio.playsInline=true;
+          iosSharedCalloutAudio.setAttribute?.('playsinline','');
+        }
+        a=iosSharedCalloutAudio;
       }else{
-        a.src=src;
+        a=calloutAudioCache.get(token);
+        if(!a){
+          a=new Audio(src);
+          a.preload='auto';
+          calloutAudioCache.set(token,a);
+        }
       }
+      a.src=src;
       try{
+        a.pause?.();
         a.currentTime=0;
         await a.play();
         return true;
@@ -1975,30 +1987,56 @@ function maybeRunSoloAi(){
 }
 
 function unlockAudio(){
-  if(!sound.enabled)return;
   try{
-    const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx)return;
-    if(!sound.ctx){
-      sound.ctx=new AudioCtx();
+    if(sound.enabled){
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(AudioCtx){
+        if(!sound.ctx){
+          sound.ctx=new AudioCtx();
+        }
+        if(sound.ctx?.state==='suspended'){
+          sound.ctx.resume?.().catch(()=>{});
+        }
+        // iOS Safari often needs a real node start/stop in a user gesture to unlock playback.
+        if(sound.ctx?.state==='running'){
+          try{
+            const c=sound.ctx;
+            const o=c.createOscillator();
+            const g=c.createGain();
+            g.gain.value=0.00001;
+            o.connect(g);
+            g.connect(c.destination);
+            const t=c.currentTime;
+            o.start(t);
+            o.stop(t+0.01);
+          }catch{}
+        }
+      }
     }
-    if(sound.ctx?.state==='suspended'){
-      sound.ctx.resume?.().catch(()=>{});
-    }
-    // iOS Safari often needs a real node start/stop in a user gesture to unlock playback.
-    if(sound.ctx?.state==='running'){
-      try{
-        const c=sound.ctx;
-        const o=c.createOscillator();
-        const g=c.createGain();
-        g.gain.value=0.00001;
-        o.connect(g);
-        g.connect(c.destination);
-        const t=c.currentTime;
-        o.start(t);
-        o.stop(t+0.01);
-      }catch{}
-    }
+    // iOS Safari: prime a single HTMLAudio element during user gesture so recorded clips can play later.
+    try{
+      if(isIOSDevice()){
+        if(!iosSharedCalloutAudio){
+          iosSharedCalloutAudio=new Audio();
+          iosSharedCalloutAudio.preload='auto';
+          iosSharedCalloutAudio.playsInline=true;
+          iosSharedCalloutAudio.setAttribute?.('playsinline','');
+        }
+        const a=iosSharedCalloutAudio;
+        if(!a.src)a.src=withBase('audio/callout/zh-HK/pass.mp3');
+        const prevMuted=Boolean(a.muted);
+        a.muted=true;
+        const p=a.play?.();
+        if(p?.then){
+          p.then(()=>{
+            try{a.pause?.();a.currentTime=0;}catch{}
+            a.muted=prevMuted;
+          }).catch(()=>{a.muted=prevMuted;});
+        }else{
+          a.muted=prevMuted;
+        }
+      }
+    }catch{}
   }catch{
     // Keep user preference unchanged even if runtime audio context cannot initialize.
   }
