@@ -805,6 +805,10 @@ function normalizeAuthProvider(provider){
 function authProviderPrefix(){
   return normalizeAuthProvider(state.home.google?.provider);
 }
+function signedInForPlay(){
+  const g=state.home.google??{};
+  return Boolean(g.signedIn&&(String(g.email??'').trim()||String(g.uid??'').trim()||String(g.sub??'').trim()));
+}
 function signedInWithEmail(){return Boolean(state.home.google.signedIn&&state.home.google.email);}
 function currentLeaderboardIdentity(){
   const g=state.home.google;
@@ -1162,7 +1166,7 @@ async function handleCredentialResponse(response){
   const pic=String(p.picture??'').trim();
   const gRaw=String(p.gender??p.sex??'').trim().toLowerCase();
   const googleGender=(gRaw==='female'||gRaw==='male')?gRaw:'';
-  const signedIn=Boolean(email);
+  const signedIn=Boolean(email||String(p.sub??'').trim());
   state.home.google={signedIn,provider:'google',name:String(p.name??'').slice(0,18),email,uid:String(p.sub??'').slice(0,128),sub:String(p.sub??'').slice(0,64),token,picture:pic,gender:googleGender};
   if(signedIn){
     const hydrated=await hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity());
@@ -1202,14 +1206,15 @@ async function signInWithProvider(providerId){
     const result=await firebaseAuth.signInWithPopup(provider);
     const user=result?.user;
     const email=String(user?.email??'').trim().toLowerCase().slice(0,120);
-    if(!email)return false;
+    const uid=String(user?.uid??'').trim().slice(0,128);
+    if(!email&&!uid)return false;
     state.home.google={
       signedIn:true,
       provider:p,
       name:String(user?.displayName??'').slice(0,18),
       email,
-      uid:String(user?.uid??'').slice(0,128),
-      sub:String(user?.uid??'').slice(0,64),
+      uid,
+      sub:uid.slice(0,64),
       token:'',
       picture:String(user?.photoURL??'').trim(),
       gender:''
@@ -2278,7 +2283,7 @@ function bindSoundToggle(comboId){
 }
 function renderHome(){
   const intro=introText();
-  const signedIn=signedInWithEmail();
+  const signedIn=signedInForPlay();
   const maleAvatarSrc=withBase('avatar-male.png');
   const femaleAvatarSrc=withBase('avatar-female.png');
   if(state.home.avatarChoice==='google'){
@@ -2311,7 +2316,7 @@ function renderHome(){
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   bindSoundToggle('sound-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
-    if(!signedInWithEmail())return;
+    if(!signedInForPlay())return;
     triggerStartGameAd();
     unlockAudio();
     state.home.mode='solo';
