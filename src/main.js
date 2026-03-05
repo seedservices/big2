@@ -1073,29 +1073,33 @@ function deriveCalloutClipKey(msg='',meta={}){
   }
   return'generic';
 }
-async function playRecordedCalloutClip(clipKey=''){
+async function playRecordedCalloutClip(clipKey='',gender='male'){
   const key=String(clipKey??'').trim().toLowerCase();
   if(!key)return false;
   const lang=state.language==='en'?'en':'zh-HK';
-  const cacheKey=`${lang}|${key}`;
+  const g=String(gender??'male')==='female'?'female':'male';
+  const cacheKey=`${lang}|${key}|${g}`;
   const exts=['m4a','mp3','wav'];
-  for(const ext of exts){
-    const src=withBase(`audio/callout/${lang}/${key}.${ext}`);
-    const token=`${cacheKey}|${ext}`;
-    let a=calloutAudioCache.get(token);
-    if(!a){
-      a=new Audio(src);
-      a.preload='auto';
-      calloutAudioCache.set(token,a);
-    }else{
-      a.src=src;
-    }
-    try{
-      a.currentTime=0;
-      await a.play();
-      return true;
-    }catch{
-      // try next extension
+  const nameCandidates=[`${key}-${g}`,key];
+  for(const baseName of nameCandidates){
+    for(const ext of exts){
+      const src=withBase(`audio/callout/${lang}/${baseName}.${ext}`);
+      const token=`${cacheKey}|${baseName}|${ext}`;
+      let a=calloutAudioCache.get(token);
+      if(!a){
+        a=new Audio(src);
+        a.preload='auto';
+        calloutAudioCache.set(token,a);
+      }else{
+        a.src=src;
+      }
+      try{
+        a.currentTime=0;
+        await a.play();
+        return true;
+      }catch{
+        // try next extension/name
+      }
     }
   }
   return false;
@@ -1130,7 +1134,7 @@ function speakCallout(text,gender='male',meta={}){
       playTone(590,0.13,'triangle',0.05,0.06);
     };
     const clipKey=deriveCalloutClipKey(msg,meta);
-    const tryRecorded=()=>playRecordedCalloutClip(clipKey);
+    const tryRecorded=()=>playRecordedCalloutClip(clipKey,g);
     const useTts=(calloutVoiceMode==='auto'||calloutVoiceMode==='tts');
     const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
 
@@ -2520,7 +2524,7 @@ function renderGame(){
     const pColor=playerColorByViewClass(p.cls);
     const dangerLast=Boolean(!v.gameOver&&p.count===1);
     const badgeHtml=dangerLast
-      ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">!</span>`
+      ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">🔔</span>`
       :(active?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
@@ -2543,7 +2547,7 @@ function renderGame(){
   const selfDangerLast=Boolean(!v.gameOver&&self&&self.count===1);
   const selfActive=Boolean(!v.gameOver&&self&&v.currentSeat===self.seat);
   const selfBadgeHtml=selfDangerLast
-    ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">!</span>`
+    ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">🔔</span>`
     :(selfActive?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfBadgeHtml}</span>`;
   const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
