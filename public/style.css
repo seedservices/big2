@@ -3928,8 +3928,17 @@ body[data-screen='game'] .avatar-status-badge.turn {
     0 0 12px rgba(68, 207, 103, .8);
 }
 body[data-screen='game'] .avatar-status-badge.warning {
-  background: #ef476f;
-  color: #fff8f8;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ffd166;
+  box-shadow: none;
+  font-size: .95rem;
+  right: -6px;
+  bottom: -6px;
 }
 body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent {
   width: 38px !important;
