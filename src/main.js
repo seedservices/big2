@@ -1,4 +1,4 @@
-﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'\u2666',red:true},
   {symbol:'\u2663',red:false},
@@ -291,6 +291,28 @@ const KIND={
   'zh-HK':{single:'單張',pair:'一對',triple:'三條',straight:'蛇',flush:'花',fullhouse:'俘虜',fourofkind:'四條',straightflush:'同花順'},
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
+const CALLOUT_RESPONSE_TEXT={
+  'zh-HK':{
+    pass:['大','唔跟','過。','呢鋪過。'],
+    last:['最後一張！','聽牌！','一張！','埋門一張！'],
+    play:[
+      (kind)=>`${kind}！`,
+      (kind)=>`${kind}，跟到。`,
+      (kind)=>`${kind}，頂住。`,
+      (kind)=>`${kind}，壓你。`
+    ]
+  },
+  en:{
+    pass:['Pass','No beat','I pass','Pass this round'],
+    last:['Last card!','One card left!','Match point!','Final card!'],
+    play:[
+      (kind)=>`${kind}!`,
+      (kind)=>`${kind}. Beat that.`,
+      (kind)=>`${kind}. Holding.`,
+      (kind)=>`${kind}. Your move.`
+    ]
+  }
+};
 const app=document.getElementById('app');
 const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
@@ -377,7 +399,7 @@ let passCallTimer=null;
 const passCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:''};
 let recommendHintTimer=null;
 let lastCardCallTimer=null;
-const lastCardCallState={key:'',seat:0,until:0,startedAt:0,nonce:''};
+const lastCardCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:''};
 const lastCardAnnouncedSeats=new Set();
 let lastCardProcessedHistoryLen=0;
 let googleInlineRetryTimer=null;
@@ -396,7 +418,7 @@ let calloutSpeechUntil=0;
 let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
 let calloutVoiceMode='auto'; // auto | recorded | tts | off
-let calloutStylePack='classic'; // classic | energetic | minimal
+let calloutStylePack='energetic'; // forced energetic
 const calloutAudioCache=new Map();
 let iosSharedCalloutAudio=null;
 let mobileTapAt=0;
@@ -443,11 +465,83 @@ const normalizeCalloutVoiceMode=(v)=>{
   return mode==='tts'||mode==='off'||mode==='recorded'||mode==='auto'?mode:'auto';
 };
 const normalizeCalloutStylePack=(v)=>{
-  const pack=String(v??'').toLowerCase();
-  return pack==='energetic'||pack==='minimal'||pack==='classic'?pack:'classic';
+  void v;
+  return 'energetic';
 };
 
 const t=(k)=>I18N[state.language][k]??k;
+function hashTextSeed(seed=''){
+  const txt=String(seed??'');
+  let h=0;
+  for(let i=0;i<txt.length;i++){
+    h=((h*31)+txt.charCodeAt(i))>>>0;
+  }
+  return h;
+}
+function buildResponseCalloutText(type,kind='',seed=''){
+  const lang=state.language==='en'?'en':'zh-HK';
+  const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+  if(type==='pass'){
+    const opts=bank.pass??[];
+    if(!opts.length)return lang==='en'?'Pass':'大';
+    const idx=hashTextSeed(`${seed}|pass`) % opts.length;
+    return String(opts[idx]);
+  }
+  if(type==='play'){
+    const opts=bank.play??[];
+    const label=kindLabel(kind);
+    if(!opts.length)return`${label}!`;
+    const idx=hashTextSeed(`${seed}|play|${kind}`) % opts.length;
+    const fmt=opts[idx];
+    return typeof fmt==='function'?String(fmt(label)):String(fmt);
+  }
+  if(type==='last'){
+    const opts=bank.last??[];
+    if(!opts.length)return t('lastCardCall');
+    const idx=hashTextSeed(`${seed}|last`) % opts.length;
+    return String(opts[idx]);
+  }
+  return'';
+}
+function normalizeCalloutText(msg=''){
+  return String(msg??'')
+    .toLowerCase()
+    .replace(/[!！。.,，]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function isPassCalloutText(msg=''){
+  const norm=normalizeCalloutText(msg);
+  if(!norm)return false;
+  if(norm==='pass'||norm==='大')return true;
+  const lang=state.language==='en'?'en':'zh-HK';
+  const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+  const passSet=(bank.pass??[]).map((x)=>normalizeCalloutText(x)).filter(Boolean);
+  return passSet.includes(norm);
+}
+function isLastCalloutText(msg=''){
+  const norm=normalizeCalloutText(msg);
+  if(!norm)return false;
+  const lastNorm=normalizeCalloutText(t('lastCardCall'));
+  if(norm===lastNorm||norm.includes('last'))return true;
+  const lang=state.language==='en'?'en':'zh-HK';
+  const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+  const lastSet=(bank.last??[]).map((x)=>normalizeCalloutText(x)).filter(Boolean);
+  return lastSet.includes(norm);
+}
+function isCanonicalRecordedCalloutText(msg='',clipKey=''){
+  const norm=normalizeCalloutText(msg);
+  const key=String(clipKey??'').trim().toLowerCase();
+  if(!norm||!key)return false;
+  if(key==='pass')return norm==='pass'||norm==='大';
+  if(key==='last')return norm===normalizeCalloutText(t('lastCardCall'));
+  if(key.startsWith('kind-')){
+    const kind=key.slice(5);
+    const label=normalizeCalloutText(kindLabel(kind));
+    return norm===label||norm===`${label}!`;
+  }
+  return false;
+}
 const kindLabel=(k)=>KIND[state.language][k]??k;
 function setSoloStatus(message,{appendLog=true}={}){
   const g=state.solo;
@@ -1081,9 +1175,8 @@ function deriveCalloutClipKey(msg='',meta={}){
   const explicit=String(meta?.clipKey??meta?.key??'').trim().toLowerCase();
   if(explicit)return explicit;
   const raw=String(msg??'').trim();
-  const lower=raw.toLowerCase();
-  if(lower==='pass'||raw==='大')return'pass';
-  if(lower.includes('last')||raw===t('lastCardCall'))return'last';
+  if(isPassCalloutText(raw))return'pass';
+  if(isLastCalloutText(raw))return'last';
   const kindMap=KIND[state.language]??KIND['zh-HK'];
   for(const[k,v] of Object.entries(kindMap)){
     if(raw.startsWith(String(v)))return`kind-${k}`;
@@ -1151,16 +1244,23 @@ function speakCallout(text,gender='male',meta={}){
     if(key===lastSpokenCalloutKey&&now-lastSpokenCalloutAt<900)return;
     lastSpokenCalloutKey=key;
     lastSpokenCalloutAt=now;
-    const lower=msg.toLowerCase();
+    const clipKey=deriveCalloutClipKey(msg,meta);
+    const calloutType=clipKey==='pass'
+      ?'pass'
+      :clipKey==='last'
+        ?'last'
+        :clipKey.startsWith('kind-')
+          ?'play'
+          :'generic';
     const playCalloutToneFallback=()=>{
       unlockAudio();
       if(!sound.enabled||!sound.ctx)return;
-      if(lower.includes('pass')||msg==='大'){
+      if(calloutType==='pass'||isPassCalloutText(msg)){
         playTone(240,0.12,'square',0.05);
         playTone(180,0.12,'square',0.04,0.07);
         return;
       }
-      if(lower.includes('last')||msg===t('lastCardCall')){
+      if(calloutType==='last'||isLastCalloutText(msg)){
         playTone(740,0.12,'triangle',0.06);
         playTone(920,0.14,'triangle',0.05,0.06);
         return;
@@ -1169,10 +1269,11 @@ function speakCallout(text,gender='male',meta={}){
       playTone(430,0.12,'square',0.055);
       playTone(590,0.13,'triangle',0.05,0.06);
     };
-    const clipKey=deriveCalloutClipKey(msg,meta);
     const tryRecorded=()=>playRecordedCalloutClip(clipKey,g);
     const useTts=(calloutVoiceMode==='auto'||calloutVoiceMode==='tts');
     const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
+    const recordedMatchesText=isCanonicalRecordedCalloutText(msg,clipKey);
+    const forceExactTts=(useRecorded&&!recordedMatchesText);
 
     if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined'){
       if(useRecorded){
@@ -1182,7 +1283,7 @@ function speakCallout(text,gender='male',meta={}){
       }
       return;
     }
-    if(!useTts&&useRecorded){
+    if(!useTts&&useRecorded&&recordedMatchesText){
       void tryRecorded().then((ok)=>{if(!ok)playCalloutToneFallback();});
       return;
     }
@@ -1271,15 +1372,19 @@ function speakCallout(text,gender='male',meta={}){
       speakNow();
     };
     const voices=synth.getVoices?.()??[];
+    if(forceExactTts){
+      speakTts();
+      return;
+    }
     if(!voices.length){
-      if(useRecorded&&calloutVoiceMode==='auto'){
+      if(useRecorded&&calloutVoiceMode==='auto'&&recordedMatchesText){
         void tryRecorded().then((ok)=>{if(!ok)speakTts();});
       }else{
         speakTts();
       }
       return;
     }
-    if(useRecorded&&calloutVoiceMode==='auto'){
+    if(useRecorded&&calloutVoiceMode==='auto'&&recordedMatchesText){
       void tryRecorded().then((ok)=>{if(!ok)speakTts();});
     }else{
       speakTts();
@@ -1928,6 +2033,7 @@ function clearCalloutStates(except=''){
   }
   if(except!=='last'){
     if(lastCardCallTimer){clearTimeout(lastCardCallTimer);lastCardCallTimer=null;}
+    lastCardCallState.text='';
     lastCardCallState.until=0;
     lastCardCallState.startedAt=0;
     lastCardCallState.nonce='';
@@ -2274,6 +2380,7 @@ function currentLastCardSeat(v){
   if(v.isFirstTrick&&history.length===0){
     lastCardAnnouncedSeats.clear();
     lastCardCallState.key='';
+    lastCardCallState.text='';
     lastCardCallState.until=0;
     lastCardCallState.startedAt=0;
     lastCardCallState.nonce='';
@@ -2294,14 +2401,15 @@ function currentLastCardSeat(v){
   lastCardAnnouncedSeats.add(latest.seat);
   lastCardCallState.key=key;
   lastCardCallState.seat=latest.seat;
+  lastCardCallState.text=buildResponseCalloutText('last','',key);
   lastCardCallState.until=now+1500;
   lastCardCallState.startedAt=now;
   lastCardCallState.nonce=newCalloutNonce();
   clearCalloutStates('last');
   playSound('last');
-  speakCallout(t('lastCardCall'),seatGenderBySeat(v,latest.seat),{clipKey:'last'});
+  speakCallout(lastCardCallState.text||t('lastCardCall'),seatGenderBySeat(v,latest.seat),{clipKey:'last'});
   if(lastCardCallTimer)clearTimeout(lastCardCallTimer);
-  lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.until=0;lastCardCallState.startedAt=0;lastCardCallState.nonce='';render();},1550);
+  lastCardCallTimer=window.setTimeout(()=>{lastCardCallTimer=null;lastCardCallState.text='';lastCardCallState.until=0;lastCardCallState.startedAt=0;lastCardCallState.nonce='';render();},1550);
   return latest.seat;
 }
 function setRecommendHint(msg=''){
@@ -2320,7 +2428,7 @@ function currentPlayTypeCall(v){
   if(playTypeCallState.key!==key){
     playTypeCallState.key=key;
     playTypeCallState.seat=lastPlay.seat;
-    playTypeCallState.text=`${kindLabel(lastPlay.kind)}!`;
+    playTypeCallState.text=buildResponseCalloutText('play',lastPlay.kind,key);
     playTypeCallState.until=now+1500;
     playTypeCallState.startedAt=now;
     playTypeCallState.nonce=newCalloutNonce();
@@ -2352,12 +2460,12 @@ function currentPassCall(v){
   if(passCallState.key!==key){
     passCallState.key=key;
     passCallState.seat=latest.seat;
-    passCallState.text=state.language==='zh-HK'?'大':'Pass';
+    passCallState.text=buildResponseCalloutText('pass','',key);
     passCallState.until=now+1400;
     passCallState.startedAt=now;
     passCallState.nonce=newCalloutNonce();
     clearCalloutStates('pass');
-    speakCallout(state.language==='zh-HK'?'大':'pass',seatGenderBySeat(v,latest.seat),{clipKey:'pass'});
+    speakCallout(passCallState.text,seatGenderBySeat(v,latest.seat),{clipKey:'pass'});
     if(passCallTimer)clearTimeout(passCallTimer);
     passCallTimer=window.setTimeout(()=>{passCallTimer=null;passCallState.until=0;passCallState.startedAt=0;passCallState.nonce='';render();},1450);
   }
@@ -2453,14 +2561,6 @@ function bindCalloutVoiceToggle(comboId){
     markComboActive(comboId,v);
   }));
 }
-function bindCalloutStylePackToggle(comboId){
-  document.querySelectorAll(`#${comboId} .combo-btn`).forEach((btn)=>btn.addEventListener('click',()=>{
-    const v=normalizeCalloutStylePack(btn.getAttribute('data-value'));
-    if(v!=='classic'&&v!=='energetic'&&v!=='minimal')return;
-    calloutStylePack=v;
-    markComboActive(comboId,v);
-  }));
-}
 function renderHome(){
   const intro=introText();
   const signedIn=signedInForPlay();
@@ -2470,7 +2570,7 @@ function renderHome(){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label><label class="field"><span>${t('voicePack')}</span><div class="option-combo toggle-combo" id="pack-combo"><button class="combo-btn toggle-btn ${calloutStylePack==='classic'?'active':''}" data-value="classic">${t('voicePackClassic')}</button><button class="combo-btn toggle-btn ${calloutStylePack==='energetic'?'active':''}" data-value="energetic">${t('voicePackEnergetic')}</button><button class="combo-btn toggle-btn ${calloutStylePack==='minimal'?'active':''}" data-value="minimal">${t('voicePackMinimal')}</button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -2496,7 +2596,6 @@ function renderHome(){
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   bindSoundToggle('sound-combo');
   bindCalloutVoiceToggle('voice-combo');
-  bindCalloutStylePackToggle('pack-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
     triggerStartGameAd();
@@ -2529,12 +2628,11 @@ function renderHome(){
   queueGoogleInlineRender();
 }
 function renderConfig(){
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="config-voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label><label class="field"><span>${t('voicePack')}</span><div class="option-combo toggle-combo" id="config-pack-combo"><button class="combo-btn toggle-btn ${calloutStylePack==='classic'?'active':''}" data-value="classic">${t('voicePackClassic')}</button><button class="combo-btn toggle-btn ${calloutStylePack==='energetic'?'active':''}" data-value="energetic">${t('voicePackEnergetic')}</button><button class="combo-btn toggle-btn ${calloutStylePack==='minimal'?'active':''}" data-value="minimal">${t('voicePackMinimal')}</button></div></label></div></section></section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid config-audio-voice-row"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="config-voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></section></section>`;
   document.getElementById('config-back')?.addEventListener('click',()=>{state.screen='home';render();});
   document.getElementById('config-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   bindSoundToggle('config-sound-combo');
   bindCalloutVoiceToggle('config-voice-combo');
-  bindCalloutStylePackToggle('config-pack-combo');
 }
 function renderGame(){
   const v=buildView();
@@ -2576,7 +2674,7 @@ function renderGame(){
   const calloutCandidates=[];
   if(passCall)calloutCandidates.push({kind:'pass',seat:passCall.seat,text:passCall.text,fresh:passCallFresh,nonce:passCallState.nonce||passCallState.startedAt,startedAt:passCallState.startedAt});
   if(playTypeCall)calloutCandidates.push({kind:'play',seat:playTypeCall.seat,text:playTypeCall.text,fresh:playTypeFresh,nonce:playTypeCallState.nonce||playTypeCallState.startedAt,startedAt:playTypeCallState.startedAt});
-  if(lastCardSeat!==null)calloutCandidates.push({kind:'last',seat:lastCardSeat,text:t('lastCardCall'),fresh:lastCardFresh,nonce:lastCardCallState.nonce||lastCardCallState.startedAt,startedAt:lastCardCallState.startedAt});
+  if(lastCardSeat!==null)calloutCandidates.push({kind:'last',seat:lastCardSeat,text:lastCardCallState.text||t('lastCardCall'),fresh:lastCardFresh,nonce:lastCardCallState.nonce||lastCardCallState.startedAt,startedAt:lastCardCallState.startedAt});
   const calloutPriority={pass:3,play:2,last:1};
   const activeCallout=calloutCandidates.sort((a,b)=>(Number(b.startedAt)||0)-(Number(a.startedAt)||0)||(calloutPriority[b.kind]-calloutPriority[a.kind]))[0]??null;
   const seatCalloutHtml=(seat,viewCls,color,isSelf=false)=>{

@@ -457,6 +457,17 @@ body[data-screen='home'] .home-wrap {
 .royal-home-body .home-form-col {
   gap: 16px;
 }
+.royal-home-body .home-audio-voice-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.royal-home-body .home-audio-voice-row .field:first-child {
+  grid-column: 1 / -1;
+}
+.royal-home-body .home-audio-voice-row .field + .field {
+  margin-top: 0;
+}
 .royal-home-body .field {
   gap: 8px;
 }
@@ -572,6 +583,9 @@ body[data-screen='home'] .home-wrap {
 }
 .home-panel { padding: 12px; border-radius: 18px; background: linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)), rgba(6, 18, 30, .48); border: 1px solid rgba(255,255,255,.16); display: grid; gap: 10px; }
 .field-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
+.config-audio-voice-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .home-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3284,6 +3298,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     max-width: 100%;
   }
   .home-form-grid { grid-template-columns: 1fr; gap: 8px; }
+  .royal-home-body .home-audio-voice-row { grid-template-columns: 1fr; }
+  .config-audio-voice-row { grid-template-columns: 1fr; }
   .field span { font-size: .78rem; }
   input, select { padding: 7px 9px; }
   .action-row { display: grid; grid-template-columns: 1fr; gap: 6px; }
