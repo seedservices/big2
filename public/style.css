@@ -1925,7 +1925,10 @@ body[data-screen='game'] .topbar-right .control-row button {
     0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
     0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
   pointer-events: none;
-  animation: none;
+  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
+  animation:
+    calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite,
+    calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out infinite;
 }
 .last-card-call::after {
   content: '';
@@ -1939,7 +1942,10 @@ body[data-screen='game'] .topbar-right .control-row button {
   transform: translateY(-50%) rotate(-18deg);
 }
 .last-card-call-fresh {
-  animation: fadeIn .3s ease-out;
+  animation:
+    calloutPop .28s ease-out,
+    calloutFloat var(--callout-float-dur, 2.6s) ease-in-out .12s infinite,
+    calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out .12s infinite;
 }
 .last-card-call-north { top: 22%; left: 50%; transform: translate(-50%, -50%); }
 .last-card-call-west { left: 14%; top: 50%; transform: translate(-50%, -50%); }
@@ -1968,7 +1974,10 @@ body[data-screen='game'] .topbar-right .control-row button {
     0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
     0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
   pointer-events: none;
-  animation: none;
+  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
+  animation:
+    calloutFloat var(--callout-float-dur, 2.5s) ease-in-out infinite,
+    calloutGlow var(--callout-glow-dur, 1.8s) ease-in-out infinite;
 }
 .play-type-call::after {
   content: '';
@@ -1982,10 +1991,15 @@ body[data-screen='game'] .topbar-right .control-row button {
   transform: translateY(-50%) rotate(-18deg);
 }
 .play-type-call-fresh {
-  animation: fadeIn .3s ease-out;
+  animation:
+    calloutPop .28s ease-out,
+    calloutFloat var(--callout-float-dur, 2.5s) ease-in-out .12s infinite,
+    calloutGlow var(--callout-glow-dur, 1.8s) ease-in-out .12s infinite;
 }
 .play-type-call.pass-call {
-  animation: none !important;
+  animation:
+    calloutFloat var(--callout-float-dur, 2.9s) ease-in-out infinite,
+    calloutGlow var(--callout-glow-dur, 2.1s) ease-in-out infinite !important;
 }
 .play-type-call-seat {
   top: calc(14px + var(--callout-jy, 0px));
@@ -2078,6 +2092,35 @@ body[data-screen='game'] .topbar-right .control-row button {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+@keyframes calloutPop {
+  0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(.9) rotate(var(--callout-tilt, 0deg)); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(var(--callout-tilt, 0deg)); }
+}
+@keyframes calloutFloat {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)); }
+  50% { transform: translate3d(0, calc(var(--callout-float-amp, 3px) * -1), 0) rotate(calc(var(--callout-tilt, 0deg) * .6)); }
+  100% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)); }
+}
+@keyframes calloutGlow {
+  0% {
+    box-shadow:
+      0 14px 32px rgba(0,0,0,.38),
+      0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 48%, transparent),
+      0 0 24px color-mix(in srgb, var(--player-color, #7ec0ff) 42%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 16px 36px rgba(0,0,0,.42),
+      0 0 0 3px color-mix(in srgb, var(--player-color, #7ec0ff) 62%, transparent),
+      0 0 34px color-mix(in srgb, var(--player-color, #7ec0ff) 58%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 14px 32px rgba(0,0,0,.38),
+      0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 48%, transparent),
+      0 0 24px color-mix(in srgb, var(--player-color, #7ec0ff) 42%, transparent);
+  }
 }
 .recommend-hint {
   margin-top: 2px;
@@ -3588,11 +3631,24 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   background: rgba(255,255,255,.06);
   padding: 6px;
   display: grid;
-  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
 }
 .result-row.winner {
   border-color: color-mix(in srgb, var(--winner-color, #ffd166) 75%, white 25%);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--winner-color, #ffd166) 40%, transparent);
+}
+.result-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.result-side {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  align-content: start;
 }
 .result-head {
   display: flex;
@@ -3618,6 +3674,22 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   font-size: .8rem;
   line-height: 1.35;
 }
+.result-card-block {
+  display: inline-grid;
+  gap: 4px;
+  padding: 4px 5px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.035);
+  width: fit-content;
+  max-width: 100%;
+}
+.result-block-title {
+  font-size: .75rem;
+  font-weight: 800;
+  color: #d9ebff;
+  letter-spacing: .01em;
+}
 .result-score-chip {
   display: inline-flex;
   align-items: center;
@@ -3640,6 +3712,15 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
+  min-height: 24px;
+}
+@media (max-width: 760px) {
+  .result-row {
+    grid-template-columns: 1fr;
+  }
+  .result-side {
+    width: 100%;
+  }
 }
 
 /* Final game-panel override: keep center + opponent panels visually aligned with topbar glass style. */
@@ -3824,8 +3905,8 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(214, 232, 222, .9) !important;
 }
 .result-cards .card.mini {
-  width: calc(var(--card-w) * .5);
-  height: calc(var(--card-h) * .5);
+  width: calc(var(--card-w) * .72);
+  height: calc(var(--card-h) * .72);
 }
 .game-shell.game-over .action-strip .player-tag {
   display: none !important;

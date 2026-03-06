@@ -87,6 +87,7 @@ const I18N={
     resultTitle:'對局結果',
     resultWinner:'本局勝出',
     resultRemain:'剩餘手牌',
+    resultLastDiscard:'最後出牌',
     resultDelta:'本局分數變動',
     resultDetail:'計分明細',
     scoreBase:'基本',
@@ -226,6 +227,7 @@ const I18N={
     resultTitle:'Round Result',
     resultWinner:'Winner',
     resultRemain:'Remaining Cards',
+    resultLastDiscard:'Last Discarded Card',
     resultDelta:'Round Score Change',
     resultDetail:'Scoring Detail',
     scoreBase:'Base',
@@ -2192,7 +2194,11 @@ function calloutJitterStyle(viewCls,key=''){
   const x=Math.round((r('jx')*2-1)*xr);
   const yBase=viewCls==='north'?4:2;
   const y=Math.round((r('jy')*2-1)*yr+yBase);
-  return`--callout-jx:${x}px;--callout-jy:${y}px;--callout-size:${size.toFixed(3)};`;
+  const tilt=((r('tilt')*2)-1)*2.6;
+  const floatDur=2.2+(r('fdur')*0.9);
+  const glowDur=1.5+(r('gdur')*0.7);
+  const floatAmp=2+(r('famp')*2.2);
+  return`--callout-jx:${x}px;--callout-jy:${y}px;--callout-size:${size.toFixed(3)};--callout-tilt:${tilt.toFixed(2)}deg;--callout-float-dur:${floatDur.toFixed(2)}s;--callout-glow-dur:${glowDur.toFixed(2)}s;--callout-float-amp:${floatAmp.toFixed(2)}px;`;
 }
 function newCalloutNonce(){
   return`${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`;
@@ -2731,6 +2737,8 @@ function currentPassCall(v){
 function revealHtml(){return'';}
 function resultScreenHtml(v,arr){
   const winner=arr.find((p)=>p.count===0)??arr[0];
+  const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
+  const winnerLastDiscardCards=winnerLastPlay?.cards??[];
   const deductions=v.roundSummary?.deductions??arr.map((p)=>p.seat===winner.seat?0:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]).deduction);
   const winnerGain=Number(v.roundSummary?.winnerGain??deductions.reduce((sum,vv)=>sum+vv,0));
   const detailBySeat=v.roundSummary?.details??arr.map((p)=>p.seat===winner.seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]));
@@ -2750,11 +2758,20 @@ function resultScreenHtml(v,arr){
     const detailLine=isWinner
       ?`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreGain')} +${winnerGain}</div>`
       :`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreBase')} ${detail.base} x ${detail.multiplier} · ${t('scoreDeduct')} ${detail.deduction}${mulTags?` · ${t('scorePenaltyBoost')}: ${mulTags}`:''}</div>`;
+    const winnerLastDiscardHtml=isWinner
+      ?`<div class="result-card-block"><div class="result-block-title">${t('resultLastDiscard')}</div><div class="result-cards" aria-label="${t('resultLastDiscard')}">${winnerLastDiscardCards.length?winnerLastDiscardCards.map((c)=>renderStaticCard(c,true)).join(''):`<span class="hint">-</span>`}</div></div>`
+      :'';
+    const remainBlockHtml=!isWinner
+      ?`<div class="result-card-block"><div class="result-block-title">${t('resultRemain')}</div><div class="result-cards" aria-label="${t('resultRemain')}">${remainCards}</div></div>`
+      :'';
+    const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
-      <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
-      <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
-      ${detailLine}
-      <div class="result-cards" aria-label="${t('resultRemain')}">${remainCards}</div>
+      <div class="result-main">
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
+        ${detailLine}
+      </div>
+      ${rightColHtml}
     </div>`;
   }).join('');
   return`<section class="result-screen">
@@ -2962,7 +2979,7 @@ function renderGame(){
     const pColor=playerColorByViewClass(p.cls);
     const dangerLast=Boolean(!v.gameOver&&p.count===1);
     const badgeHtml=dangerLast
-      ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">🔔</span>`
+      ?`<span class="avatar-status-badge warning ${active?'danger':''}" aria-label="${esc(t('lastCardCall'))}"></span>`
       :(active?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender);
@@ -2985,7 +3002,7 @@ function renderGame(){
   const selfDangerLast=Boolean(!v.gameOver&&self&&self.count===1);
   const selfActive=Boolean(!v.gameOver&&self&&v.currentSeat===self.seat);
   const selfBadgeHtml=selfDangerLast
-    ?`<span class="avatar-status-badge warning" aria-label="${esc(t('lastCardCall'))}">🔔</span>`
+    ?`<span class="avatar-status-badge warning ${selfActive?'danger':''}" aria-label="${esc(t('lastCardCall'))}"></span>`
     :(selfActive?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfBadgeHtml}</span>`;
   const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
