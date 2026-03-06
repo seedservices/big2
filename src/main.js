@@ -417,6 +417,7 @@ let calloutSpeechActive=false;
 let calloutSpeechUntil=0;
 let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
+let calloutSpeakSeq=0;
 let turnLockUntil=0;
 let calloutVoiceMode='auto'; // auto | recorded | tts | off
 let calloutStylePack='energetic'; // forced energetic
@@ -1192,7 +1193,7 @@ function deriveCalloutClipKey(msg='',meta={}){
   }
   return'generic';
 }
-async function playRecordedCalloutClip(clipKey='',gender='male'){
+async function playRecordedCalloutClip(clipKey='',gender='male',seq=0){
   const key=String(clipKey??'').trim().toLowerCase();
   if(!key)return false;
   const lang=state.language==='en'?'en':'zh-HK';
@@ -1229,6 +1230,7 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
       }
       a.src=src;
       try{
+        if(seq&&seq!==calloutSpeakSeq)return false;
         calloutSpeechActive=true;
         calloutResumePending=false;
         calloutSpeechEndedAt=0;
@@ -1237,6 +1239,7 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
           :1200;
         calloutSpeechUntil=Date.now()+estimatedMs;
         a.onended=()=>{
+          if(seq&&seq!==calloutSpeakSeq)return;
           calloutSpeechActive=false;
           calloutSpeechUntil=0;
           calloutSpeechEndedAt=Date.now();
@@ -1244,6 +1247,7 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
           maybeRunSoloAi();
         };
         a.onerror=()=>{
+          if(seq&&seq!==calloutSpeakSeq)return;
           calloutSpeechActive=false;
           calloutSpeechUntil=0;
           calloutSpeechEndedAt=Date.now();
@@ -1257,6 +1261,7 @@ async function playRecordedCalloutClip(clipKey='',gender='male'){
         await a.play();
         return true;
       }catch{
+        if(seq&&seq!==calloutSpeakSeq)return false;
         calloutSpeechActive=false;
         calloutSpeechUntil=0;
         calloutSpeechEndedAt=Date.now();
@@ -1271,6 +1276,17 @@ function speakCallout(text,gender='male',meta={}){
     const msg=String(text??'').trim();
     if(!msg)return;
     if(calloutVoiceMode==='off')return;
+    const speakSeq=++calloutSpeakSeq;
+    try{
+      window.speechSynthesis?.cancel?.();
+      if(iosSharedCalloutAudio){
+        iosSharedCalloutAudio.pause?.();
+        iosSharedCalloutAudio.currentTime=0;
+      }
+    }catch{}
+    calloutSpeechActive=false;
+    calloutSpeechUntil=0;
+    calloutResumePending=false;
     const g=String(gender??'male')==='female'?'female':'male';
     const seatNum=Number(meta?.seat);
     const seatKey=Number.isFinite(seatNum)?`s${(Math.trunc(seatNum)%4+4)%4}`:'sX';
@@ -1304,7 +1320,7 @@ function speakCallout(text,gender='male',meta={}){
       playTone(430,0.12,'square',0.055);
       playTone(590,0.13,'triangle',0.05,0.06);
     };
-    const tryRecorded=()=>playRecordedCalloutClip(clipKey,g);
+    const tryRecorded=()=>playRecordedCalloutClip(clipKey,g,speakSeq);
     const useTts=(calloutVoiceMode==='auto'||calloutVoiceMode==='tts');
     const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
     const recordedMatchesText=isCanonicalRecordedCalloutText(msg,clipKey);
@@ -1358,6 +1374,7 @@ function speakCallout(text,gender='male',meta={}){
       return set[0]??null;
     };
     const speakNow=()=>{
+      if(speakSeq!==calloutSpeakSeq)return;
       const u=new SpeechSynthesisUtterance(msg.replace(/[!!]/g,''));
       const pack=normalizeCalloutStylePack(calloutStylePack);
       const packRate=pack==='energetic'?0.76:pack==='minimal'?0.56:0.62;
@@ -1396,8 +1413,8 @@ function speakCallout(text,gender='male',meta={}){
       const estimatedMs=Math.max(120,Math.min(420,Math.round((msg.length*62)/Math.max(0.55,u.rate))));
       calloutSpeechActive=true;
       calloutSpeechUntil=Date.now()+estimatedMs;
-      u.onend=()=>{calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
-      u.onerror=()=>{calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
+      u.onend=()=>{if(speakSeq!==calloutSpeakSeq)return;calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
+      u.onerror=()=>{if(speakSeq!==calloutSpeakSeq)return;calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
       u.voice=voice;
       u.lang=String(voice.lang|| (state.language==='en'?'en-US':'yue-HK'));
       synth.resume?.();
