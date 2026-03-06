@@ -70,12 +70,6 @@ body {
   background:
     linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
     url('./backup/images/home-bg-desktop.jpg');
-  background:
-    linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
-    image-set(
-      url('./backup/images/home-bg-desktop.webp') type('image/webp') 1x,
-      url('./backup/images/home-bg-desktop.jpg') type('image/jpeg') 1x
-    );
   background-size: cover;
   background-position: center;
   overflow-x: hidden;
@@ -86,12 +80,6 @@ body {
     background:
       linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
       url('./backup/images/home-bg-tablet.jpg');
-    background:
-      linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
-      image-set(
-        url('./backup/images/home-bg-tablet.webp') type('image/webp') 1x,
-        url('./backup/images/home-bg-tablet.jpg') type('image/jpeg') 1x
-      );
     background-size: cover;
     background-position: center;
   }
@@ -101,12 +89,6 @@ body {
     background:
       linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
       url('./backup/images/home-bg-mobile.jpg');
-    background:
-      linear-gradient(rgba(13, 43, 45, 0.8), rgba(13, 43, 45, 0.8)),
-      image-set(
-        url('./backup/images/home-bg-mobile.webp') type('image/webp') 1x,
-        url('./backup/images/home-bg-mobile.jpg') type('image/jpeg') 1x
-      );
     background-size: cover;
     background-position: center;
   }
@@ -3944,18 +3926,50 @@ body[data-screen='game'] .avatar-status-badge.turn {
     0 0 12px rgba(68, 207, 103, .8);
 }
 body[data-screen='game'] .avatar-status-badge.warning {
-  width: auto;
-  height: auto;
+  right: -4px;
+  bottom: -4px;
+  left: auto;
+  width: 14px;
+  height: 14px;
   padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #ffd166;
-  box-shadow: none;
-  font-size: .95rem;
-  left: -6px;
-  right: auto;
-  bottom: -6px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,.94);
+  background: #ffcf5a;
+  color: transparent;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.52),
+    0 0 12px rgba(255, 207, 90, .86);
+  z-index: 7;
+  animation: lastCardBadgePulse 1.1s ease-in-out infinite;
+}
+body[data-screen='game'] .avatar-status-badge.warning::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 207, 90, .86);
+  box-shadow: 0 0 14px rgba(255, 207, 90, .52);
+  animation: lastCardOuterPulse 1.1s ease-out infinite;
+}
+body[data-screen='game'] .avatar-status-badge.warning.danger {
+  background: #ff5f66;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.52),
+    0 0 14px rgba(255, 95, 102, .92);
+}
+body[data-screen='game'] .avatar-status-badge.warning.danger::before {
+  border-color: rgba(255, 95, 102, .92);
+  box-shadow: 0 0 16px rgba(255, 95, 102, .58);
+}
+@keyframes lastCardBadgePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+@keyframes lastCardOuterPulse {
+  0% { transform: scale(0.94); opacity: .95; }
+  60% { transform: scale(1.18); opacity: .44; }
+  100% { transform: scale(1.28); opacity: 0; }
 }
 body[data-screen='game'] .seat-name-fixed .player-avatar.player-avatar-opponent {
   width: 38px !important;
