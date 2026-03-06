@@ -5034,6 +5034,68 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
   100% { transform: scale(1.04); opacity: 0; }
 }
 
+/* Landscape opponent callout placement:
+   W = under + right side, N = under center, E = under + left side. */
+@media (orientation: landscape) {
+  body[data-screen='game'] .seat.west .play-type-call-seat,
+  body[data-screen='game'] .seat.west .last-card-call-seat {
+    top: clamp(96px, 8.4vh + 30px, 126px) !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: -16px !important;
+    transform: none !important;
+  }
+  body[data-screen='game'] .seat.north .play-type-call-seat,
+  body[data-screen='game'] .seat.north .last-card-call-seat,
+  body[data-screen='game'] .seat.north .pass-call.play-type-call-seat {
+    top: clamp(64px, 4.8vh + 30px, 86px) !important;
+    bottom: auto !important;
+    left: clamp(72px, 14vw, 132px) !important;
+    right: auto !important;
+    transform: none !important;
+  }
+  body[data-screen='game'] .seat.east .play-type-call-seat,
+  body[data-screen='game'] .seat.east .last-card-call-seat {
+    top: clamp(96px, 8.4vh + 30px, 126px) !important;
+    bottom: auto !important;
+    left: -16px !important;
+    right: auto !important;
+    transform: none !important;
+  }
+
+  body[data-screen='game'] .seat.west .play-type-call-seat::after,
+  body[data-screen='game'] .seat.west .last-card-call-seat::after {
+    left: 14px !important;
+    right: auto !important;
+    top: -14px !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 18px !important;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%) !important;
+  }
+  body[data-screen='game'] .seat.north .play-type-call-seat::after,
+  body[data-screen='game'] .seat.north .last-card-call-seat::after,
+  body[data-screen='game'] .seat.north .pass-call.play-type-call-seat::after {
+    left: 22px !important;
+    right: auto !important;
+    top: -14px !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 18px !important;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%) !important;
+  }
+  body[data-screen='game'] .seat.east .play-type-call-seat::after,
+  body[data-screen='game'] .seat.east .last-card-call-seat::after {
+    left: auto !important;
+    right: 14px !important;
+    top: -14px !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 18px !important;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%) !important;
+  }
+}
+
 /* Final active highlight override: keep S/W/E clearly visible across media-query overrides. */
 body[data-screen='game'] .action-strip.active,
 body[data-screen='game'] .seat.west.active,

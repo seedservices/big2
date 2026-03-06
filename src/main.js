@@ -293,23 +293,23 @@ const KIND={
 };
 const CALLOUT_RESPONSE_TEXT={
   'zh-HK':{
-    pass:['大','唔跟','過。','呢鋪過。'],
-    last:['最後一張！','聽牌！','一張！','埋門一張！'],
+    pass:['大','唔跟','過。'],
+    last:['最後一張！','一張！','埋門一張！','準備找數💸','最後一張啦喂😉'],
     play:[
       (kind)=>`${kind}！`,
-      (kind)=>`${kind}，跟到。`,
+      (kind)=>`${kind}，跟！`,
       (kind)=>`${kind}，頂住。`,
-      (kind)=>`${kind}，壓你。`
+      (kind)=>`${kind}，大過你少少😏`
     ]
   },
   en:{
     pass:['Pass','No beat','I pass','Pass this round'],
-    last:['Last card!','One card left!','Match point!','Final card!'],
+    last:['Last card!','One card left!','Final card!','Get ready to pay up 💸','Last card, watch it 😉'],
     play:[
       (kind)=>`${kind}!`,
       (kind)=>`${kind}. Beat that.`,
       (kind)=>`${kind}. Holding.`,
-      (kind)=>`${kind}. Your move.`
+      (kind)=>`${kind}, just slightly higher than yours 😏`
     ]
   }
 };
@@ -480,7 +480,7 @@ function hashTextSeed(seed=''){
   }
   return h;
 }
-function buildResponseCalloutText(type,kind='',seed=''){
+function buildResponseCalloutText(type,kind='',seed='',meta={}){
   const lang=state.language==='en'?'en':'zh-HK';
   const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
   if(type==='pass'){
@@ -493,6 +493,7 @@ function buildResponseCalloutText(type,kind='',seed=''){
   if(type==='play'){
     const opts=bank.play??[];
     const label=kindLabel(kind);
+    if(Boolean(meta?.isRoundLead))return`${label}!`;
     if(!opts.length)return`${label}!`;
     let idx=hashTextSeed(`${seed}|play|${kind}`) % opts.length;
     let fmt=opts[idx];
@@ -1375,7 +1376,12 @@ function speakCallout(text,gender='male',meta={}){
     };
     const speakNow=()=>{
       if(speakSeq!==calloutSpeakSeq)return;
-      const u=new SpeechSynthesisUtterance(msg.replace(/[!!]/g,''));
+      const spokenMsg=msg
+        .replace(/\p{Extended_Pictographic}/gu,'')
+        .replace(/\uFE0F/gu,'')
+        .replace(/[!!]/g,'')
+        .trim();
+      const u=new SpeechSynthesisUtterance(spokenMsg||msg.replace(/[!!]/g,''));
       const pack=normalizeCalloutStylePack(calloutStylePack);
       const packRate=pack==='energetic'?0.76:pack==='minimal'?0.56:0.62;
       const femalePitch=pack==='energetic'?1.38:pack==='minimal'?1.18:1.28;
@@ -2577,7 +2583,13 @@ function currentLastCardSeat(v){
     return null;
   }
   if(lastCardCallState.historyLen>0&&history.length===lastCardCallState.historyLen&&lastCardCallState.text){
-    return lastCardCallState.seat;
+    if(now<=lastCardCallState.until)return lastCardCallState.seat;
+    lastCardCallState.text='';
+    lastCardCallState.until=0;
+    lastCardCallState.startedAt=0;
+    lastCardCallState.nonce='';
+    lastCardCallState.historyLen=0;
+    return null;
   }
   if(v.gameOver)return null;
   if(history.length<=lastCardProcessedHistoryLen)return null;
@@ -2620,12 +2632,27 @@ function currentPlayTypeCall(v){
   }
   const lastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&Array.isArray(e.cards)&&e.cards.length>=4);
   if(!lastPlay)return null;
+  const hist=v.history??[];
+  const playIdx=hist.lastIndexOf(lastPlay);
+  const isRoundLead=(()=>{
+    if(playIdx<=0)return true;
+    let passStreak=0;
+    for(let i=playIdx-1;i>=0;i--){
+      const e=hist[i];
+      if(e?.action==='pass'){
+        passStreak+=1;
+        continue;
+      }
+      if(e?.action==='play')return passStreak>=3;
+    }
+    return true;
+  })();
   const key=`${lastPlay.seat}-${lastPlay.kind}-${lastPlay.cards.map(cardId).join(',')}`;
   const now=Date.now();
   if(playTypeCallState.key!==key){
     playTypeCallState.key=key;
     playTypeCallState.seat=lastPlay.seat;
-    playTypeCallState.text=buildResponseCalloutText('play',lastPlay.kind,key);
+    playTypeCallState.text=buildResponseCalloutText('play',lastPlay.kind,key,{isRoundLead});
     playTypeCallState.until=now+1500;
     playTypeCallState.startedAt=now;
     playTypeCallState.nonce=newCalloutNonce();
@@ -2634,7 +2661,14 @@ function currentPlayTypeCall(v){
     clearCalloutStates('play');
     speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat),{clipKey:`kind-${String(lastPlay.kind||'').toLowerCase()}`,seat:lastPlay.seat});
   }
-  if(playTypeCallState.historyLen>0&&v.history.length===playTypeCallState.historyLen)return{seat:playTypeCallState.seat,text:playTypeCallState.text};
+  if(playTypeCallState.historyLen>0&&v.history.length===playTypeCallState.historyLen){
+    if(now<=playTypeCallState.until)return{seat:playTypeCallState.seat,text:playTypeCallState.text};
+    playTypeCallState.until=0;
+    playTypeCallState.startedAt=0;
+    playTypeCallState.nonce='';
+    playTypeCallState.historyLen=0;
+    return null;
+  }
   if(now>playTypeCallState.until)return null;
   return{seat:playTypeCallState.seat,text:playTypeCallState.text};
 }
@@ -2657,7 +2691,15 @@ function currentPassCall(v){
   }
   const latest=history[history.length-1];
   if(!latest||latest.action!=='pass'){
-    if(passCallState.historyLen>0&&history.length===passCallState.historyLen)return{seat:passCallState.seat,text:passCallState.text};
+    if(passCallState.historyLen>0&&history.length===passCallState.historyLen){
+      const now=Date.now();
+      if(now<=passCallState.until)return{seat:passCallState.seat,text:passCallState.text};
+      passCallState.until=0;
+      passCallState.startedAt=0;
+      passCallState.nonce='';
+      passCallState.historyLen=0;
+      return null;
+    }
     if(Date.now()>passCallState.until)return null;
     return{seat:passCallState.seat,text:passCallState.text};
   }
@@ -2675,7 +2717,14 @@ function currentPassCall(v){
     clearCalloutStates('pass');
     speakCallout(passCallState.text,seatGenderBySeat(v,latest.seat),{clipKey:'pass',seat:latest.seat});
   }
-  if(passCallState.historyLen>0&&history.length===passCallState.historyLen)return{seat:passCallState.seat,text:passCallState.text};
+  if(passCallState.historyLen>0&&history.length===passCallState.historyLen){
+    if(now<=passCallState.until)return{seat:passCallState.seat,text:passCallState.text};
+    passCallState.until=0;
+    passCallState.startedAt=0;
+    passCallState.nonce='';
+    passCallState.historyLen=0;
+    return null;
+  }
   if(now>passCallState.until)return null;
   return{seat:passCallState.seat,text:passCallState.text};
 }
