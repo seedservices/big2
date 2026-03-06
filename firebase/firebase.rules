@@ -3,86 +3,141 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /big2LeaderboardPlayers/{docId} {
       allow read: if true;
-      allow create, update: if isValidDoc(docId);
+      allow create: if isValidCreate(docId);
+      allow update: if isValidUpdate(docId);
       allow delete: if false;
     }
   }
 
-  function isValidDoc(docId) {
-    let d = request.resource.data;
-    let allowed = [
-      'id', 'name', 'email', 'gender',
-      'games', 'wins', 'totalScore',
-      'updatedAt', 'settings', 'picture'
+  function topLevelAllowedKeys() {
+    return [
+      'id',
+      'name',
+      'email',
+      'gender',
+      'picture',
+      'settings',
+      'totalScore',
+      'games',
+      'wins',
+      'updatedAt'
     ];
+  }
 
+  function settingsAllowedKeys() {
+    return [
+      'language',
+      'aiDifficulty',
+      'backColor',
+      'soundEnabled',
+      'calloutVoiceMode',
+      'voiceMode',
+      'gender',
+      'avatarChoice',
+      'theme'
+    ];
+  }
+
+  function isValidLanguage(v) {
+    return v == 'zh-HK' || v == 'en';
+  }
+
+  function isValidDifficulty(v) {
+    return v == 'easy' || v == 'normal' || v == 'hard';
+  }
+
+  function isValidBackColor(v) {
     return
-      d.keys().hasOnly(allowed) &&
+      v == 'blue' ||
+      v == 'red' ||
+      v == 'green' ||
+      v == 'gold' ||
+      v == 'purple';
+  }
 
-      // required identity + basic profile
+  function isValidVoiceMode(v) {
+    return
+      v == 'auto' ||
+      v == 'recorded' ||
+      v == 'tts' ||
+      v == 'off';
+  }
+
+  function isValidGender(v) {
+    return v == 'male' || v == 'female';
+  }
+
+  function isValidAvatarChoice(v) {
+    return v == 'male' || v == 'female' || v == 'google';
+  }
+
+  function isValidTheme(v) {
+    return
+      v == 'ocean' ||
+      v == 'emerald' ||
+      v == 'sunset' ||
+      v == 'slate' ||
+      v == 'aurora' ||
+      v == 'sand' ||
+      v == 'cyber';
+  }
+
+  function isValidSettings(s) {
+    return
+      s is map &&
+      s.keys().hasOnly(settingsAllowedKeys()) &&
+      (!('language' in s) || (s.language is string && isValidLanguage(s.language))) &&
+      (!('aiDifficulty' in s) || (s.aiDifficulty is string && isValidDifficulty(s.aiDifficulty))) &&
+      (!('backColor' in s) || (s.backColor is string && isValidBackColor(s.backColor))) &&
+      (!('soundEnabled' in s) || s.soundEnabled is bool) &&
+      (!('calloutVoiceMode' in s) || (s.calloutVoiceMode is string && isValidVoiceMode(s.calloutVoiceMode))) &&
+      (!('voiceMode' in s) || (s.voiceMode is string && isValidVoiceMode(s.voiceMode))) &&
+      (!('gender' in s) || (s.gender is string && isValidGender(s.gender))) &&
+      (!('avatarChoice' in s) || (s.avatarChoice is string && isValidAvatarChoice(s.avatarChoice))) &&
+      (!('theme' in s) || (s.theme is string && isValidTheme(s.theme)));
+  }
+
+  function isValidBody(docId, d) {
+    return
       d.id is string &&
       d.id == docId &&
       d.name is string &&
       d.name.size() >= 1 &&
       d.name.size() <= 32 &&
+
       (!('email' in d) || (d.email is string && d.email.size() <= 120)) &&
-      (!('gender' in d) || (d.gender is string && (d.gender == 'male' || d.gender == 'female'))) &&
+      (!('gender' in d) || (d.gender is string && isValidGender(d.gender))) &&
       (!('picture' in d) || (d.picture is string && d.picture.size() <= 1024)) &&
 
-      // scores
+      d.totalScore is int &&
+      d.totalScore >= 0 &&
+      d.totalScore <= 100000000 &&
       d.games is int &&
       d.games >= 0 &&
       d.games <= 100000 &&
       d.wins is int &&
       d.wins >= 0 &&
       d.wins <= d.games &&
-      d.totalScore is int &&
-      d.totalScore >= 0 &&
-      d.totalScore <= 100000000 &&
 
-      // timestamp window
       d.updatedAt is int &&
-      d.updatedAt >= request.time.toMillis() - 5 * 60 * 1000 &&
-      d.updatedAt <= request.time.toMillis() + 5 * 60 * 1000 &&
+      d.updatedAt >= request.time.toMillis() - 24 * 60 * 60 * 1000 &&
+      d.updatedAt <= request.time.toMillis() + 24 * 60 * 60 * 1000 &&
 
-      // optional settings map
-      (
-        !('settings' in d) ||
-        (
-          d.settings is map &&
-          d.settings.keys().hasOnly([
-            'language',
-            'aiDifficulty',
-            'backColor',
-            'soundEnabled',
-            'calloutVoiceMode',
-            'gender',
-            'avatarChoice'
-          ]) &&
-          (!('language' in d.settings) || (d.settings.language is string && (d.settings.language == 'zh-HK' || d.settings.language == 'en'))) &&
-          (!('aiDifficulty' in d.settings) || (d.settings.aiDifficulty is string && (d.settings.aiDifficulty == 'easy' || d.settings.aiDifficulty == 'normal' || d.settings.aiDifficulty == 'hard'))) &&
-          (!('backColor' in d.settings) || (d.settings.backColor is string && (
-            d.settings.backColor == 'blue' ||
-            d.settings.backColor == 'red' ||
-            d.settings.backColor == 'green' ||
-            d.settings.backColor == 'gold' ||
-            d.settings.backColor == 'purple'
-          ))) &&
-          (!('soundEnabled' in d.settings) || d.settings.soundEnabled is bool) &&
-          (!('calloutVoiceMode' in d.settings) || (d.settings.calloutVoiceMode is string && (
-            d.settings.calloutVoiceMode == 'auto' ||
-            d.settings.calloutVoiceMode == 'recorded' ||
-            d.settings.calloutVoiceMode == 'tts' ||
-            d.settings.calloutVoiceMode == 'off'
-          ))) &&
-          (!('gender' in d.settings) || (d.settings.gender is string && (d.settings.gender == 'male' || d.settings.gender == 'female'))) &&
-          (!('avatarChoice' in d.settings) || (d.settings.avatarChoice is string && (
-            d.settings.avatarChoice == 'male' ||
-            d.settings.avatarChoice == 'female' ||
-            d.settings.avatarChoice == 'google'
-          )))
-        )
-      );
+      (!('settings' in d) || isValidSettings(d.settings));
+  }
+
+  function isValidCreate(docId) {
+    let d = request.resource.data;
+    return
+      d.keys().hasOnly(topLevelAllowedKeys()) &&
+      isValidBody(docId, d);
+  }
+
+  function isValidUpdate(docId) {
+    let d = request.resource.data;
+    let changed = d.diff(resource.data).affectedKeys();
+    return
+      changed.hasOnly(topLevelAllowedKeys()) &&
+      isValidBody(docId, d);
   }
 }
-
