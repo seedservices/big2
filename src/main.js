@@ -390,6 +390,7 @@ let calloutResumePending=false;
 let calloutVoiceMode='auto'; // auto | recorded | tts | off
 const calloutAudioCache=new Map();
 let iosSharedCalloutAudio=null;
+let mobileTapAt=0;
 let orientationBlockActive=false;
 const BOT_PROFILES={
   zh:[
@@ -2693,7 +2694,6 @@ function bindGameEvents(v,arr){
       dragPopupTimer=window.setTimeout(()=>{dragPopupTimer=null;popupEl()?.classList.remove('show');},autoHideMs);
     }
   };
-  let mobileTapAt=0;
   const runPass=()=>{
     if(!v.canPass)return;
     state.recommendation=null;
