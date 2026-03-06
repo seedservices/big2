@@ -2028,8 +2028,8 @@ body[data-screen='game'] .topbar-right .control-row button {
 .seat.east .play-type-call-seat,
 .seat.east .last-card-call-seat {
   top: calc(14px + var(--callout-jy, 0px));
-  left: calc(98px + var(--callout-jx, 0px));
-  right: auto;
+  left: auto;
+  right: calc(8px - var(--callout-jx, 0px));
 }
 .play-type-call-self {
   top: calc(-112px + var(--callout-jy, 0px));
@@ -2053,10 +2053,10 @@ body[data-screen='game'] .topbar-right .control-row button {
 }
 .seat.east .play-type-call-seat::after,
 .seat.east .last-card-call-seat::after {
-  left: -18px;
-  right: auto;
+  left: auto;
+  right: -18px;
   top: 52%;
-  transform: translateY(-50%) rotate(22deg);
+  transform: translateY(-50%) rotate(-22deg);
 }
 .seat.north .play-type-call-seat::after,
 .seat.north .last-card-call-seat::after,
@@ -4042,8 +4042,6 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-count-tag {
 /* Active S/N/E/W: keep original baseline behavior globally. */
 body[data-screen='game'] .seat.active { background: inherit !important; }
 body[data-screen='game'] .seat.active::before { content: none; }
-body[data-screen='game'] .seat.north.active .seat-section,
-body[data-screen='game'] .seat.east.active .seat-section,
 body[data-screen='game'] .seat.west.active .seat-section {
   border: 0 !important;
   background: transparent !important;
@@ -4071,12 +4069,38 @@ body[data-screen='game'] .action-strip {
     0 1px 4px rgba(0,0,0,.1) !important;
 }
 body[data-screen='game'] .action-strip.active {
-  border-color: color-mix(in srgb, var(--player-color, #ffd166) 80%, transparent) !important;
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 96%, transparent) !important;
+  outline: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 78%, transparent) !important;
+  outline-offset: -2px;
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--player-color, #ffd166) 58%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 78%, transparent),
+    0 0 22px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent),
     inset 0 0 0 1px rgba(255,255,255,.18),
-    inset 0 0 14px color-mix(in srgb, var(--player-color, #ffd166) 26%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--player-color, #ffd166) 34%, transparent),
     0 1px 4px rgba(0,0,0,.1) !important;
+}
+/* Keep W/E active panel highlight visually aligned with South active strip. */
+body[data-screen='game'] .seat.west.active,
+body[data-screen='game'] .seat.east.active {
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 96%, transparent) !important;
+  outline: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 78%, transparent) !important;
+  outline-offset: -2px;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 78%, transparent),
+    0 0 22px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent),
+    inset 0 0 0 1px rgba(255,255,255,.18),
+    inset 0 0 16px color-mix(in srgb, var(--player-color, #ffd166) 34%, transparent),
+    0 1px 4px rgba(0,0,0,.1) !important;
+  border-radius: 12px;
+}
+body[data-screen='game'] .seat.west.active::before,
+body[data-screen='game'] .seat.east.active::before {
+  content: none !important;
+}
+body[data-screen='game'] .seat.west.active .seat-section,
+body[data-screen='game'] .seat.east.active .seat-section {
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 74%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent) !important;
 }
 body[data-screen='game'] .action-strip .control-row .game-cta-btn {
   display: inline-flex;
@@ -5008,5 +5032,33 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
   0% { transform: scale(.86); opacity: 0; }
   35% { opacity: 1; }
   100% { transform: scale(1.04); opacity: 0; }
-}
+}
+
+/* Final active highlight override: keep S/W/E clearly visible across media-query overrides. */
+body[data-screen='game'] .action-strip.active,
+body[data-screen='game'] .seat.west.active,
+body[data-screen='game'] .seat.east.active {
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 100%, transparent) !important;
+  outline: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 82%, transparent) !important;
+  outline-offset: -2px !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--player-color, #ffd166) 84%, transparent),
+    0 0 28px color-mix(in srgb, var(--player-color, #ffd166) 62%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, .22),
+    inset 0 0 18px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent),
+    0 2px 10px rgba(0, 0, 0, .24) !important;
+}
+
+body[data-screen='game'] .seat.west.active .seat-section,
+body[data-screen='game'] .seat.east.active .seat-section {
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 86%, transparent) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 44%, transparent),
+    inset 0 0 14px color-mix(in srgb, var(--player-color, #ffd166) 26%, transparent) !important;
+}
+
+body[data-screen='game'] .seat.west.active::before,
+body[data-screen='game'] .seat.east.active::before {
+  content: none !important;
+}
 
