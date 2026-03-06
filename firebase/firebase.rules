@@ -31,6 +31,7 @@ service cloud.firestore {
       'backColor',
       'soundEnabled',
       'calloutVoiceMode',
+      'calloutStylePack',
       'voiceMode',
       'gender',
       'avatarChoice',
@@ -62,6 +63,9 @@ service cloud.firestore {
       v == 'tts' ||
       v == 'off';
   }
+  function isValidCalloutStylePack(v) {
+    return v == 'classic' || v == 'energetic' || v == 'minimal';
+  }
 
   function isValidGender(v) {
     return v == 'male' || v == 'female';
@@ -91,6 +95,7 @@ service cloud.firestore {
       (!('backColor' in s) || (s.backColor is string && isValidBackColor(s.backColor))) &&
       (!('soundEnabled' in s) || s.soundEnabled is bool) &&
       (!('calloutVoiceMode' in s) || (s.calloutVoiceMode is string && isValidVoiceMode(s.calloutVoiceMode))) &&
+      (!('calloutStylePack' in s) || (s.calloutStylePack is string && isValidCalloutStylePack(s.calloutStylePack))) &&
       (!('voiceMode' in s) || (s.voiceMode is string && isValidVoiceMode(s.voiceMode))) &&
       (!('gender' in s) || (s.gender is string && isValidGender(s.gender))) &&
       (!('avatarChoice' in s) || (s.avatarChoice is string && isValidAvatarChoice(s.avatarChoice))) &&
