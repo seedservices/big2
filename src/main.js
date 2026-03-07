@@ -27,6 +27,9 @@ const I18N={
     config:'設定',
     soundFx:'音效',
     voiceMode:'報牌語音',
+    calloutDisplay:'報牌顯示',
+    calloutDisplayOn:'開',
+    calloutDisplayOff:'關',
     voiceAuto:'自動',
     voiceTts:'語音',
     voiceOff:'關',
@@ -167,6 +170,9 @@ const I18N={
     config:'Config',
     soundFx:'Sound Effects',
     voiceMode:'Callout Voice',
+    calloutDisplay:'Callout Display',
+    calloutDisplayOn:'On',
+    calloutDisplayOff:'Off',
     voiceAuto:'Auto',
     voiceTts:'TTS',
     voiceOff:'Off',
@@ -319,8 +325,74 @@ const app=document.getElementById('app');
 const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
-const FIREBASE_CONFIG={apiKey:'AIzaSyAY-Zci-r9FJ0ILKh4_VG7klRbXPBKy870',authDomain:'seed-services.firebaseapp.com',projectId:'seed-services',storageBucket:'seed-services.firebasestorage.app',messagingSenderId:'231791241940',appId:'1:231791241940:web:32a83b237a5c1cdf4ca941',measurementId:'G-BY9JCDFM79'};
-const FIRESTORE_LB_COLLECTION='big2LeaderboardPlayers';
+const ENV_PASSCODE='4Leaf';
+const APP_ENV=String(import.meta.env?.VITE_APP_ENV??'PROD').trim().toUpperCase();
+const FIREBASE_CONFIG_ENCODED_BY_ENV={
+  DEV:{
+    apiKey:'dQUfADVNDTxMPFclSBNfcgZVKCp/JFE+MHN7Dg00VhQ1Iy1NdFJR',
+    authDomain:'RykABUtHKRcXD1cpFk8AXT4AAwdHKQQRFhovCgw=',
+    projectId:'RykABUtHKRcXD1cpFg==',
+    storageBucket:'RykABUtHKRcXD1cpFk8AXT4AAwdHKRYVCUYtAgRIVTwV',
+    messagingSenderId:'Bn9UVl8FflFQXwB8',
+    appId:'BXZXUlcDdVRTUgV1UVFcQykHW1UGLV1SBAZ/UgBTV30GBQAALwRYUgU=',
+    measurementId:'c2EnOF9+DyEnKwN1'
+  },
+  UAT:{
+    apiKey:'dQUfADVNDTxMPFclSBNfcgZVKCp/JFE+MHN7Dg00VhQ1Iy1NdFJR',
+    authDomain:'RykABUtHKRcXD1cpFk8AXT4AAwdHKQQRFhovCgw=',
+    projectId:'RykABUtHKRcXD1cpFg==',
+    storageBucket:'RykABUtHKRcXD1cpFk8AXT4AAwdHKRYVCUYtAgRIVTwV',
+    messagingSenderId:'Bn9UVl8FflFQXwB8',
+    appId:'BXZXUlcDdVRTUgV1UVFcQykHW1UGLV1SBAZ/UgBTV30GBQAALwRYUgU=',
+    measurementId:'c2EnOF9+DyEnKwN1'
+  },
+  PROD:{
+    apiKey:'dQUfADVNDTxMPFclSBNfcgZVKCp/JFE+MHN7Dg00VhQ1Iy1NdFJR',
+    authDomain:'RykABUtHKRcXD1cpFk8AXT4AAwdHKQQRFhovCgw=',
+    projectId:'RykABUtHKRcXD1cpFg==',
+    storageBucket:'RykABUtHKRcXD1cpFk8AXT4AAwdHKRYVCUYtAgRIVTwV',
+    messagingSenderId:'Bn9UVl8FflFQXwB8',
+    appId:'BXZXUlcDdVRTUgV1UVFcQykHW1UGLV1SBAZ/UgBTV30GBQAALwRYUgU=',
+    measurementId:'c2EnOF9+DyEnKwN1'
+  }
+};
+const FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV={
+  DEV:'ViUCUypRLQEEFFYjBBMCZCAEGANGPw==',
+  UAT:'ViUCUypRLQEEFFYjBBMCZCAEGANGPw==',
+  PROD:'ViUCUypRLQEEFFYjBBMCZCAEGANGPw=='
+};
+function decodeEnvSecret(encoded){
+  const raw=String(encoded??'').trim();
+  if(!raw)return'';
+  try{
+    const bytes=atob(raw);
+    let out='';
+    for(let i=0;i<bytes.length;i+=1){
+      const p=ENV_PASSCODE.charCodeAt(i%ENV_PASSCODE.length);
+      out+=String.fromCharCode(bytes.charCodeAt(i)^p);
+    }
+    return out;
+  }catch{
+    return'';
+  }
+}
+function decodeFirebaseConfigByEnv(envName){
+  const safeEnv=['DEV','UAT','PROD'].includes(envName)?envName:'PROD';
+  const encoded=FIREBASE_CONFIG_ENCODED_BY_ENV[safeEnv]??FIREBASE_CONFIG_ENCODED_BY_ENV.PROD;
+  return{
+    apiKey:decodeEnvSecret(encoded.apiKey),
+    authDomain:decodeEnvSecret(encoded.authDomain),
+    projectId:decodeEnvSecret(encoded.projectId),
+    storageBucket:decodeEnvSecret(encoded.storageBucket),
+    messagingSenderId:decodeEnvSecret(encoded.messagingSenderId),
+    appId:decodeEnvSecret(encoded.appId),
+    measurementId:decodeEnvSecret(encoded.measurementId)
+  };
+}
+const FIREBASE_CONFIG=decodeFirebaseConfigByEnv(APP_ENV);
+const FIRESTORE_LB_COLLECTION=decodeEnvSecret(
+  FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[APP_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.PROD
+);
 const START_GAME_AD_SCRIPT_SRC='https://pl28802960.effectivegatecpm.com/46/03/bd/4603bdb57a28ceb1d4305aeb32284928.js';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
@@ -421,6 +493,7 @@ let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
 let calloutSpeakSeq=0;
 let turnLockUntil=0;
+let calloutDisplayEnabled=true;
 let calloutVoiceMode='auto'; // auto | recorded | tts | off
 let calloutStylePack='energetic'; // forced energetic
 const calloutAudioCache=new Map();
@@ -580,12 +653,12 @@ function mainPageLegalMiniHtml(){
     ?'本網站提供《鋤大D（Big Two）》網頁版遊戲體驗，目標是讓玩家在手機、平板與桌面裝置上，均可獲得一致、流暢且易上手的操作感受。平台設計重視對局節奏與資訊清晰度，透過直觀介面、即時狀態提示、玩法說明與計分展示，協助玩家快速理解牌局狀況並作出判斷。為提升整體可玩性，網站整合排行榜、個人設定、對戰紀錄與成績追蹤等功能，讓玩家可持續觀察自身表現，逐步優化出牌策略。系統亦會持續進行效能優化與介面調整，包括讀取速度、互動回饋、版面適配與穩定性改善，以維持長時間遊玩的舒適度。我們重視公平與品質，致力提供清晰、可靠且具持續更新能力的棋牌娛樂環境，讓新手與進階玩家都能在同一平台獲得良好體驗。'
     :'This website provides a browser-based Big Two experience, with the goal of delivering consistent, smooth, and easy-to-use gameplay across mobile phones, tablets, and desktop devices. The platform emphasizes match pacing and information clarity through intuitive UI, real-time status cues, gameplay guidance, and scoring display, helping players quickly understand table state and make decisions. To improve long-term playability, the site includes leaderboard, personal settings, match records, and performance tracking features, allowing players to monitor progress and refine strategy over time. The system is continuously optimized in areas such as loading performance, interaction feedback, responsive layout adaptation, and runtime stability to support comfortable extended play sessions. We prioritize fairness and quality, and remain committed to maintaining a clear, reliable, and continuously improving card-gaming environment for both new and experienced players.';
   const contact=zh
-    ?'如有查詢，請電郵至 seedservices32@gmail.com。'
-    :'For enquiries, email seedservices32@gmail.com.';
+    ?'如有查詢，請電郵至 4leafxbot@gmail.com。'
+    :'For enquiries, email 4leafxbot@gmail.com.';
   const terms=zh
     ?'使用本網站即表示你同意並接受以下條款：1) 你將以合法及公平方式使用本服務，不進行作弊、濫用、騷擾、惡意干擾或任何破壞系統穩定性的行為；2) 你不得使用外掛、自動化程式、爬蟲、模擬器腳本或其他非正常手段影響對局結果、排行數據或服務運作；3) 帳戶與個人資料須由使用者自行妥善管理，因裝置共享、帳戶外洩或第三方登入風險所造成之影響，使用者須自行承擔；4) 排行榜、戰績與相關統計以系統最終記錄為準，系統有權在發現異常時進行修正、重算或移除可疑資料；5) 我們可按需要調整功能、介面、規則、活動安排或服務內容，並可在維護、安全或法規要求下暫停、限制或終止部分功能；6) 對於因網絡狀態、裝置效能、瀏覽器差異、第三方服務中斷或不可抗力造成之延遲、錯誤、資料遺失或服務中斷，本網站不作任何明示或默示保證；7) 使用者使用本服務即代表理解並同意上述條款，若不同意，請停止使用本網站。'
     :'By using this website, you agree to the following terms: (1) you will use the service lawfully and fairly, and will not engage in cheating, abuse, harassment, malicious interference, or any activity that harms system stability; (2) you must not use plugins, automation tools, crawlers, scripted emulators, or other non-standard methods to influence match outcomes, leaderboard data, or service operation; (3) you are responsible for safeguarding your account and personal access, and any impact caused by shared devices, account leakage, or third-party sign-in risk remains your responsibility; (4) leaderboard records, match history, and related statistics are subject to final system records, and we reserve the right to correct, recalculate, or remove suspicious data when anomalies are detected; (5) we may update features, interface, rules, event arrangements, or service content as needed, and may suspend, restrict, or terminate certain functions for maintenance, security, legal, or compliance reasons; (6) we make no express or implied guarantee of uninterrupted service, and are not liable for delays, errors, data loss, or interruption caused by network conditions, device limitations, browser differences, third-party service outages, or force majeure; and (7) continued use of this service constitutes your understanding and acceptance of these terms. If you do not agree, please discontinue use of this website.';
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>。`:`For enquiries, email <a href="mailto:seedservices32@gmail.com">seedservices32@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
+  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:4leafxbot@gmail.com">4leafxbot@gmail.com</a>。`:`For enquiries, email <a href="mailto:4leafxbot@gmail.com">4leafxbot@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
 }
 const introText=()=>state.language==='en'
   ?{
@@ -716,6 +789,7 @@ function collectMainSettings(){
     aiDifficulty:['easy','normal','hard'].includes(state.home.aiDifficulty)?state.home.aiDifficulty:'normal',
     backColor:BACK_OPTIONS.some((x)=>x.value===state.home.backColor)?state.home.backColor:'red',
     soundEnabled:Boolean(sound.enabled),
+    calloutDisplayEnabled:Boolean(calloutDisplayEnabled),
     calloutVoiceMode:normalizeCalloutVoiceMode(calloutVoiceMode),
     calloutStylePack:normalizeCalloutStylePack(calloutStylePack),
     gender:state.home.gender==='female'?'female':'male',
@@ -731,6 +805,7 @@ function applyMainSettings(settings){
   const back=String(settings.backColor??'');
   if(BACK_OPTIONS.some((x)=>x.value===back))state.home.backColor=back;
   if(typeof settings.soundEnabled==='boolean')sound.enabled=Boolean(settings.soundEnabled);
+  if(typeof settings.calloutDisplayEnabled==='boolean')calloutDisplayEnabled=Boolean(settings.calloutDisplayEnabled);
   calloutVoiceMode=normalizeCalloutVoiceMode(settings.calloutVoiceMode);
   calloutStylePack=normalizeCalloutStylePack(settings.calloutStylePack);
   const gender=String(settings.gender??'');
@@ -2834,6 +2909,14 @@ function bindCalloutVoiceToggle(comboId){
     markComboActive(comboId,v);
   }));
 }
+function bindCalloutDisplayToggle(comboId){
+  document.querySelectorAll(`#${comboId} .combo-btn`).forEach((btn)=>btn.addEventListener('click',()=>{
+    const v=String(btn.getAttribute('data-value')??'');
+    if(v!=='on'&&v!=='off')return;
+    calloutDisplayEnabled=v==='on';
+    markComboActive(comboId,v);
+  }));
+}
 function renderHome(){
   const intro=introText();
   const signedIn=signedInForPlay();
@@ -2843,7 +2926,7 @@ function renderHome(){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo toggle-combo gender-image-combo" id="gender-combo"><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><img src="${maleAvatarSrc}" alt="${t('male')}"/></button><button class="combo-btn toggle-btn gender-image-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><img src="${femaleAvatarSrc}" alt="${t('female')}"/></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo" id="difficulty-combo"><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -2868,6 +2951,7 @@ function renderHome(){
   document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v)return;state.home.aiDifficulty=v;markComboActive('difficulty-combo',v);}));
   document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
   bindSoundToggle('sound-combo');
+  bindCalloutDisplayToggle('callout-display-combo');
   bindCalloutVoiceToggle('voice-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
@@ -2901,10 +2985,11 @@ function renderHome(){
   queueGoogleInlineRender();
 }
 function renderConfig(){
-  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid config-audio-voice-row"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="config-voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></section></section>`;
+  app.innerHTML=`<section class="home-wrap"><header class="topbar home-topbar"><div><h2>${t('config')}</h2></div><div class="topbar-right"><div class="control-row"><button id="config-back" class="secondary">${t('home')}</button><button id="config-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel"><div class="field-grid config-audio-voice-row"><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="config-sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="config-callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="config-voice-combo"><button class="combo-btn toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto">${t('voiceAuto')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='tts'?'active':''}" data-value="tts">${t('voiceTts')}</button><button class="combo-btn toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off">${t('voiceOff')}</button></div></label></div></section></section>`;
   document.getElementById('config-back')?.addEventListener('click',()=>{state.screen='home';render();});
   document.getElementById('config-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   bindSoundToggle('config-sound-combo');
+  bindCalloutDisplayToggle('config-callout-display-combo');
   bindCalloutVoiceToggle('config-voice-combo');
 }
 function renderGame(){
@@ -2953,6 +3038,7 @@ function renderGame(){
   const seatCalloutHtml=(seat,viewCls,color,isSelf=false)=>{
     const seatClass=isSelf?'play-type-call-self':'play-type-call-seat';
     const lastClass=isSelf?'last-card-call-self':'last-card-call-seat';
+    if(!calloutDisplayEnabled)return'';
     if(!activeCallout||activeCallout.seat!==seat)return'';
     if(activeCallout.kind==='pass'){
       const fresh='';
@@ -3336,6 +3422,8 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
+
+
 
 
 
