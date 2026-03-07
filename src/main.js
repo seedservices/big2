@@ -54,17 +54,20 @@ const I18N={
     nolog:'未有紀錄',
     rules:'規則重點',
     ruleItems:[
-      '開局第一手必須包含 ♦3。',
+      '開局第一手必須包含 ♦階磚3。',
       '可出：單張、一對、三條、或 5 張牌型。',
       '5 張牌型：蛇、花、俘佬、四條、同花順。',
-      '點數由 3 至 2；同點數比花色：♦ < ♣ < ♥ < ♠。',
+      '點數由 3 至 2；同點數比較花色：黑桃♠ > 紅心♥ > 梅花♣ > 階磚♦。',
+      '單張大小： 2 > A > K > ... > 3。',
+      '最大單張： 黑桃2（Spade 2）。',
+      '最小單張： 方塊3（Diamond 3）。',
       '只可跟出相同張數；5 張可用更高牌型壓較低牌型。',
       '其餘三家都過牌後，最後出牌者重新話事。',
       '有人剩 1 張時會提示「最後一張！」。',
       '當下家只剩 1 張牌時，上家若冇頂大而令下家出清，需兼負其餘兩家輸分。',
       '記分：所有人起始 5000 分。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
-      '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
+      '加乘罰則：持有任意 2 再 x2；持有 ♠黑桃2（頂大）再 x2，可疊乘。',
       '所有輸家扣分總和加到贏家。'
     ],
     wait:'等待出牌...',
@@ -74,7 +77,7 @@ const I18N={
     reveal:'完局攤牌',
     revealSub:'有人勝出，所有玩家餘牌如下：',
     drag:'可拖曳手牌重新排序',
-    must3:'首圈第一手必須包含階磚3。',
+    must3:'首圈第一手必須包含♦階磚3。',
     beat:'你所選牌未能大過上手。',
     cantPass:'話事中不可過牌。',
     retake:'重新話事。',
@@ -98,7 +101,7 @@ const I18N={
     scoreDeduct:'扣分',
     scoreGain:'加分',
     scoreAnyTwo:'有2',
-    scoreTopTwo:'有頂大♠2',
+    scoreTopTwo:'有頂大♠黑桃2',
     scoreChao2:'雙炒',
     scoreChao3:'三炒',
     scoreChao4:'四炒',
@@ -146,7 +149,7 @@ const I18N={
       '所有玩家起始 5000 分。',
       '有人出清手牌即勝出該局。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
-      '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
+      '加乘罰則：持有任意 2 再 x2；持有 ♠黑桃2（頂大）再 x2，可疊乘。',
       '最後一張規則：若上家冇頂大而令下家出清，上家需兼負其餘兩家輸分。',
       '所有輸家扣分總和加到贏家。'
     ]
@@ -197,17 +200,20 @@ const I18N={
     nolog:'No history yet',
     rules:'Rule Highlights',
     ruleItems:[
-      'Opening trick must include \u26663.',
+      'Opening trick must include \u2666Diamond 3.',
       'Valid plays: single, pair, triple, or 5-card hand.',
       '5-card hands: straight, flush, full house, four of a kind, straight flush.',
-      'Rank order is 3 up to 2; suit order is \u2666 < \u2663 < \u2665 < \u2660.',
+      'Rank order is 3 up to 2; for equal ranks, suit order is Spade \u2660 > Heart \u2665 > Club \u2663 > Diamond \u2666.',
+      'Single-card order: 2 > A > K > ... > 3.',
+      'Highest single: Spade 2 (\u2660Spade 2).',
+      'Lowest single: Diamond 3 (\u2666Diamond 3).',
       'You must follow the same card count; for 5-card hands, stronger hand types beat weaker ones.',
       'After three consecutive passes, the last player who played regains lead.',
       'A player with 1 card left triggers a "Last card!" warning.',
       'If next player has 1 card and you fail to top with your strongest card, and that player wins, you also absorb the other two losers\' deductions.',
       'Everyone starts at 5000 points.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
-      'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
+      'Multiplier penalties: holding any 2 applies x2; holding ♠Spade 2 (top 2) applies another x2; multipliers stack.',
       'Total deductions from all losers are added to the winner.'
     ],
     wait:'Waiting...',
@@ -217,7 +223,7 @@ const I18N={
     reveal:'Showdown',
     revealSub:'Winner decided. Remaining cards are revealed:',
     drag:'Drag cards to resequence your hand',
-    must3:'First turn must include \u26663.',
+    must3:'First turn must include \u2666Diamond 3.',
     beat:'Your selection does not beat last play.',
     cantPass:'Cannot pass while holding lead.',
     retake:'regains lead.',
@@ -241,7 +247,7 @@ const I18N={
     scoreDeduct:'Deduction',
     scoreGain:'Gain',
     scoreAnyTwo:'Has 2',
-    scoreTopTwo:'Has top ♠2',
+    scoreTopTwo:'Has top ♠Spade 2',
     scoreChao2:'Chao Two',
     scoreChao3:'Chao Three',
     scoreChao4:'Chao Four',
@@ -289,7 +295,7 @@ const I18N={
       'All players start at 5000 points.',
       'A round ends when one player empties their hand.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
-      'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
+      'Multiplier penalties: holding any 2 applies x2; holding ♠Spade 2 (top 2) applies another x2; multipliers stack.',
       'Last-card rule: if you fail to top against a next player on 1 card and they win, you also absorb the other two losers\' deductions.',
       'Total deductions from all losers are added to the winner.'
     ]
@@ -744,7 +750,8 @@ const introText=()=>state.language==='en'
       'Opening lead of the first round must contain {{3D}}.',
       'Follow play must match card count: single, pair, triple, or 5-card hand.',
       'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
-      'For equal ranks, compare suit order: ♦ < ♣ < ♥ < ♠.',
+      'For equal ranks, suit order is Spade ♠ > Heart ♥ > Club ♣ > Diamond ♦.',
+      'Single-card order: 2 > A > K > ... > 3 (highest: ♠Spade 2, lowest: ♦Diamond 3).',
       'After three consecutive passes, initiative returns to the last successful player.',
       'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
     ],
@@ -772,7 +779,8 @@ const introText=()=>state.language==='en'
       '首圈開局第一手必須包含 {{3D}}。',
       '跟牌必須跟相同張數：單張／一對／三條／五張牌型。',
       '五張牌型大小：蛇 < 花 < 俘佬 < 四條 < 同花順。',
-      '同點數比較花色：♦ < ♣ < ♥ < ♠。',
+      '同點數比較花色：黑桃♠ > 紅心♥ > 梅花♣ > 階磚♦。',
+      '單張大小：2 > A > K > ... > 3（最大單張：♠黑桃2；最小單張：♦階磚3）。',
       '連續三家過牌後，由最後有效出牌者重新話事。',
       '當你話事時，應平衡節奏控制與大牌保留，避免被對手一手出清。'
     ],
@@ -821,7 +829,8 @@ function introPanelHtml(){
   const it=introText();
   const formatIntroLine=(text)=>{
     const token='{{3D}}';
-    return colorizeSuitText(String(text??'').replaceAll(token,'♦3'));
+    const card3d=state.language==='en'?'♦Diamond 3':'♦階磚3';
+    return colorizeSuitText(String(text??'').replaceAll(token,card3d));
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
   return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
@@ -1219,15 +1228,8 @@ function computeLeaderboardRowsFromStore(store,period,sort,limit){
     return b.totalScore-a.totalScore||b.wins-a.wins||a.name.localeCompare(b.name);
   });
   const ranked=rows.map((r,i)=>({...r,rank:i+1}));
-  const topLimit=10;
-  const top=ranked.slice(0,topLimit);
-  const ids=new Set(top.map((r)=>r.id));
-  const me=currentLeaderboardIdentity();
-  const myIds=new Set(identityLookupIds(me));
-  const meRow=ranked.find((r)=>myIds.has(r.id))??null;
-  if(meRow&&!ids.has(meRow.id))top.push(meRow);
   void limit;
-  return top;
+  return ranked.slice(0,20);
 }
 async function refreshLeaderboardCloud(){
   if(!firebaseDb||leaderboardCloudRefreshInFlight)return;
@@ -1261,7 +1263,7 @@ function leaderboardPanelHtml(){
   const lb=state.home.leaderboard;
   const rows=lb.rows??[];
   const lx=lbText();
-  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">#${r.rank??'-'}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
+  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">${Number(r.rank)===1?'<span class="lb-medal lb-medal-gold" aria-hidden="true">🥇</span>':Number(r.rank)===2?'<span class="lb-medal lb-medal-silver" aria-hidden="true">🥈</span>':Number(r.rank)===3?'<span class="lb-medal lb-medal-bronze" aria-hidden="true">🥉</span>':'#'+(r.rank??'-')}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
@@ -1286,8 +1288,8 @@ function scoreGuideText(){
         ['12','x4','Chao Four'],
         ['13','x5','Big Chao']
       ],
-      anyTwo:'Holding any 2 card (♦2/♣2/♥2/♠2) applies x2.',
-      topTwo:'Holding ♠2 (top 2) applies an additional x2.',
+      anyTwo:'Holding any 2 card (♦Diamond 2/♣Club 2/♥Heart 2/♠Spade 2) applies x2.',
+      topTwo:'Holding ♠Spade 2 (top 2) applies an additional x2.',
       stack:'If multiple conditions apply, multipliers stack (multiply together).'
     }
       :{
@@ -1310,8 +1312,8 @@ function scoreGuideText(){
         ['12','x4','四炒'],
         ['13張','x5','大炒']
       ],
-      anyTwo:'持有任意 2（♦2/♣2/♥2/♠2）會套用 x2。',
-      topTwo:'持有 ♠2（頂大）會額外再套用 x2。',
+      anyTwo:'持有任意 2（♦階磚2/♣梅花2/♥紅心2/♠黑桃2）會套用 x2。',
+      topTwo:'持有 ♠黑桃2（頂大）會額外再套用 x2。',
       stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
     };
 }
@@ -1326,7 +1328,7 @@ function scoreGuideModalHtml(){
   const tableRows=sx.tableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const chaoTableRows=sx.chaoTableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
-  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
+  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠Spade 2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p class="score-guide-heading">${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p class="score-guide-summary">${esc(sx.summary)}</p></article></div></section></div>`;
 }
@@ -1985,7 +1987,12 @@ function selfAvatarDataUri(name,color,gender='male'){
 }
 const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
-const cmpCard=(a,b)=>a.rank-b.rank||a.suit-b.suit;
+const compareSingleCardPower=(a,b)=>a.rank-b.rank||a.suit-b.suit;
+const cmpCard=compareSingleCardPower;
+const HIGHEST_SINGLE={rank:12,suit:3}; // ♠黑桃2
+const LOWEST_SINGLE={rank:0,suit:0}; // ♦階磚3
+const isHighestSingle=(c)=>compareSingleCardPower(c,HIGHEST_SINGLE)===0;
+const isLowestSingle=(c)=>compareSingleCardPower(c,LOWEST_SINGLE)===0;
 
 function createDeck(){const d=[];for(let r=0;r<RANKS.length;r++)for(let s=0;s<SUITS.length;s++)d.push({rank:r,suit:s});return d;}
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
@@ -2037,14 +2044,14 @@ function canAnyOpponentBeatSingle(card,game,seat){
     if(i===seat)continue;
     const hand=game.players[i]?.hand??[];
     for(const c of hand){
-      if(c.rank>card.rank||(c.rank===card.rank&&c.suit>card.suit))return true;
+      if(compareSingleCardPower(c,card)>0)return true;
     }
   }
   return false;
 }
 function forceFinishPlanPlay(hand,game,seat){
   if(!Array.isArray(hand)||hand.length<2)return null;
-  const singles=[...hand].sort((a,b)=>b.rank-a.rank||b.suit-a.suit);
+  const singles=[...hand].sort((a,b)=>compareSingleCardPower(b,a));
   for(const s of singles){
     if(canAnyOpponentBeatSingle(s,game,seat))continue;
     const rem=[...hand];
@@ -2120,12 +2127,15 @@ function recommendPlayScore(play,ctx){
     }
     if(maxRank>=11&&startLen>4)score-=8;
     if(play.eval.count===1){
-      const cnt=beforeRankCount.get(play.cards[0].rank)??0;
+      const single=play.cards[0];
+      const cnt=beforeRankCount.get(single.rank)??0;
       if(cnt>1&&startLen>5)score-=14;
+      if(isHighestSingle(single)&&startLen>3)score-=16;
     }
   }else{
     score+=usedLen===1?-5:(usedLen===2?5:(usedLen===3?8:11));
     if(maxRank>=11&&startLen>5)score-=10;
+    if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
   }
 
   if(shouldForceMaxAgainstLastCard(game,seat)){
@@ -2268,8 +2278,9 @@ function chooseAiPlay(hand,game,diff){
     const breakSet=(c===1&&(rankCount.get(play.cards[0].rank)??0)>1&&handLen>5)?10:0;
     const tooEarlySingle=(c===1&&handLen>8)?4:0;
     const lowSingleBonus=(c===1&&low<=5&&breakSet===0)?2:0;
+    const bottomSingleBonus=(c===1&&isLowestSingle(play.cards[0]))?1:0;
     const closeoutBonus=(handLen<=5&&c>=2)?8:0;
-    return comboBase+kindBonus+lowSingleBonus+closeoutBonus-preserveHigh-breakSet-tooEarlySingle;
+    return comboBase+kindBonus+lowSingleBonus+bottomSingleBonus+closeoutBonus-preserveHigh-breakSet-tooEarlySingle;
   };
   const respondCost=(play)=>{
     const c=play.eval.count;
@@ -2278,6 +2289,7 @@ function chooseAiPlay(hand,game,diff){
     let cost=0;
     if(c===1&&rankDup>1&&handLen>5)cost+=12;
     if(high>=11&&handLen>4)cost+=8;
+    if(c===1&&isHighestSingle(play.cards[0])&&handLen>3)cost+=10;
     if(c===5)cost+=6;
     return cost;
   };
@@ -2999,7 +3011,7 @@ function resultScreenHtml(v,arr){
     const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
       <div class="result-main">
-        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-crown" aria-hidden="true">♛</span><span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
         <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
         ${detailLine}
       </div>
