@@ -14,3 +14,8 @@
 ## Screen General
 - Prevent scrollbar whenever possible
 - Maintain landscape mode and portrait mode separately, and make sure both works
+
+## Encoding Rule
+- Always save and edit source files in UTF-8.
+- Never write files in UTF-16, UTF-32, or ANSI/legacy encodings.
+- Preserve existing UTF-8 (with/without BOM) unless explicitly requested to change.
