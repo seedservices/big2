@@ -2102,6 +2102,16 @@ function handShapeMetrics(hand){
   const leadOptions=valid.length;
   return{pairs,triples,fives,highSingles,twos,topTwo,leadOptions};
 }
+function minOpponentCardCount(game,seat){
+  const players=Array.isArray(game?.players)?game.players:[];
+  let min=Infinity;
+  for(let i=0;i<players.length;i++){
+    if(i===seat)continue;
+    const cnt=Array.isArray(players[i]?.hand)?players[i].hand.length:Infinity;
+    if(cnt<min)min=cnt;
+  }
+  return Number.isFinite(min)?min:99;
+}
 function recommendPlayScore(play,ctx){
   const {hand,lastPlay,game,seat,orderedByWeak,canPass}=ctx;
   const rem=removeCardsFromHand(hand,play.cards);
@@ -2111,6 +2121,8 @@ function recommendPlayScore(play,ctx){
   const usedLen=play.eval.count;
   const beforeRankCount=new Map();
   for(const c of hand??[])beforeRankCount.set(c.rank,(beforeRankCount.get(c.rank)??0)+1);
+  const oppMin=minOpponentCardCount(game,seat);
+  const threat=oppMin<=2;
 
   let score=0;
   score+=(startLen-endLen)*48;
@@ -2124,8 +2136,13 @@ function recommendPlayScore(play,ctx){
   if(lastPlay){
     const idx=orderedByWeak.findIndex((x)=>x===play);
     if(idx>=0){
-      const conserve=Math.max(0,orderedByWeak.length-1-idx);
-      score+=conserve*3;
+      if(threat){
+        // Opponents are close to finishing: prefer stronger replies over conserving.
+        score+=idx*5;
+      }else{
+        const conserve=Math.max(0,orderedByWeak.length-1-idx);
+        score+=conserve*3;
+      }
     }
     if(maxRank>=11&&startLen>4)score-=8;
     if(play.eval.count===1){
@@ -2151,6 +2168,8 @@ function recommendPlayScore(play,ctx){
   if(endLen<=5)score+=(5-endLen)*14;
   if(endLen===0)score+=500;
   if(endLen===1||endLen===2||endLen===3)score+=26;
+  if(threat&&play.eval.count===5)score+=12;
+  if(threat&&play.eval.count===1)score+=6;
   if(!canPass&&lastPlay)score+=4;
   return score;
 }
@@ -2203,14 +2222,6 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
       best=p;
     }
   }
-  // Suggestion should mirror highest AI quality (hard mode) as closely as possible.
-  const hardPick=chooseAiPlay([...hand],sim,'hard');
-  if(hardPick){
-    const pickKey=moveKey(hardPick);
-    const matched=legal.find((p)=>moveKey(p)===pickKey)??hardPick;
-    matched.recommendScore=Number(scoreByKey.get(pickKey)??bestScore);
-    return matched;
-  }
   if(best)best.recommendScore=bestScore;
   return best;
 }
@@ -2231,6 +2242,7 @@ function shouldRecommendPass(hand,lastPlay,isFirstTrick,canPass,game){
   const passCtx={hand:[...hand],lastPlay,isFirstTrick,canPass,game:sim,seat};
   const playScore=Number(rec?.recommendScore??0);
   const passScore=recommendPassScore(passCtx,playScore);
+  if(minOpponentCardCount(sim,seat)<=2)return false;
   // Be conservative with pass hints when a legal play exists.
   return passScore>playScore+35;
 }
