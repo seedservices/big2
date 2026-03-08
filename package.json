@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "migrate:firestore": "node tools/firebase-firestore-migrate.mjs"
   },
   "devDependencies": {
     "prettier": "^3.3.1",
@@ -18,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "firebase-admin": "^13.0.2",
     "rg": "^0.0.2"
   }
 }

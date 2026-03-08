@@ -54,20 +54,17 @@ const I18N={
     nolog:'未有紀錄',
     rules:'規則重點',
     ruleItems:[
-      '開局第一手必須包含 ♦階磚3。',
+      '開局第一手必須包含 ♦3。',
       '可出：單張、一對、三條、或 5 張牌型。',
-      '5 張牌型：蛇、花、俘虜、四條、同花順。',
-      '點數由 3 至 2；同點數比較花色：黑桃♠ > 紅心♥ > 梅花♣ > 階磚♦。',
-      '單張大小： 2 > A > K > ... > 3。',
-      '最大單張： 黑桃2（Spade 2）。',
-      '最小單張： 方塊3（Diamond 3）。',
+      '5 張牌型：蛇、花、俘佬、四條、同花順。',
+      '點數由 3 至 2；同點數比花色：♦ < ♣ < ♥ < ♠。',
       '只可跟出相同張數；5 張可用更高牌型壓較低牌型。',
       '其餘三家都過牌後，最後出牌者重新話事。',
       '有人剩 1 張時會提示「最後一張！」。',
       '當下家只剩 1 張牌時，上家若冇頂大而令下家出清，需兼負其餘兩家輸分。',
       '記分：所有人起始 5000 分。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
-      '加乘罰則：持有任意 2 再 x2；持有 ♠黑桃2（頂大）再 x2，可疊乘。',
+      '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
       '所有輸家扣分總和加到贏家。'
     ],
     wait:'等待出牌...',
@@ -77,7 +74,7 @@ const I18N={
     reveal:'完局攤牌',
     revealSub:'有人勝出，所有玩家餘牌如下：',
     drag:'可拖曳手牌重新排序',
-    must3:'首圈第一手必須包含♦階磚3。',
+    must3:'首圈第一手必須包含階磚3。',
     beat:'你所選牌未能大過上手。',
     cantPass:'話事中不可過牌。',
     retake:'重新話事。',
@@ -85,7 +82,7 @@ const I18N={
     pair:'雙牌必須同點數。',
     triple:'三條必須同點數。',
     count:'只可出1、2、3或5張。',
-    five:'五張牌只接受蛇、花、俘虜、四條、同花順。',
+    five:'五張牌只接受蛇、花、俘佬、四條、同花順。',
     penalty:'輸家記牌',
     aiTag:'(AI)',
     wins:'勝出！',
@@ -101,7 +98,7 @@ const I18N={
     scoreDeduct:'扣分',
     scoreGain:'加分',
     scoreAnyTwo:'有2',
-    scoreTopTwo:'有頂大♠黑桃2',
+    scoreTopTwo:'有頂大♠2',
     scoreChao2:'雙炒',
     scoreChao3:'三炒',
     scoreChao4:'四炒',
@@ -149,7 +146,7 @@ const I18N={
       '所有玩家起始 5000 分。',
       '有人出清手牌即勝出該局。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
-      '加乘罰則：持有任意 2 再 x2；持有 ♠黑桃2（頂大）再 x2，可疊乘。',
+      '加乘罰則：持有任意 2 再 x2；持有 ♠2（頂大）再 x2，可疊乘。',
       '最後一張規則：若上家冇頂大而令下家出清，上家需兼負其餘兩家輸分。',
       '所有輸家扣分總和加到贏家。'
     ]
@@ -200,20 +197,17 @@ const I18N={
     nolog:'No history yet',
     rules:'Rule Highlights',
     ruleItems:[
-      'Opening trick must include \u2666Diamond 3.',
+      'Opening trick must include \u26663.',
       'Valid plays: single, pair, triple, or 5-card hand.',
       '5-card hands: straight, flush, full house, four of a kind, straight flush.',
-      'Rank order is 3 up to 2; for equal ranks, suit order is Spade \u2660 > Heart \u2665 > Club \u2663 > Diamond \u2666.',
-      'Single-card order: 2 > A > K > ... > 3.',
-      'Highest single: Spade 2 (\u2660Spade 2).',
-      'Lowest single: Diamond 3 (\u2666Diamond 3).',
+      'Rank order is 3 up to 2; suit order is \u2666 < \u2663 < \u2665 < \u2660.',
       'You must follow the same card count; for 5-card hands, stronger hand types beat weaker ones.',
       'After three consecutive passes, the last player who played regains lead.',
       'A player with 1 card left triggers a "Last card!" warning.',
       'If next player has 1 card and you fail to top with your strongest card, and that player wins, you also absorb the other two losers\' deductions.',
       'Everyone starts at 5000 points.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
-      'Multiplier penalties: holding any 2 applies x2; holding ♠Spade 2 (top 2) applies another x2; multipliers stack.',
+      'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
       'Total deductions from all losers are added to the winner.'
     ],
     wait:'Waiting...',
@@ -223,7 +217,7 @@ const I18N={
     reveal:'Showdown',
     revealSub:'Winner decided. Remaining cards are revealed:',
     drag:'Drag cards to resequence your hand',
-    must3:'First turn must include \u2666Diamond 3.',
+    must3:'First turn must include \u26663.',
     beat:'Your selection does not beat last play.',
     cantPass:'Cannot pass while holding lead.',
     retake:'regains lead.',
@@ -247,7 +241,7 @@ const I18N={
     scoreDeduct:'Deduction',
     scoreGain:'Gain',
     scoreAnyTwo:'Has 2',
-    scoreTopTwo:'Has top ♠Spade 2',
+    scoreTopTwo:'Has top ♠2',
     scoreChao2:'Chao Two',
     scoreChao3:'Chao Three',
     scoreChao4:'Chao Four',
@@ -295,44 +289,58 @@ const I18N={
       'All players start at 5000 points.',
       'A round ends when one player empties their hand.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
-      'Multiplier penalties: holding any 2 applies x2; holding ♠Spade 2 (top 2) applies another x2; multipliers stack.',
+      'Multiplier penalties: holding any 2 applies x2; holding ♠2 (top 2) applies another x2; multipliers stack.',
       'Last-card rule: if you fail to top against a next player on 1 card and they win, you also absorb the other two losers\' deductions.',
       'Total deductions from all losers are added to the winner.'
     ]
   }
 };
 const KIND={
-  'zh-HK':{single:'單張',pair:'一對',triple:'三條',straight:'蛇',flush:'花',fullhouse:'俘虜',fourofkind:'四條',straightflush:'同花順'},
+  'zh-HK':{single:'單張',pair:'一對',triple:'三條',straight:'蛇',flush:'花',fullhouse:'俘佬',fourofkind:'四條',straightflush:'同花順'},
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
 };
-const CALLOUT_RESPONSE_TEXT={
-  'zh-HK':{
-    pass:['大','唔跟','過。'],
-    last:['最後一張！','一張！','埋門一張！','準備找數💸','最後一張啦喂😉'],
-    play:[
-      (kind)=>`${kind}！`,
-      (kind)=>`${kind}，跟！`,
-      (kind)=>`${kind}，頂住。`,
-      (kind)=>`${kind}，大過你少少😏`
-    ]
+const CALLOUT_RESPONSE_TEXT = {
+  'zh-HK': {
+    pass: ['大', '唔跟', '唔去', '過'],
+    last: [
+      '最後一張！',
+      '淨翻一張！',
+      '埋門一腳！',
+      '準備找數💸',
+      '最後一張啦喂😉',
+    ],
+    play: [
+      (kind) => `${kind}！`,
+      (kind) => `${kind}，跟！`,
+      (kind) => `${kind}，頂住。`,
+      (kind) => `${kind}，大你少少😏`,
+      (kind) => `${kind}，大過你😏`,
+    ],
   },
-  en:{
-    pass:['Pass','No beat','I pass','Pass this round'],
-    last:['Last card!','One card left!','Final card!','Get ready to pay up 💸','Last card, watch it 😉'],
-    play:[
-      (kind)=>`${kind}!`,
-      (kind)=>`${kind}. Beat that.`,
-      (kind)=>`${kind}. Holding.`,
-      (kind)=>`${kind}, just slightly higher than yours 😏`
-    ]
-  }
+  en: {
+    pass: ['Pass', 'No beat', 'I pass', 'Pass this round'],
+    last: [
+      'Last card!',
+      'One card left!',
+      'Final card!',
+      'Get ready to pay up 💸',
+      'Last card, watch it 😉',
+    ],
+    play: [
+      (kind) => `${kind}!`,
+      (kind) => `${kind}. Beat that.`,
+      (kind) => `${kind}. Holding.`,
+      (kind) => `${kind}, just slightly higher than yours 😏`,
+    ],
+  },
 };
 const app=document.getElementById('app');
 const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
-const APP_ENV=String(import.meta.env?.VITE_APP_ENV??'PROD').trim().toUpperCase();
+const APP_ENV=String(import.meta.env?.ENV||'DEV').trim().toUpperCase();
+const EFFECTIVE_ENV=['DEV','UAT','PROD'].includes(APP_ENV)?APP_ENV:'DEV';
 const FIREBASE_CONFIG_ENCODED_BY_ENV={
   DEV:{
     apiKey:'dQUfADVNDTxMPFclSBNfcgZVKCp/JFE+MHN7Dg00VhQ1Iy1NdFJR',
@@ -383,8 +391,8 @@ function decodeEnvSecret(encoded){
   }
 }
 function decodeFirebaseConfigByEnv(envName){
-  const safeEnv=['DEV','UAT','PROD'].includes(envName)?envName:'PROD';
-  const encoded=FIREBASE_CONFIG_ENCODED_BY_ENV[safeEnv]??FIREBASE_CONFIG_ENCODED_BY_ENV.PROD;
+  const safeEnv=['DEV','UAT','PROD'].includes(envName)?envName:'DEV';
+  const encoded=FIREBASE_CONFIG_ENCODED_BY_ENV[safeEnv]??FIREBASE_CONFIG_ENCODED_BY_ENV.DEV;
   return{
     apiKey:decodeEnvSecret(encoded.apiKey),
     authDomain:decodeEnvSecret(encoded.authDomain),
@@ -395,11 +403,11 @@ function decodeFirebaseConfigByEnv(envName){
     measurementId:decodeEnvSecret(encoded.measurementId)
   };
 }
-const FIREBASE_CONFIG=decodeFirebaseConfigByEnv(APP_ENV);
+const FIREBASE_CONFIG=decodeFirebaseConfigByEnv(EFFECTIVE_ENV);
 const FIRESTORE_LB_COLLECTION=decodeEnvSecret(
-  FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[APP_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.PROD
+  FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[EFFECTIVE_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.DEV
 );
-const START_GAME_AD_SCRIPT_SRC='https://pl28802960.effectivegatecpm.com/46/03/bd/4603bdb57a28ceb1d4305aeb32284928.js';
+const START_GAME_AD_SCRIPT_SRC='https://pl28838410.effectivegatecpm.com/68/3a/41/683a4111a9f1f2f416b60a5957b5a704.js';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -576,7 +584,10 @@ function buildResponseCalloutText(type,kind='',seed='',meta={}){
     const label=kindLabel(kind);
     if(Boolean(meta?.isRoundLead))return`${label}!`;
     if(!opts.length)return`${label}!`;
-    let idx=hashTextSeed(`${seed}|play|${kind}`) % opts.length;
+    const forcedIdxRaw=Number(meta?.playVariantIndex);
+    let idx=Number.isFinite(forcedIdxRaw)
+      ?Math.max(0,Math.min(opts.length-1,Math.trunc(forcedIdxRaw)))
+      :hashTextSeed(`${seed}|play|${kind}`) % opts.length;
     let fmt=opts[idx];
     let out=typeof fmt==='function'?String(fmt(label)):String(fmt);
     if(opts.length>1&&out===String(playTypeCallState.text??'')){
@@ -634,6 +645,60 @@ function isCanonicalRecordedCalloutText(msg='',clipKey=''){
   }
   return false;
 }
+function deriveZhHkVariantClipKey(msg='',meta={}){
+  if(state.language!=='zh-HK')return'';
+  const norm=normalizeCalloutText(msg);
+  if(!norm)return'';
+  const bank=CALLOUT_RESPONSE_TEXT['zh-HK']??{};
+  const passList=Array.isArray(bank.pass)?bank.pass:[];
+  for(let i=0;i<passList.length;i+=1){
+    if(normalizeCalloutText(passList[i])===norm)return`line-pass-${i+1}`;
+  }
+  const lastList=Array.isArray(bank.last)?bank.last:[];
+  for(let i=0;i<lastList.length;i+=1){
+    if(normalizeCalloutText(lastList[i])===norm)return`line-last-${i+1}`;
+  }
+  const explicit=String(meta?.clipKey??'').trim().toLowerCase();
+  let kindKey='';
+  if(explicit.startsWith('kind-'))kindKey=explicit.slice(5);
+  if(!kindKey){
+    const zhKinds=KIND['zh-HK']??{};
+    for(const[k,v]of Object.entries(zhKinds)){
+      const label=normalizeCalloutText(v);
+      if(label&&norm.startsWith(label)){kindKey=k;break;}
+    }
+  }
+  if(!kindKey)return'';
+  const playTemplates=Array.isArray(bank.play)?bank.play:[];
+  const kindText=(KIND['zh-HK']?.[kindKey])??'';
+  if(!kindText)return'';
+  for(let i=0;i<playTemplates.length;i+=1){
+    const tpl=playTemplates[i];
+    const candidate=typeof tpl==='function'?String(tpl(kindText)):String(tpl??'');
+    if(normalizeCalloutText(candidate)===norm)return`line-kind-${kindKey}-${i+1}`;
+  }
+  return'';
+}
+function deriveZhHkComposedClipKeys(variantClipKey='',clipKey=''){
+  if(state.language!=='zh-HK')return[];
+  const key=String(variantClipKey??'').trim().toLowerCase();
+  const baseClip=String(clipKey??'').trim().toLowerCase();
+  if(!key||!baseClip.startsWith('kind-'))return[];
+  const match=/^line-kind-[a-z]+-(\d+)$/.exec(key);
+  if(!match)return[];
+  const variantNum=Number(match[1]);
+  if(!Number.isFinite(variantNum)||variantNum<1||variantNum>5)return[];
+  if(variantNum===1)return[baseClip];
+  const tailMap={
+    2:'line-play-tail-2',
+    3:'line-play-tail-3',
+    4:'line-play-tail-4',
+    5:'line-play-tail-5'
+  };
+  const tailKey=tailMap[variantNum]??'';
+  if(!tailKey)return[];
+  return[baseClip,tailKey];
+}
 const kindLabel=(k)=>KIND[state.language][k]??k;
 function setSoloStatus(message,{appendLog=true}={}){
   const g=state.solo;
@@ -679,8 +744,7 @@ const introText=()=>state.language==='en'
       'Opening lead of the first round must contain {{3D}}.',
       'Follow play must match card count: single, pair, triple, or 5-card hand.',
       'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
-      'For equal ranks, suit order is Spade ♠ > Heart ♥ > Club ♣ > Diamond ♦.',
-      'Single-card order: 2 > A > K > ... > 3 (highest: ♠Spade 2, lowest: ♦Diamond 3).',
+      'For equal ranks, compare suit order: ♦ < ♣ < ♥ < ♠.',
       'After three consecutive passes, initiative returns to the last successful player.',
       'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
     ],
@@ -707,9 +771,8 @@ const introText=()=>state.language==='en'
     playList:[
       '首圈開局第一手必須包含 {{3D}}。',
       '跟牌必須跟相同張數：單張／一對／三條／五張牌型。',
-      '五張牌型大小：蛇 < 花 < 俘虜 < 四條 < 同花順。',
-      '同點數比較花色：黑桃♠ > 紅心♥ > 梅花♣ > 階磚♦。',
-      '單張大小：2 > A > K > ... > 3（最大單張：♠黑桃2；最小單張：♦階磚3）。',
+      '五張牌型大小：蛇 < 花 < 俘佬 < 四條 < 同花順。',
+      '同點數比較花色：♦ < ♣ < ♥ < ♠。',
       '連續三家過牌後，由最後有效出牌者重新話事。',
       '當你話事時，應平衡節奏控制與大牌保留，避免被對手一手出清。'
     ],
@@ -749,7 +812,7 @@ function introHandSamples(){
     {name:'三條',desc:'3張同點數',cards:[card('7','\u2666'),card('7','\u2663'),card('7','\u2660')]},
     {name:'蛇',desc:'5張連續點數',cards:[card('6','\u2666'),card('7','\u2663'),card('8','\u2665'),card('9','\u2660'),card('10','\u2663')]},
     {name:'花',desc:'5張同花色',cards:[card('3','\u2665'),card('7','\u2665'),card('9','\u2665'),card('J','\u2665'),card('A','\u2665')]},
-    {name:'俘虜',desc:'三條 + 一對',cards:[card('Q','\u2663'),card('Q','\u2666'),card('Q','\u2660'),card('5','\u2665'),card('5','\u2663')]},
+    {name:'俘佬',desc:'三條 + 一對',cards:[card('Q','\u2663'),card('Q','\u2666'),card('Q','\u2660'),card('5','\u2665'),card('5','\u2663')]},
     {name:'四條',desc:'4張同點數 + 腳',cards:[card('8','\u2666'),card('8','\u2663'),card('8','\u2665'),card('8','\u2660'),card('2','\u2663')]},
     {name:'同花順',desc:'同花色 + 連續點數',cards:[card('5','\u2660'),card('6','\u2660'),card('7','\u2660'),card('8','\u2660'),card('9','\u2660')]}
   ];
@@ -758,8 +821,7 @@ function introPanelHtml(){
   const it=introText();
   const formatIntroLine=(text)=>{
     const token='{{3D}}';
-    const card3d=state.language==='en'?'♦Diamond 3':'♦階磚3';
-    return colorizeSuitText(String(text??'').replaceAll(token,card3d));
+    return colorizeSuitText(String(text??'').replaceAll(token,'♦3'));
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
   return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
@@ -1157,8 +1219,15 @@ function computeLeaderboardRowsFromStore(store,period,sort,limit){
     return b.totalScore-a.totalScore||b.wins-a.wins||a.name.localeCompare(b.name);
   });
   const ranked=rows.map((r,i)=>({...r,rank:i+1}));
+  const topLimit=10;
+  const top=ranked.slice(0,topLimit);
+  const ids=new Set(top.map((r)=>r.id));
+  const me=currentLeaderboardIdentity();
+  const myIds=new Set(identityLookupIds(me));
+  const meRow=ranked.find((r)=>myIds.has(r.id))??null;
+  if(meRow&&!ids.has(meRow.id))top.push(meRow);
   void limit;
-  return ranked.slice(0,20);
+  return top;
 }
 async function refreshLeaderboardCloud(){
   if(!firebaseDb||leaderboardCloudRefreshInFlight)return;
@@ -1192,7 +1261,7 @@ function leaderboardPanelHtml(){
   const lb=state.home.leaderboard;
   const rows=lb.rows??[];
   const lx=lbText();
-  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">${Number(r.rank)===1?'<span class="lb-medal lb-medal-gold" aria-hidden="true">🥇</span>':Number(r.rank)===2?'<span class="lb-medal lb-medal-silver" aria-hidden="true">🥈</span>':Number(r.rank)===3?'<span class="lb-medal lb-medal-bronze" aria-hidden="true">🥉</span>':'#'+(r.rank??'-')}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
+  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">#${r.rank??'-'}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
@@ -1217,8 +1286,8 @@ function scoreGuideText(){
         ['12','x4','Chao Four'],
         ['13','x5','Big Chao']
       ],
-      anyTwo:'Holding any 2 card (♦Diamond 2/♣Club 2/♥Heart 2/♠Spade 2) applies x2.',
-      topTwo:'Holding ♠Spade 2 (top 2) applies an additional x2.',
+      anyTwo:'Holding any 2 card (♦2/♣2/♥2/♠2) applies x2.',
+      topTwo:'Holding ♠2 (top 2) applies an additional x2.',
       stack:'If multiple conditions apply, multipliers stack (multiply together).'
     }
       :{
@@ -1241,8 +1310,8 @@ function scoreGuideText(){
         ['12','x4','四炒'],
         ['13張','x5','大炒']
       ],
-      anyTwo:'持有任意 2（♦階磚2/♣梅花2/♥紅心2/♠黑桃2）會套用 x2。',
-      topTwo:'持有 ♠黑桃2（頂大）會額外再套用 x2。',
+      anyTwo:'持有任意 2（♦2/♣2/♥2/♠2）會套用 x2。',
+      topTwo:'持有 ♠2（頂大）會額外再套用 x2。',
       stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
     };
 }
@@ -1257,7 +1326,7 @@ function scoreGuideModalHtml(){
   const tableRows=sx.tableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const chaoTableRows=sx.chaoTableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
-  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠Spade 2" class="score-guide-card-art"/>`;
+  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p class="score-guide-heading">${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p class="score-guide-summary">${esc(sx.summary)}</p></article></div></section></div>`;
 }
@@ -1273,9 +1342,11 @@ function deriveCalloutClipKey(msg='',meta={}){
   }
   return'generic';
 }
-async function playRecordedCalloutClip(clipKey='',gender='male',seq=0){
+async function playRecordedCalloutClip(clipKey='',gender='male',seq=0,opts={}){
   const key=String(clipKey??'').trim().toLowerCase();
   if(!key)return false;
+  const holdResume=Boolean(opts?.holdResume);
+  const waitForEnd=Boolean(opts?.waitForEnd);
   const lang=state.language==='en'?'en':'zh-HK';
   const g=String(gender??'male')==='female'?'female':'male';
   const pack=normalizeCalloutStylePack(calloutStylePack);
@@ -1314,6 +1385,14 @@ async function playRecordedCalloutClip(clipKey='',gender='male',seq=0){
         calloutSpeechActive=true;
         calloutResumePending=false;
         calloutSpeechEndedAt=0;
+        let settled=false;
+        let settlePlayback;
+        const playbackDone=waitForEnd?new Promise((resolve)=>{settlePlayback=resolve;}):null;
+        const finish=(ok)=>{
+          if(settled)return;
+          settled=true;
+          if(waitForEnd&&typeof settlePlayback==='function')settlePlayback(Boolean(ok));
+        };
         const estimatedMs=Number.isFinite(a.duration)&&a.duration>0
           ?Math.max(200,Math.min(2800,Math.round(a.duration*1000)))
           :1200;
@@ -1323,33 +1402,57 @@ async function playRecordedCalloutClip(clipKey='',gender='male',seq=0){
           calloutSpeechActive=false;
           calloutSpeechUntil=0;
           calloutSpeechEndedAt=Date.now();
-          calloutResumePending=true;
-          maybeRunSoloAi();
+          calloutResumePending=!holdResume;
+          if(!holdResume)maybeRunSoloAi();
+          finish(true);
         };
         a.onerror=()=>{
           if(seq&&seq!==calloutSpeakSeq)return;
           calloutSpeechActive=false;
           calloutSpeechUntil=0;
           calloutSpeechEndedAt=Date.now();
-          calloutResumePending=true;
-          maybeRunSoloAi();
+          calloutResumePending=!holdResume;
+          if(!holdResume)maybeRunSoloAi();
+          finish(false);
         };
         a.muted=false;
         a.volume=1;
         a.pause?.();
         a.currentTime=0;
         await a.play();
+        if(waitForEnd&&playbackDone){
+          const endedOk=await playbackDone;
+          return Boolean(endedOk);
+        }
         return true;
       }catch{
         if(seq&&seq!==calloutSpeakSeq)return false;
         calloutSpeechActive=false;
         calloutSpeechUntil=0;
         calloutSpeechEndedAt=Date.now();
+        calloutResumePending=!holdResume;
         // try next extension/name
       }
     }
   }
   return false;
+}
+async function playRecordedCalloutClipSequence(clipKeys=[],gender='male',seq=0){
+  const keys=(Array.isArray(clipKeys)?clipKeys:[])
+    .map((k)=>String(k??'').trim().toLowerCase())
+    .filter(Boolean);
+  if(!keys.length)return false;
+  let playedAny=false;
+  for(let i=0;i<keys.length;i+=1){
+    const isLast=i===keys.length-1;
+    const ok=await playRecordedCalloutClip(keys[i],gender,seq,{
+      holdResume:!isLast,
+      waitForEnd:!isLast
+    });
+    if(!ok)return playedAny;
+    playedAny=true;
+  }
+  return playedAny;
 }
 function speakCallout(text,gender='male',meta={}){
   try{
@@ -1376,6 +1479,9 @@ function speakCallout(text,gender='male',meta={}){
     lastSpokenCalloutKey=key;
     lastSpokenCalloutAt=now;
     const clipKey=deriveCalloutClipKey(msg,meta);
+    const variantClipKey=deriveZhHkVariantClipKey(msg,meta);
+    const composedClipKeys=deriveZhHkComposedClipKeys(variantClipKey,clipKey);
+    const effectiveClipKey=variantClipKey||clipKey;
     const calloutType=clipKey==='pass'
       ?'pass'
       :clipKey==='last'
@@ -1400,10 +1506,15 @@ function speakCallout(text,gender='male',meta={}){
       playTone(430,0.12,'square',0.055);
       playTone(590,0.13,'triangle',0.05,0.06);
     };
-    const tryRecorded=()=>playRecordedCalloutClip(clipKey,g,speakSeq);
+    const tryRecorded=()=>{
+      if(composedClipKeys.length){
+        return playRecordedCalloutClipSequence(composedClipKeys,g,speakSeq);
+      }
+      return playRecordedCalloutClip(effectiveClipKey,g,speakSeq);
+    };
     const useTts=(calloutVoiceMode==='auto'||calloutVoiceMode==='tts');
     const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
-    const recordedMatchesText=isCanonicalRecordedCalloutText(msg,clipKey);
+    const recordedMatchesText=Boolean(variantClipKey)||Boolean(composedClipKeys.length)||isCanonicalRecordedCalloutText(msg,clipKey);
     const forceExactTts=(useRecorded&&!recordedMatchesText);
 
     if(!window.speechSynthesis||typeof window.SpeechSynthesisUtterance==='undefined'){
@@ -1462,7 +1573,7 @@ function speakCallout(text,gender='male',meta={}){
         .trim();
       const u=new SpeechSynthesisUtterance(spokenMsg||msg.replace(/[!!]/g,''));
       const pack=normalizeCalloutStylePack(calloutStylePack);
-      const packRate=pack==='energetic'?0.76:pack==='minimal'?0.56:0.62;
+      const packRate=pack==='energetic'?0.835:pack==='minimal'?0.56:0.62;
       const femalePitch=pack==='energetic'?1.38:pack==='minimal'?1.18:1.28;
       const malePitch=pack==='energetic'?1.0:pack==='minimal'?0.84:0.92;
       const seatNum=Number(meta?.seat);
@@ -1874,12 +1985,7 @@ function selfAvatarDataUri(name,color,gender='male'){
 }
 const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-female':'avatar-male';
 const cardId=(c)=>`${c.rank}-${c.suit}`;
-const compareSingleCardPower=(a,b)=>a.rank-b.rank||a.suit-b.suit;
-const cmpCard=compareSingleCardPower;
-const HIGHEST_SINGLE={rank:12,suit:3}; // ♠黑桃2
-const LOWEST_SINGLE={rank:0,suit:0}; // ♦階磚3
-const isHighestSingle=(c)=>compareSingleCardPower(c,HIGHEST_SINGLE)===0;
-const isLowestSingle=(c)=>compareSingleCardPower(c,LOWEST_SINGLE)===0;
+const cmpCard=(a,b)=>a.rank-b.rank||a.suit-b.suit;
 
 function createDeck(){const d=[];for(let r=0;r<RANKS.length;r++)for(let s=0;s<SUITS.length;s++)d.push({rank:r,suit:s});return d;}
 function shuffle(d){for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
@@ -1931,14 +2037,14 @@ function canAnyOpponentBeatSingle(card,game,seat){
     if(i===seat)continue;
     const hand=game.players[i]?.hand??[];
     for(const c of hand){
-      if(compareSingleCardPower(c,card)>0)return true;
+      if(c.rank>card.rank||(c.rank===card.rank&&c.suit>card.suit))return true;
     }
   }
   return false;
 }
 function forceFinishPlanPlay(hand,game,seat){
   if(!Array.isArray(hand)||hand.length<2)return null;
-  const singles=[...hand].sort((a,b)=>compareSingleCardPower(b,a));
+  const singles=[...hand].sort((a,b)=>b.rank-a.rank||b.suit-a.suit);
   for(const s of singles){
     if(canAnyOpponentBeatSingle(s,game,seat))continue;
     const rem=[...hand];
@@ -2014,15 +2120,12 @@ function recommendPlayScore(play,ctx){
     }
     if(maxRank>=11&&startLen>4)score-=8;
     if(play.eval.count===1){
-      const single=play.cards[0];
-      const cnt=beforeRankCount.get(single.rank)??0;
+      const cnt=beforeRankCount.get(play.cards[0].rank)??0;
       if(cnt>1&&startLen>5)score-=14;
-      if(isHighestSingle(single)&&startLen>3)score-=16;
     }
   }else{
     score+=usedLen===1?-5:(usedLen===2?5:(usedLen===3?8:11));
     if(maxRank>=11&&startLen>5)score-=10;
-    if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
   }
 
   if(shouldForceMaxAgainstLastCard(game,seat)){
@@ -2076,14 +2179,25 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
     return comparePower(a.eval.power,b.eval.power);
   });
   const ctx={hand:[...hand],lastPlay,isFirstTrick,game:sim,seat,orderedByWeak:byWeak,canPass:Boolean(lastPlay)};
+  const moveKey=(p)=>`${(p?.cards??[]).map(cardId).sort().join(',')}|${String(p?.eval?.kind??'')}|${Number(p?.eval?.count??0)}`;
+  const scoreByKey=new Map();
   let best=null;
   let bestScore=-Infinity;
   for(const p of legal){
     const s=recommendPlayScore(p,ctx);
+    scoreByKey.set(moveKey(p),s);
     if(s>bestScore){
       bestScore=s;
       best=p;
     }
+  }
+  // Suggestion should mirror highest AI quality (hard mode) as closely as possible.
+  const hardPick=chooseAiPlay([...hand],sim,'hard');
+  if(hardPick){
+    const pickKey=moveKey(hardPick);
+    const matched=legal.find((p)=>moveKey(p)===pickKey)??hardPick;
+    matched.recommendScore=Number(scoreByKey.get(pickKey)??bestScore);
+    return matched;
   }
   if(best)best.recommendScore=bestScore;
   return best;
@@ -2105,7 +2219,8 @@ function shouldRecommendPass(hand,lastPlay,isFirstTrick,canPass,game){
   const passCtx={hand:[...hand],lastPlay,isFirstTrick,canPass,game:sim,seat};
   const playScore=Number(rec?.recommendScore??0);
   const passScore=recommendPassScore(passCtx,playScore);
-  return passScore>playScore+8;
+  // Be conservative with pass hints when a legal play exists.
+  return passScore>playScore+35;
 }
 function chooseAiPlay(hand,game,diff){
   let legal=legalTurnPlays(hand,game);
@@ -2153,9 +2268,8 @@ function chooseAiPlay(hand,game,diff){
     const breakSet=(c===1&&(rankCount.get(play.cards[0].rank)??0)>1&&handLen>5)?10:0;
     const tooEarlySingle=(c===1&&handLen>8)?4:0;
     const lowSingleBonus=(c===1&&low<=5&&breakSet===0)?2:0;
-    const bottomSingleBonus=(c===1&&isLowestSingle(play.cards[0]))?1:0;
     const closeoutBonus=(handLen<=5&&c>=2)?8:0;
-    return comboBase+kindBonus+lowSingleBonus+bottomSingleBonus+closeoutBonus-preserveHigh-breakSet-tooEarlySingle;
+    return comboBase+kindBonus+lowSingleBonus+closeoutBonus-preserveHigh-breakSet-tooEarlySingle;
   };
   const respondCost=(play)=>{
     const c=play.eval.count;
@@ -2164,7 +2278,6 @@ function chooseAiPlay(hand,game,diff){
     let cost=0;
     if(c===1&&rankDup>1&&handLen>5)cost+=12;
     if(high>=11&&handLen>4)cost+=8;
-    if(c===1&&isHighestSingle(play.cards[0])&&handLen>3)cost+=10;
     if(c===5)cost+=6;
     return cost;
   };
@@ -2715,6 +2828,37 @@ function setRecommendHint(msg=''){
     recommendHintTimer=window.setTimeout(()=>{recommendHintTimer=null;state.recommendHint='';render();},2200);
   }
 }
+function pickPlayCalloutVariant(lastPlay,hist,playIdx,isRoundLead){
+  if(isRoundLead)return 0;
+  const currentEval=evaluatePlay(Array.isArray(lastPlay?.cards)?lastPlay.cards:[]);
+  if(!currentEval?.valid)return 1;
+  let prevPlay=null;
+  for(let i=playIdx-1;i>=0;i-=1){
+    const e=hist[i];
+    if(e?.action==='play'&&Array.isArray(e.cards)&&e.cards.length){
+      prevPlay=e;
+      break;
+    }
+  }
+  if(!prevPlay)return 1;
+  const prevEval=evaluatePlay(prevPlay.cards);
+  if(!prevEval?.valid)return 1;
+  const samePattern=currentEval.count===prevEval.count&&currentEval.kind===prevEval.kind;
+  if(samePattern){
+    const topNow=Number(currentEval.power?.[currentEval.power.length-1]??0);
+    const topPrev=Number(prevEval.power?.[prevEval.power.length-1]??0);
+    const topGap=Math.abs(topNow-topPrev);
+    if(topGap<=1)return 3; // `${kind}，大你少少😏`
+    if(topGap>=4)return 4; // `${kind}，大過你😏`
+    return 1; // `${kind}，跟！`
+  }
+  if(currentEval.count===5&&prevEval.count===5){
+    const nowKind=Number(FIVE_KIND_POWER[currentEval.kind]??0);
+    const prevKind=Number(FIVE_KIND_POWER[prevEval.kind]??0);
+    if(nowKind>prevKind)return 4; // stronger class overtake
+  }
+  return 2; // `${kind}，頂住。`
+}
 function currentPlayTypeCall(v){
   if(v.gameOver)return'';
   if(playTypeCallState.historyLen>0&&v.history.length>playTypeCallState.historyLen){
@@ -2743,9 +2887,10 @@ function currentPlayTypeCall(v){
   const key=`${lastPlay.seat}-${lastPlay.kind}-${lastPlay.cards.map(cardId).join(',')}`;
   const now=Date.now();
   if(playTypeCallState.key!==key){
+    const playVariantIndex=pickPlayCalloutVariant(lastPlay,hist,playIdx,isRoundLead);
     playTypeCallState.key=key;
     playTypeCallState.seat=lastPlay.seat;
-    playTypeCallState.text=buildResponseCalloutText('play',lastPlay.kind,key,{isRoundLead});
+    playTypeCallState.text=buildResponseCalloutText('play',lastPlay.kind,key,{isRoundLead,playVariantIndex});
     playTypeCallState.until=now+1500;
     playTypeCallState.startedAt=now;
     playTypeCallState.nonce=newCalloutNonce();
@@ -2854,7 +2999,7 @@ function resultScreenHtml(v,arr){
     const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
       <div class="result-main">
-        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-crown" aria-hidden="true">♛</span><span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
         <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
         ${detailLine}
       </div>
@@ -2891,8 +3036,33 @@ function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
+let lastStartGameAdAt=0;
 function triggerStartGameAd(){
-  // Popunder is loaded globally in index.html and handles click binding itself.
+  const now=Date.now();
+  if(now-lastStartGameAdAt<1200)return;
+  lastStartGameAdAt=now;
+  try{
+    const frame=document.createElement('iframe');
+    frame.setAttribute('aria-hidden','true');
+    frame.setAttribute('tabindex','-1');
+    frame.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');
+    frame.style.position='fixed';
+    frame.style.width='1px';
+    frame.style.height='1px';
+    frame.style.border='0';
+    frame.style.opacity='0';
+    frame.style.pointerEvents='none';
+    frame.style.left='-9999px';
+    frame.style.top='-9999px';
+    document.body.appendChild(frame);
+    const doc=frame.contentWindow?.document;
+    if(doc){
+      doc.open();
+      doc.write(`<!doctype html><html><head><meta charset="utf-8"></head><body><script async src="${START_GAME_AD_SCRIPT_SRC}"><\/script></body></html>`);
+      doc.close();
+    }
+    window.setTimeout(()=>{frame.remove();},4000);
+  }catch{}
 }
 function setSoundEnabled(on){
   const enabled=Boolean(on);
@@ -2967,7 +3137,6 @@ function renderHome(){
   bindCalloutVoiceToggle('voice-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
-    triggerStartGameAd();
     unlockAudio();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
@@ -3269,18 +3438,21 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{
     triggerStartGameAd();
+    await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
     triggerStartGameAd();
+    await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
     triggerStartGameAd();
+    await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
@@ -3390,6 +3562,7 @@ function bindGameEvents(v,arr){
 
 function render(){
   applyTheme();
+  document.title=EFFECTIVE_ENV==='PROD'?`${t('title')}`:`${t('title')} - ${EFFECTIVE_ENV}`;
   document.body.setAttribute('data-screen',state.screen);
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
@@ -3434,9 +3607,3 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
-
-
-
-
-
-
