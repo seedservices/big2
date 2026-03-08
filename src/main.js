@@ -3066,14 +3066,9 @@ function triggerStartGameAd(){
     frame.style.pointerEvents='none';
     frame.style.left='-9999px';
     frame.style.top='-9999px';
+    frame.srcdoc=`<!doctype html><html><head><meta charset="utf-8"></head><body><script async src="${START_GAME_AD_SCRIPT_SRC}"><\/script></body></html>`;
     document.body.appendChild(frame);
-    const doc=frame.contentWindow?.document;
-    if(doc){
-      doc.open();
-      doc.write(`<!doctype html><html><head><meta charset="utf-8"></head><body><script async src="${START_GAME_AD_SCRIPT_SRC}"><\/script></body></html>`);
-      doc.close();
-    }
-    window.setTimeout(()=>{frame.remove();},4000);
+    window.setTimeout(()=>{frame.remove();},12000);
   }catch{}
 }
 function setSoundEnabled(on){
@@ -3456,14 +3451,12 @@ function bindGameEvents(v,arr){
     startSoloGame();
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
-    triggerStartGameAd();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
-    triggerStartGameAd();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');

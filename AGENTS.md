@@ -14,6 +14,8 @@
 ## Screen General
 - Prevent scrollbar whenever possible
 - Maintain landscape mode and portrait mode separately, and make sure both works
+- On game screen only, clicking the "start new game" button should trigger popunder ad; do not trigger ad from other buttons/screens.
+- Popunder ad script must run only inside a hidden sandbox iframe, never on the main game page (to avoid unwanted ad opens on normal clicks).
 
 ## Encoding Rule
 - Always save and edit source files in UTF-8.
