@@ -14,8 +14,11 @@
 ## Screen General
 - Prevent scrollbar whenever possible
 - Maintain landscape mode and portrait mode separately, and make sure both works
-- On game screen only, clicking the "start new game" button should trigger popunder ad; do not trigger ad from other buttons/screens.
-- Popunder ad script must run only inside a hidden sandbox iframe, never on the main game page (to avoid unwanted ad opens on normal clicks).
+
+## Ad
+- On game screen only, clicking the "start new game" button should open Smart Link in a new page; do not trigger ad from other buttons/screens.
+- Social Bar script is: <script src="https://pl28802960.effectivegatecpm.com/46/03/bd/4603bdb57a28ceb1d4305aeb32284928.js"></script>
+- Smart Link is: https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a
 
 ## Encoding Rule
 - Always save and edit source files in UTF-8.

@@ -413,7 +413,7 @@ const FIREBASE_CONFIG=decodeFirebaseConfigByEnv(EFFECTIVE_ENV);
 const FIRESTORE_LB_COLLECTION=decodeEnvSecret(
   FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[EFFECTIVE_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.DEV
 );
-const START_GAME_AD_SCRIPT_SRC='https://pl28838410.effectivegatecpm.com/68/3a/41/683a4111a9f1f2f416b60a5957b5a704.js';
+const START_GAME_SMART_LINK='https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a';
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -3049,26 +3049,12 @@ function renderBackCombo(){
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 let lastStartGameAdAt=0;
-function triggerStartGameAd(){
+function triggerStartGameSmartLink(){
   const now=Date.now();
   if(now-lastStartGameAdAt<1200)return;
   lastStartGameAdAt=now;
   try{
-    const frame=document.createElement('iframe');
-    frame.setAttribute('aria-hidden','true');
-    frame.setAttribute('tabindex','-1');
-    frame.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');
-    frame.style.position='fixed';
-    frame.style.width='1px';
-    frame.style.height='1px';
-    frame.style.border='0';
-    frame.style.opacity='0';
-    frame.style.pointerEvents='none';
-    frame.style.left='-9999px';
-    frame.style.top='-9999px';
-    frame.srcdoc=`<!doctype html><html><head><meta charset="utf-8"></head><body><script async src="${START_GAME_AD_SCRIPT_SRC}"><\/script></body></html>`;
-    document.body.appendChild(frame);
-    window.setTimeout(()=>{frame.remove();},12000);
+    window.open(START_GAME_SMART_LINK,'_blank','noopener,noreferrer');
   }catch{}
 }
 function setSoundEnabled(on){
@@ -3444,7 +3430,7 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{
-    triggerStartGameAd();
+    triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
