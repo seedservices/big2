@@ -414,6 +414,8 @@ const FIRESTORE_LB_COLLECTION=decodeEnvSecret(
   FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[EFFECTIVE_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.DEV
 );
 const START_GAME_SMART_LINK='https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a';
+const GAME_START_TS_CACHE_KEY='big2.game.start_ts.v1';
+const GAME_START_TS_AD_WINDOW_MS=60*60*1000;
 const THEMES={
   ocean:{'--bg-a':'#071a2f','--bg-b':'#0f4469','--bg-c':'#15808f','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(7,22,34,0.62)','--table-a':'#17334f','--table-b':'#1f4468','--table-c':'#1c4262','--seat-a':'rgba(17,44,70,.82)','--seat-b':'rgba(9,33,55,.78)','--line-a':'rgba(126,177,215,.6)','--line-b':'rgba(126,177,215,.35)','--center-a':'rgba(19,88,49,.92)','--center-b':'rgba(12,63,35,.9)','--accent':'#f4a259','--danger':'#ef476f','--ok':'#52d273'},
   emerald:{'--bg-a':'#08261f','--bg-b':'#0f5a43','--bg-c':'#168f6a','--panel':'rgba(255,255,255,0.08)','--panel-2':'rgba(6,31,23,0.64)','--table-a':'#0e3a2e','--table-b':'#13614a','--table-c':'#15795a','--seat-a':'rgba(11,57,41,.82)','--seat-b':'rgba(8,40,29,.78)','--line-a':'rgba(120,196,156,.6)','--line-b':'rgba(120,196,156,.35)','--center-a':'rgba(23,103,62,.92)','--center-b':'rgba(13,73,44,.9)','--accent':'#f6c453','--danger':'#e95f6f','--ok':'#7ad97a'},
@@ -2448,7 +2450,7 @@ function lockTurnProgress(ms=0){
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';markGameStartedInCache();playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
@@ -2463,6 +2465,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
   if(g.players[seat].hand.length===0){
     lockTurnProgress(900);
     g.gameOver=true;
+    markGameEndedInCache();
     const details=g.players.map((p,i)=>i===seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(p.hand));
     let deductions=details.map((d)=>d.deduction);
     if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat){
@@ -3049,6 +3052,38 @@ function renderBackCombo(){
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 let lastStartGameAdAt=0;
+function readGameStartTsCache(){
+  try{
+    const raw=localStorage.getItem(GAME_START_TS_CACHE_KEY);
+    if(!raw)return null;
+    const ts=Number(raw);
+    if(!Number.isFinite(ts)||ts<=0)return null;
+    return ts;
+  }catch{
+    return null;
+  }
+}
+function writeGameStartTsCache(ts){
+  try{
+    localStorage.setItem(GAME_START_TS_CACHE_KEY,String(ts));
+  }catch{}
+}
+function markGameStartedInCache(){
+  writeGameStartTsCache(Date.now());
+}
+function markGameEndedInCache(){
+  try{
+    localStorage.removeItem(GAME_START_TS_CACHE_KEY);
+  }catch{}
+}
+function shouldOpenAdBeforeStartingNewGame(){
+  const ts=readGameStartTsCache();
+  if(!ts)return false;
+  const age=Date.now()-ts;
+  if(age>=0&&age<=GAME_START_TS_AD_WINDOW_MS)return true;
+  markGameEndedInCache();
+  return false;
+}
 function triggerStartGameSmartLink(){
   const now=Date.now();
   if(now-lastStartGameAdAt<1200)return;
@@ -3131,6 +3166,7 @@ function renderHome(){
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
     unlockAudio();
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
     initFirebaseIfReady();
@@ -3394,7 +3430,14 @@ function bindGameEvents(v,arr){
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
-  document.getElementById('home-btn')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
+  document.getElementById('home-btn')?.addEventListener('click',()=>{
+    if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+    state.screen='home';
+    state.selected.clear();
+    state.recommendation=null;
+    setRecommendHint('');
+    render();
+  });
   document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('log-toggle')?.addEventListener('click',(ev)=>{
@@ -3430,19 +3473,21 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{
-    triggerStartGameSmartLink();
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
