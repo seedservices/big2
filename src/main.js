@@ -322,6 +322,14 @@ const CALLOUT_RESPONSE_TEXT = {
       (kind) => `${kind}，大你少少😏`,
       (kind) => `${kind}，大過你😏`,
     ],
+    winner: [
+      '\u591A\u8B1D\u5404\u4F4D\u652F\u6301\u3002',
+      '\u904B\u6C23\u597D\u5587\u3002',
+      '\u4ECA\u65E5\u624B\u6C23\u5E7E\u9806\u3002',
+      '\u4ECA\u665A\u98DF\u597D\u5572\u3002',
+      '\u8D0F\u5230\u8CB7\u5976\u8336\u3002',
+    ],
+    winnerRepeat: '\u5514\u597D\u610F\u601D\uff0c\u53C8\u4FC2\u6211\u3002',
   },
   en: {
     pass: ['Pass', 'No beat', 'I pass', 'Pass this round'],
@@ -338,6 +346,14 @@ const CALLOUT_RESPONSE_TEXT = {
       (kind) => `${kind}. Holding.`,
       (kind) => `${kind}, just slightly higher than yours 😏`,
     ],
+    winner: [
+      'Thank you all for the support.',
+      'Just got lucky.',
+      'My luck is pretty good today.',
+      'Dinner is better tonight.',
+      'I won enough for bubble tea.',
+    ],
+    winnerRepeat: 'Sorry, me again.',
   },
 };
 const app=document.getElementById('app');
@@ -567,6 +583,7 @@ const normalizeCalloutStylePack=(v)=>{
   void v;
   return 'energetic';
 };
+const winnerCalloutWinsByName=new Map();
 
 const t=(k)=>I18N[state.language][k]??k;
 function hashTextSeed(seed=''){
@@ -614,6 +631,20 @@ function buildResponseCalloutText(type,kind='',seed='',meta={}){
   }
   return'';
 }
+function buildWinnerCalloutForSeat(game,seat){
+  const lang=state.language==='en'?'en':'zh-HK';
+  const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+  const winnerLines=Array.isArray(bank.winner)?bank.winner:[];
+  const winnerRepeat=String(bank.winnerRepeat??'').trim();
+  const nameRaw=String(game?.players?.[seat]?.name??'').trim();
+  const nameKey=nameRaw||`seat-${Number.isFinite(Number(seat))?Number(seat):0}`;
+  const wins=(Number(winnerCalloutWinsByName.get(nameKey))||0)+1;
+  winnerCalloutWinsByName.set(nameKey,wins);
+  if(wins>1&&winnerRepeat)return{text:winnerRepeat,repeat:true};
+  if(!winnerLines.length)return{text:'',repeat:false};
+  const idx=Math.abs(hashTextSeed(`${nameKey}|winner|${wins}`))%winnerLines.length;
+  return{text:String(winnerLines[idx]),repeat:false};
+}
 function normalizeCalloutText(msg=''){
   return String(msg??'')
     .toLowerCase()
@@ -644,8 +675,19 @@ function isCanonicalRecordedCalloutText(msg='',clipKey=''){
   const norm=normalizeCalloutText(msg);
   const key=String(clipKey??'').trim().toLowerCase();
   if(!norm||!key)return false;
-  if(key==='pass')return norm==='pass'||norm==='大';
+  if(key==='pass')return norm==='pass'||norm==='\u5927';
   if(key==='last')return norm===normalizeCalloutText(t('lastCardCall'));
+  if(key==='winner'){
+    const lang=state.language==='en'?'en':'zh-HK';
+    const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+    const winnerSet=(bank.winner??[]).map((x)=>normalizeCalloutText(x)).filter(Boolean);
+    return winnerSet.includes(norm);
+  }
+  if(key==='winner-repeat'){
+    const lang=state.language==='en'?'en':'zh-HK';
+    const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+    return norm===normalizeCalloutText(bank.winnerRepeat??'');
+  }
   if(key.startsWith('kind-')){
     const kind=key.slice(5);
     const label=normalizeCalloutText(kindLabel(kind));
@@ -653,6 +695,21 @@ function isCanonicalRecordedCalloutText(msg='',clipKey=''){
   }
   return false;
 }
+
+function deriveWinnerVariantClipKey(msg=''){
+  const norm=normalizeCalloutText(msg);
+  if(!norm)return'';
+  const lang=state.language==='en'?'en':'zh-HK';
+  const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
+  const repeatNorm=normalizeCalloutText(bank.winnerRepeat??'');
+  if(repeatNorm&&repeatNorm===norm)return'line-winner-repeat';
+  const winnerList=Array.isArray(bank.winner)?bank.winner:[];
+  for(let i=0;i<winnerList.length;i+=1){
+    if(normalizeCalloutText(winnerList[i])===norm)return`line-winner-${i+1}`;
+  }
+  return'';
+}
+
 function deriveZhHkVariantClipKey(msg='',meta={}){
   if(state.language!=='zh-HK')return'';
   const norm=normalizeCalloutText(msg);
@@ -1483,7 +1540,7 @@ function speakCallout(text,gender='male',meta={}){
     lastSpokenCalloutKey=key;
     lastSpokenCalloutAt=now;
     const clipKey=deriveCalloutClipKey(msg,meta);
-    const variantClipKey=deriveZhHkVariantClipKey(msg,meta);
+    const variantClipKey=deriveWinnerVariantClipKey(msg)||deriveZhHkVariantClipKey(msg,meta);
     const composedClipKeys=deriveZhHkComposedClipKeys(variantClipKey,clipKey);
     const effectiveClipKey=variantClipKey||clipKey;
     const calloutType=clipKey==='pass'
@@ -2487,7 +2544,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     }
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
-  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);recordLeaderboardRound(currentLeaderboardIdentity(),seat===0?winnerGain:-deductions[0],seat===0);playSound('win');return true;
+  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);recordLeaderboardRound(currentLeaderboardIdentity(),seat===0?winnerGain:-deductions[0],seat===0);playSound('win');{const wc=buildWinnerCalloutForSeat(g,seat);if(wc.text)speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});}return true;
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   lockTurnProgress(900);
