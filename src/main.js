@@ -313,7 +313,6 @@ const CALLOUT_RESPONSE_TEXT = {
       '淨翻一張！',
       '埋門一腳！',
       '準備找數💸',
-      '最後一張啦喂😉',
     ],
     play: [
       (kind) => `${kind}！`,
@@ -1412,7 +1411,7 @@ async function playRecordedCalloutClip(clipKey='',gender='male',seq=0,opts={}){
   const g=String(gender??'male')==='female'?'female':'male';
   const pack=normalizeCalloutStylePack(calloutStylePack);
   const cacheKey=`${lang}|${key}|${g}`;
-  const exts=['m4a','mp3','wav'];
+  const exts=lang==='zh-HK'?['mp3']:['m4a','mp3','wav'];
   const nameCandidates=[
     `${key}-${pack}-${g}`,
     `${key}-${pack}`,
@@ -2261,22 +2260,33 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
       players:game.players.map((p,i)=>({...p,hand:i===seat?[...hand]:[...(p?.hand??[])]}))
     }
     :{players:[{hand:[...hand]}],currentSeat:0,lastPlay:lastPlay?{...lastPlay}:null,isFirstTrick:Boolean(isFirstTrick),gameOver:false};
-  const byWeak=[...legal].sort((a,b)=>{
+  const weakCmp=(a,b)=>{
     if(a.eval.count!==b.eval.count)return a.eval.count-b.eval.count;
     if(a.eval.count===5&&a.eval.kind!==b.eval.kind)return FIVE_KIND_POWER[a.eval.kind]-FIVE_KIND_POWER[b.eval.kind];
     return comparePower(a.eval.power,b.eval.power);
-  });
+  };
+  const byWeak=[...legal].sort(weakCmp);
   const ctx={hand:[...hand],lastPlay,isFirstTrick,game:sim,seat,orderedByWeak:byWeak,canPass:Boolean(lastPlay)};
   const moveKey=(p)=>`${(p?.cards??[]).map(cardId).sort().join(',')}|${String(p?.eval?.kind??'')}|${Number(p?.eval?.count??0)}`;
   const scoreByKey=new Map();
-  let best=null;
-  let bestScore=-Infinity;
+  const scored=[];
   for(const p of legal){
     const s=recommendPlayScore(p,ctx);
     scoreByKey.set(moveKey(p),s);
-    if(s>bestScore){
-      bestScore=s;
-      best=p;
+    scored.push({play:p,score:s});
+  }
+  if(!scored.length)return null;
+  scored.sort((a,b)=>b.score-a.score||weakCmp(a.play,b.play));
+  let best=scored[0]?.play??null;
+  let bestScore=Number(scored[0]?.score??-Infinity);
+  // When leading and opponents are not in immediate endgame threat, prefer conserving power.
+  if(!lastPlay&&minOpponentCardCount(sim,seat)>2){
+    const scoreMargin=12;
+    const nearBest=scored.filter((x)=>x.score>=bestScore-scoreMargin);
+    nearBest.sort((a,b)=>weakCmp(a.play,b.play)||b.score-a.score);
+    if(nearBest[0]){
+      best=nearBest[0].play;
+      bestScore=nearBest[0].score;
     }
   }
   if(best)best.recommendScore=bestScore;
@@ -2471,7 +2481,7 @@ function renderBackCards(count,seed=''){const shown=Math.max(0,Number(count)||0)
 function calloutJitterStyle(viewCls,key=''){
   const seed=`${viewCls}|${key}`;
   const r=(salt)=>fanNoise(seed,0,salt);
-  const xr=viewCls==='south'?12:8;
+  const xr=12;
   const yr=6;
   const size=0.64;
   const x=Math.round((r('jx')*2-1)*xr);
@@ -2480,7 +2490,7 @@ function calloutJitterStyle(viewCls,key=''){
   const tilt=((r('tilt')*2)-1)*2.6;
   const floatDur=2.2+(r('fdur')*0.9);
   const glowDur=1.5+(r('gdur')*0.7);
-  const floatAmp=2+(r('famp')*2.2);
+  const floatAmp=4.8;
   return`--callout-jx:${x}px;--callout-jy:${y}px;--callout-size:${size.toFixed(3)};--callout-tilt:${tilt.toFixed(2)}deg;--callout-float-dur:${floatDur.toFixed(2)}s;--callout-glow-dur:${glowDur.toFixed(2)}s;--callout-float-amp:${floatAmp.toFixed(2)}px;`;
 }
 function newCalloutNonce(){
@@ -3388,7 +3398,43 @@ function renderGame(){
     img.classList.remove('player-avatar-google');
   },{once:true});
   bindGameEvents(v,arr);
-  requestAnimationFrame(syncHandStackMode);
+  requestAnimationFrame(()=>{
+    syncHandStackMode();
+    retargetCalloutTails();
+    setTimeout(retargetCalloutTails,80);
+  });
+}
+function retargetCalloutTails(){
+  const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call')];
+  for(const bubble of bubbles){
+    if(!(bubble instanceof HTMLElement))continue;
+    const tail=bubble.querySelector('.tail');
+    if(!(tail instanceof HTMLElement))continue;
+    let avatar=null;
+    if(bubble.classList.contains('play-type-call-self')||bubble.classList.contains('last-card-call-self')){
+      avatar=document.querySelector('.player-avatar-wrap-self')||document.getElementById('self-avatar-img');
+    }else{
+      const seat=bubble.closest('.seat');
+      avatar=seat?.querySelector('.player-avatar-wrap-opponent, .player-avatar-opponent')??null;
+    }
+    if(!(avatar instanceof HTMLElement))continue;
+    const b=bubble.getBoundingClientRect();
+    const a=avatar.getBoundingClientRect();
+    const bx=b.left+b.width/2;
+    const by=b.top+b.height/2;
+    const ax=a.left+a.width/2;
+    const ay=a.top+a.height/2;
+    const dx=ax-bx;
+    const dy=ay-by;
+    let dir='south';
+    if(Math.abs(dx)>Math.abs(dy)){
+      dir=dx<0?'west':'east';
+    }else{
+      dir=dy<0?'north':'south';
+    }
+    tail.classList.remove('tail-north','tail-south','tail-east','tail-west');
+    tail.classList.add(`tail-${dir}`);
+  }
 }
 function syncHandStackMode(){
   const hand=document.querySelector('.action-strip .hand');

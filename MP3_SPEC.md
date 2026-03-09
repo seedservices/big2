@@ -1,74 +1,89 @@
-# MP3 Spec (Callout Audio)
+# MP3 Spec (Strict Generation Method)
 
-This document defines how callout mp3 files in `public/audio/callout/zh-HK` must be generated.
+This file is the single source of truth for callout voice generation.
+Do not use any alternative pipeline.
 
-## Scope
+## Output Location
 
-- Applies to all callout mp3 files under:
-  - `public/audio/callout/zh-HK`
-- Includes:
-  - base clips (`generic`, `pass`, `last`, `kind-*`)
-  - variant clips (`line-pass-*`, `line-last-*`, `line-play-tail-*`)
+- Live folder: `public/audio/callout/zh-HK`
+- Temporary preview folder (optional): `public/audio/callout/zh-HK-rate23-preview-mp3`
 
-## Voices
+## Allowed Generation Method (Only)
 
-- Female: `Microsoft Tracy`
-- Male: `Microsoft Danny`
-- Neutral/base non-gender files (`*.mp3` without `-female/-male`) are copied from female output.
+1. Use PowerShell + `.NET System.Speech` (`SpeechSynthesizer`) to generate WAV.
+2. Voices:
+   - Female: `Microsoft Tracy`
+   - Male: `Microsoft Danny`
+3. Rates (default full set):
+   - Female: `2`
+   - Male: `3`
+4. Word-level rate override (strict):
+   - Only for clips whose spoken text is `大` or `過`:
+     - Female: `1`
+     - Male: `2`
+   - All other clips remain at default:
+     - Female: `2`
+     - Male: `3`
+5. Build raw WAV files first into a temp folder (for example `__wav_raw`).
+6. Apply stitch rules in Python (WAV PCM operation).
+7. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
+8. Copy female base files to neutral names (`generic.mp3`, `pass.mp3`, `last.mp3`, `kind-*.mp3`).
 
-## Text Rules
+## Forbidden Methods
 
-- Language: Cantonese text only for zh-HK callouts.
-- Emoji must not be spoken in generated audio.
-  - Example:
-    - `準備找數💸` -> synthesize as `準備找數`
-    - `最後一張啦喂😉` -> synthesize as `最後一張啦喂`
+- Do not use `edge-tts`.
+- Do not use browser `speechSynthesis` recording.
+- Do not switch to another TTS provider unless explicitly requested.
 
-- Pronunciation override:
-  - UI text `最後一張啦喂` must synthesize as `最後一張罅喂`.
+## Text Map (Current)
 
-## Current Canonical Text
-
+- `generic`: `出牌`
+- `pass`: `大`
+- `last`: `最後一張`
+- `kind-single`: `單張`
+- `kind-pair`: `一對`
+- `kind-triple`: `三條`
+- `kind-straight`: `蛇`
+- `kind-flush`: `花`
+- `kind-fullhouse`: `俘佬`
+- `kind-fourofkind`: `四條`
 - `kind-straightflush`: `同花笋`
+- `line-pass-1`: `大`
+- `line-pass-2`: `唔跟`
+- `line-pass-3`: `唔去`
+- `line-pass-4`: `過`
+- `line-last-1`: `最後一張`
+- `line-last-2`: `淨翻一張`
+- `line-last-3`: `埋門一腳`
+- `line-last-4`: `準備找素`
+- `line-last-5`: `最後一張罅喂` (preview/support file)
+- `line-play-tail-2`: `跟`
+- `line-play-tail-3`: `頂住`
+- `line-play-tail-4`: `大你少少`
 - `line-play-tail-5`: `大過你`
 
-## Pronunciation Stitch Rules
+## Stitch Rules
 
-To correct `條` pronunciation:
+- `kind-fourofkind-female`: `四條(0->440ms)` + `薯條(440ms->end)`
+- `kind-fourofkind-male`: `四條(0->440ms)` + `薯條(440ms->end)`
+- `kind-triple-male`: `三條(0->440ms)` + `薯條(440ms->end)`
 
-- `kind-fourofkind-female.mp3`:
-  - synthesize `四條` and `薯條` with female voice
-  - keep `四條` from `0ms -> 440ms`
-  - keep `薯條` from `440ms -> end`
-  - stitch directly
-- `kind-fourofkind-male.mp3`:
-  - same method with male voice
-- `kind-triple-male.mp3`:
-  - synthesize `三條` and `薯條` with male voice
-  - keep `三條` from `0ms -> 440ms`
-  - keep `薯條` from `440ms -> end`
-  - stitch directly
+No inserted gap between stitched segments.
 
-## Global Trim Rule (Final Output)
+## Trim Policy
 
-Apply to all generated callout mp3 files:
+- No front trim.
+- No end trim.
+- Keep natural clip length from generated/stiched output.
 
-- Remove first `150ms`
-- Remove last `350ms`
+## Runtime Requirement
 
-If clip becomes too short after trimming, keep a short center segment (minimum around 120ms) rather than outputting silence.
+- `src/main.js` for `zh-HK` must load MP3 files only.
+- Fallback clip must be `audio/callout/zh-HK/pass.mp3`.
 
-## File Set Expectations
+## Move-to-Live Rule
 
-- Keep both base and line variants:
-  - `pass*.mp3` (base/fallback/priming)
-  - `line-pass-*.mp3` (exact pass variants)
-  - `last*.mp3` and `line-last-*.mp3`
-  - `kind-*.mp3` plus `line-play-tail-*.mp3` for composed play callouts
-- `line-kind-*-*.mp3` are intentionally not used and should remain removed.
-
-## Encoding
-
-- Format: MP3
-- Bitrate: 128 kbps CBR
-- Source WAV sample rate/channels follow TTS output.
+- If preview folder is used:
+  1. Verify preview files.
+  2. Move all `*.mp3` to `public/audio/callout/zh-HK`.
+  3. Delete preview folder.

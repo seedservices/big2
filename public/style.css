@@ -1199,18 +1199,29 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .intro-hand-cards {
   display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 .intro-hand-cards .card.mini {
-  width: calc(var(--card-w) * 0.68);
-  height: calc(var(--card-h) * 0.68);
+  width: calc(var(--card-w) * 1.36);
+  height: calc(var(--card-h) * 0.91);
+  overflow: hidden;
+}
+.intro-hand-cards .card.mini + .card.mini {
+  margin-left: calc(var(--card-w) * -0.86);
+}
+.intro-hand-cards .card.mini .card-art {
+  width: 100%;
+  height: calc(var(--card-h) * 1.36);
+  object-position: top;
 }
 .intro-inline-card-art {
   display: inline-block;
-  width: calc(var(--card-w) * 0.68);
-  height: calc(var(--card-h) * 0.68);
-  object-fit: contain;
+  width: calc(var(--card-w) * 1.36);
+  height: calc(var(--card-h) * 0.91);
+  object-fit: cover;
+  object-position: top;
   vertical-align: middle;
   margin: 0 2px;
   border-radius: 4px;
@@ -1275,8 +1286,8 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   gap: 5px;
 }
 .score-guide-card-art {
-  width: clamp(28px, 5.2vw, 44px);
-  height: calc(clamp(28px, 5.2vw, 44px) * 1.45);
+  width: clamp(36px, 6.8vw, 56px);
+  height: calc(clamp(36px, 6.8vw, 56px) * 1.45);
   object-fit: contain;
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,.24);
@@ -1931,9 +1942,7 @@ body[data-screen='game'] .topbar-right .control-row button {
   pointer-events: none;
   filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
   transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
-  animation:
-    calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite,
-    calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out infinite;
+  animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
 .play-type-call .hk-inner,
 .last-card-call .hk-inner {
@@ -1960,15 +1969,10 @@ body[data-screen='game'] .topbar-right .control-row button {
 }
 .play-type-call-fresh,
 .last-card-call-fresh {
-  animation:
-    calloutPop .28s ease-out,
-    calloutFloat var(--callout-float-dur, 2.6s) ease-in-out .12s infinite,
-    calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out .12s infinite;
+  animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
 .play-type-call.pass-call {
-  animation:
-    calloutFloat var(--callout-float-dur, 2.9s) ease-in-out infinite,
-    calloutGlow var(--callout-glow-dur, 2.1s) ease-in-out infinite !important;
+  animation: calloutFloat var(--callout-float-dur, 2.9s) ease-in-out infinite !important;
 }
 .play-type-call .tail,
 .last-card-call .tail {
@@ -2779,10 +2783,20 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   margin-right: 3px;
   transform: translateY(-.5px);
 }
-.history-cards { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
+.history-cards { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
-  width: calc(var(--card-w) * .48);
-  height: calc(var(--card-h) * .48);
+  width: calc(var(--card-w) * .96);
+  height: calc(var(--card-h) * .64);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.history-cards .card.mini + .card.mini {
+  margin-left: calc(var(--card-w) * -0.62);
+}
+.history-cards .card.mini .card-art {
+  width: 100%;
+  height: calc(var(--card-h) * .96);
+  object-position: top;
 }
 .side-card ul { margin: 0; padding-left: 16px; color: var(--muted); line-height: 1.45; font-size: .82rem; }
 
@@ -4187,6 +4201,36 @@ body[data-screen='game'] .seat.west.active::before,
 body[data-screen='game'] .seat.east.active::before {
   content: none !important;
 }
+
+/* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */
+body[data-screen='game'] .action-strip.active {
+  border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 30%, transparent) !important;
+  outline: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 25%, transparent) !important;
+  outline-offset: -1px !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 25%, transparent),
+    0 0 8px color-mix(in srgb, var(--player-color, #ffd166) 19%, transparent),
+    inset 0 0 0 1px rgba(255, 255, 255, .12),
+    inset 0 0 6px color-mix(in srgb, var(--player-color, #ffd166) 11%, transparent),
+    0 1px 4px rgba(0, 0, 0, .18) !important;
+}
+
+/* Final final: tone down South active glow only. */
+body[data-screen='game'] .action-strip.active {
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent) !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .08),
+    0 1px 4px rgba(0, 0, 0, .18) !important;
+}
+
+/* Tone down South active strip glow only. */
+body[data-screen='game'] .action-strip.active {
+  border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 42%, transparent) !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .08) !important;
+}
 body[data-screen='game'] .seat.west.active .seat-section,
 body[data-screen='game'] .seat.east.active .seat-section {
   border: 1px solid color-mix(in srgb, var(--player-color, #ffd166) 74%, transparent) !important;
@@ -5133,7 +5177,6 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
     bottom: auto !important;
     left: auto !important;
     right: -16px !important;
-    transform: none !important;
   }
   body[data-screen='game'] .seat.north .play-type-call-seat,
   body[data-screen='game'] .seat.north .last-card-call-seat,
@@ -5142,7 +5185,6 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
     bottom: auto !important;
     left: clamp(72px, 14vw, 132px) !important;
     right: auto !important;
-    transform: none !important;
   }
   body[data-screen='game'] .seat.east .play-type-call-seat,
   body[data-screen='game'] .seat.east .last-card-call-seat {
@@ -5150,7 +5192,6 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
     bottom: auto !important;
     left: -16px !important;
     right: auto !important;
-    transform: none !important;
   }
 
   body[data-screen='game'] .seat.west .play-type-call-seat::after,
@@ -5186,8 +5227,9 @@ body[data-screen='game'][data-web-too-small='1'] #app::after {
   }
 }
 
-/* Final active highlight override: keep S/W/E clearly visible across media-query overrides. */
+/* Final active highlight override: keep all seats visually aligned. */
 body[data-screen='game'] .action-strip.active,
+body[data-screen='game'] .seat.north.active,
 body[data-screen='game'] .seat.west.active,
 body[data-screen='game'] .seat.east.active {
   border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 100%, transparent) !important;
@@ -5199,6 +5241,9 @@ body[data-screen='game'] .seat.east.active {
     inset 0 0 0 1px rgba(255, 255, 255, .22),
     inset 0 0 18px color-mix(in srgb, var(--player-color, #ffd166) 36%, transparent),
     0 2px 10px rgba(0, 0, 0, .24) !important;
+}
+body[data-screen='game'] .action-strip.active {
+  background: inherit !important;
 }
 
 body[data-screen='game'] .seat.west.active .seat-section,
