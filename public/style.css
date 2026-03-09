@@ -1916,104 +1916,126 @@ body[data-screen='game'] .topbar-right .control-row button {
 .center-last-south { left: 50%; bottom: 8px; transform: translate(-50%, 0); }
 .center-last-west { left: 8px; top: 50%; transform: translate(0, -50%); }
 .center-last-east { right: 8px; top: 50%; transform: translate(0, -50%); }
+.play-type-call,
 .last-card-call {
+  --bubble-border: #4a4a4a;
+  --bubble-fill: color-mix(in srgb, var(--player-color, #84a9db) 76%, #f4f6f8 24%);
   position: absolute;
   z-index: 2600;
-  display: inline-flex;
-  align-items: center;
-  gap: .35em;
-  padding: calc(22px * var(--callout-size, 1)) calc(40px * var(--callout-size, 1));
-  border-radius: calc(30px * var(--callout-size, 1));
-  border: 1px solid rgba(255,255,255,.2);
-  background: color-mix(in srgb, var(--player-color, #7ec0ff) 72%, #173348 28%);
-  color: #ffffff;
-  font-size: calc(2.2rem * var(--callout-size, 1));
-  font-family: "Microsoft JhengHei", sans-serif;
-  font-weight: 700;
-  letter-spacing: .01em;
-  text-transform: none;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-  box-shadow:
-    0 14px 32px rgba(0,0,0,.38),
-    0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
-    0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
+  display: inline-block;
+  padding: calc(3px * var(--callout-size, 1));
+  border: calc(2px * var(--callout-size, 1)) solid var(--bubble-border);
+  border-radius: calc(20px * var(--callout-size, 1));
+  background: var(--bubble-fill);
+  color: #fff;
   pointer-events: none;
+  filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
   transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
   animation:
     calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite,
     calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out infinite;
 }
-.last-card-call::after {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 55%;
-  width: 30px;
-  height: 22px;
-  background: color-mix(in srgb, var(--player-color, #7ec0ff) 72%, #173348 28%);
-  clip-path: polygon(0 50%, 100% 0, 100% 100%);
-  transform: translateY(-50%) rotate(-18deg);
+.play-type-call .hk-inner,
+.last-card-call .hk-inner {
+  padding: calc(12px * var(--callout-size, 1)) calc(20px * var(--callout-size, 1));
+  border: 1px dashed rgba(255, 255, 255, 0.42);
+  border-radius: calc(17px * var(--callout-size, 1));
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
 }
+.play-type-call .hk-text,
+.last-card-call .hk-text {
+  font-size: calc(2.05rem * var(--callout-size, 1));
+  font-family: "Microsoft JhengHei", sans-serif;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+.play-type-call .hk-medium,
+.last-card-call .hk-medium {
+  font-size: calc(1.45rem * var(--callout-size, 1));
+  font-family: "Microsoft JhengHei", sans-serif;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+.play-type-call-fresh,
 .last-card-call-fresh {
   animation:
     calloutPop .28s ease-out,
     calloutFloat var(--callout-float-dur, 2.6s) ease-in-out .12s infinite,
     calloutGlow var(--callout-glow-dur, 1.9s) ease-in-out .12s infinite;
 }
-.last-card-call-north { top: 22%; left: 50%; transform: translate(-50%, -50%); }
-.last-card-call-west { left: 14%; top: 50%; transform: translate(-50%, -50%); }
-.last-card-call-east { right: 14%; top: 50%; transform: translate(50%, -50%); }
-.last-card-call-south { bottom: 16%; left: 50%; transform: translate(-50%, 50%); }
-.play-type-call {
-  position: absolute;
-  z-index: 2600;
-  display: inline-flex;
-  align-items: center;
-  gap: .35em;
-  padding: calc(22px * var(--callout-size, 1)) calc(40px * var(--callout-size, 1));
-  border-radius: calc(30px * var(--callout-size, 1));
-  border: 1px solid rgba(255,255,255,.2);
-  background: color-mix(in srgb, var(--player-color, #7ec0ff) 72%, #173348 28%);
-  color: #ffffff;
-  font-size: calc(2.2rem * var(--callout-size, 1));
-  font-family: "Microsoft JhengHei", sans-serif;
-  font-weight: 700;
-  letter-spacing: .01em;
-  text-transform: none;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-  box-shadow:
-    0 14px 32px rgba(0,0,0,.38),
-    0 0 0 2px color-mix(in srgb, var(--player-color, #7ec0ff) 52%, transparent),
-    0 0 30px color-mix(in srgb, var(--player-color, #7ec0ff) 50%, transparent);
-  pointer-events: none;
-  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
-  animation:
-    calloutFloat var(--callout-float-dur, 2.5s) ease-in-out infinite,
-    calloutGlow var(--callout-glow-dur, 1.8s) ease-in-out infinite;
-}
-.play-type-call::after {
-  content: '';
-  position: absolute;
-  left: -16px;
-  top: 55%;
-  width: 30px;
-  height: 22px;
-  background: color-mix(in srgb, var(--player-color, #7ec0ff) 72%, #173348 28%);
-  clip-path: polygon(0 50%, 100% 0, 100% 100%);
-  transform: translateY(-50%) rotate(-18deg);
-}
-.play-type-call-fresh {
-  animation:
-    calloutPop .28s ease-out,
-    calloutFloat var(--callout-float-dur, 2.5s) ease-in-out .12s infinite,
-    calloutGlow var(--callout-glow-dur, 1.8s) ease-in-out .12s infinite;
-}
 .play-type-call.pass-call {
   animation:
     calloutFloat var(--callout-float-dur, 2.9s) ease-in-out infinite,
     calloutGlow var(--callout-glow-dur, 2.1s) ease-in-out infinite !important;
+}
+.play-type-call .tail,
+.last-card-call .tail {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: calc(10px * var(--callout-size, 1)) solid transparent;
+}
+.play-type-call .tail::after,
+.last-card-call .tail::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: calc(10px * var(--callout-size, 1)) solid transparent;
+}
+.play-type-call .tail-north,
+.last-card-call .tail-north {
+  top: calc(-20px * var(--callout-size, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--bubble-border);
+}
+.play-type-call .tail-north::after,
+.last-card-call .tail-north::after {
+  bottom: calc(-14px * var(--callout-size, 1));
+  left: calc(-10px * var(--callout-size, 1));
+  border-bottom-color: var(--bubble-fill);
+}
+.play-type-call .tail-south,
+.last-card-call .tail-south {
+  bottom: calc(-20px * var(--callout-size, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--bubble-border);
+}
+.play-type-call .tail-south::after,
+.last-card-call .tail-south::after {
+  top: calc(-14px * var(--callout-size, 1));
+  left: calc(-10px * var(--callout-size, 1));
+  border-top-color: var(--bubble-fill);
+}
+.play-type-call .tail-east,
+.last-card-call .tail-east {
+  right: calc(-20px * var(--callout-size, 1));
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--bubble-border);
+}
+.play-type-call .tail-east::after,
+.last-card-call .tail-east::after {
+  right: calc(-6px * var(--callout-size, 1));
+  top: calc(-10px * var(--callout-size, 1));
+  border-left-color: var(--bubble-fill);
+}
+.play-type-call .tail-west,
+.last-card-call .tail-west {
+  left: calc(-20px * var(--callout-size, 1));
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--bubble-border);
+}
+.play-type-call .tail-west::after,
+.last-card-call .tail-west::after {
+  left: calc(-6px * var(--callout-size, 1));
+  top: calc(-10px * var(--callout-size, 1));
+  border-right-color: var(--bubble-fill);
 }
 .play-type-call-seat {
   top: calc(14px + var(--callout-jy, 0px));
@@ -2052,56 +2074,6 @@ body[data-screen='game'] .topbar-right .control-row button {
   left: calc(50% + var(--callout-jx, 0px));
   right: auto;
   transform: translateX(-50%);
-}
-/* Tail direction: west=left, east=right, north=up, south(self)=down. */
-.seat.west .play-type-call-seat::after,
-.seat.west .last-card-call-seat::after {
-  left: -18px;
-  right: auto;
-  top: 52%;
-  transform: translateY(-50%) rotate(22deg);
-}
-.seat.east .play-type-call-seat::after,
-.seat.east .last-card-call-seat::after {
-  left: auto;
-  right: -18px;
-  top: 52%;
-  transform: translateY(-50%) rotate(-22deg);
-}
-.seat.north .play-type-call-seat::after,
-.seat.north .last-card-call-seat::after,
-.seat.north .pass-call.play-type-call-seat::after {
-  left: 12px;
-  right: auto;
-  top: -14px;
-  width: 28px;
-  height: 18px;
-  clip-path: polygon(50% 0, 0 100%, 100% 100%);
-  transform: none;
-}
-@media (orientation: landscape) {
-  .seat.north .play-type-call-seat::after,
-  .seat.north .last-card-call-seat::after,
-  .seat.north .pass-call.play-type-call-seat::after {
-    left: -18px;
-    right: auto;
-    top: 52%;
-    width: 30px;
-    height: 22px;
-    clip-path: polygon(0 50%, 100% 0, 100% 100%);
-    transform: translateY(-50%) rotate(22deg);
-  }
-}
-.play-type-call-self::after,
-.last-card-call-self::after {
-  left: 18%;
-  right: auto;
-  top: auto;
-  bottom: -18px;
-  width: 28px;
-  height: 18px;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform: none;
 }
 @keyframes fadeIn {
   from { opacity: 0; }
