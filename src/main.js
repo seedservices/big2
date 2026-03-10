@@ -1840,8 +1840,8 @@ function renderGoogleInline(){
   }
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
-const MIN_WEB_GAME_WIDTH=980;
-const MIN_WEB_GAME_HEIGHT=620;
+const MIN_WEB_GAME_WIDTH=480;
+const MIN_WEB_GAME_HEIGHT=520;
 function isWebViewportTooSmall(){
   const coarse=window.matchMedia('(pointer: coarse)').matches;
   if(coarse)return false;
@@ -1851,11 +1851,25 @@ function isWebViewportTooSmall(){
 }
 function syncWebViewportGuardAttrs(){
   const tooSmall=isWebViewportTooSmall();
+  const w=Math.round(window.innerWidth||0);
+  const h=Math.round(window.innerHeight||0);
   document.body.setAttribute('data-web-too-small',tooSmall?'1':'0');
   const msg=state.language==='zh-HK'
-    ?`視窗太小，請將瀏覽器放大至至少 ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT} 後繼續。`
-    :`Window too small. Please resize to at least ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT}.`;
+    ?`視窗太小（目前 ${w} x ${h}），請將瀏覽器放大至至少 ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT} 後繼續。`
+    :`Window too small (current ${w} x ${h}). Please resize to at least ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT}.`;
   document.body.setAttribute('data-web-too-small-msg',msg);
+  let overlay=document.getElementById('web-too-small-overlay');
+  if(tooSmall){
+    if(!overlay){
+      overlay=document.createElement('div');
+      overlay.id='web-too-small-overlay';
+      overlay.style.cssText='position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:18px;text-align:center;font-weight:800;line-height:1.35;color:#f5fbff;background:rgba(4,11,18,.78);pointer-events:auto;';
+      document.body.appendChild(overlay);
+    }
+    overlay.textContent=msg;
+  }else if(overlay){
+    overlay.remove();
+  }
 }
 function shouldBlockLandscapeMobile(){
   const isCoarseLandscape=window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches;
@@ -2249,6 +2263,10 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
   let legal=allValidPlays(hand);
   if(isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));
   if(lastPlay)legal=legal.filter((e)=>canBeat(e.eval,lastPlay.eval));
+  if(isFirstTrick&&!lastPlay){
+    const noTwos=legal.filter((e)=>!e.cards.some((c)=>c.rank===12));
+    if(noTwos.length)legal=noTwos;
+  }
   if(!legal.length)return null;
   const seat=Number.isInteger(game?.currentSeat)?game.currentSeat:0;
   const sim=game&&Array.isArray(game.players)
@@ -2529,7 +2547,7 @@ function lockTurnProgress(ms=0){
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';markGameStartedInCache();playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;markGameStartedInCache();playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
@@ -3393,6 +3411,11 @@ function renderGame(){
   const logToggleStateIcon=state.showLog?'▾':'▸';
   const logToggleStateText=state.showLog?(state.language==='zh-HK'?'收起':'Collapse'):(state.language==='zh-HK'?'展開':'Expand');
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${state.recommendHint===t('recPass')?`<span class="recommend-inline-pass">${esc(state.recommendHint)}</span>`:''}<button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div>${state.recommendHint&&state.recommendHint!==t('recPass')?`<div class="hint recommend-hint">${esc(state.recommendHint)}</div>`:''}<div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  document.querySelectorAll('.intro-modal,.intro-backdrop,.lb-modal,#lb-modal,#intro-modal,#score-guide-modal,.score-guide-modal,.score-guide-backdrop,.lb-backdrop').forEach((el)=>el.remove());
+  document.getElementById('tap-debug')?.remove();
+  if(document.body.dataset.tapDebugBound){
+    delete document.body.dataset.tapDebugBound;
+  }
   document.getElementById('self-avatar-img')?.addEventListener('error',(e)=>{
     const img=e?.target;
     if(!(img instanceof HTMLImageElement))return;
@@ -3728,6 +3751,11 @@ function render(){
   document.body.setAttribute('data-screen',state.screen);
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
+  if(state.screen==='game'){
+    state.home.showIntro=false;
+    state.home.showLeaderboard=false;
+    state.showScoreGuide=false;
+  }
   syncWebViewportGuardAttrs();
   if(shouldBlockLandscapeMobile()){
     renderOrientationBlock();

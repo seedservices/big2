@@ -2828,6 +2828,9 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     right: auto !important;
     transform: translateX(-50%) !important;
     z-index: 30 !important;
+    max-width: 72vw !important;
+    white-space: normal !important;
+    text-align: center !important;
   }
   body[data-screen='game'] .seat.north .play-type-call-seat::after,
   body[data-screen='game'] .seat.north .last-card-call-seat::after,
@@ -2858,7 +2861,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'][data-orientation='portrait'] .action-strip .play-type-call-self,
   body[data-screen='game'][data-orientation='portrait'] .action-strip .last-card-call-self {
     top: auto !important;
-    bottom: calc(100% - 6px) !important;
+    bottom: calc(100% + 52px) !important;
     left: 10px !important;
     right: auto !important;
     transform: none !important;
@@ -3838,6 +3841,15 @@ body[data-screen='game'] .action-strip .player-tag .seat-count-tag {
   font-size: .72rem;
   line-height: 1;
   padding: 0;
+}
+body[data-screen='game'] .intro-modal,
+body[data-screen='game'] .intro-backdrop,
+body[data-screen='game'] .lb-modal,
+body[data-screen='game'] .score-guide-modal,
+body[data-screen='game'] .score-guide-backdrop,
+body[data-screen='game'] .lb-backdrop {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 /* Make opponent (N/E/W) panels larger and transparent like reference. */
