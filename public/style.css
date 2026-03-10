@@ -2859,7 +2859,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'][data-orientation='portrait'] .action-strip .last-card-call-self {
     top: auto !important;
     bottom: calc(100% - 6px) !important;
-    left: 50% !important;
+    left: 34% !important;
     right: auto !important;
     transform: translateX(-50%) !important;
   }

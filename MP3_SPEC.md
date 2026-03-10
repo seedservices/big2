@@ -1,4 +1,4 @@
-# MP3 Spec (Strict Generation Method)
+﻿# MP3 Spec (Strict Generation Method)
 
 This file is the single source of truth for callout voice generation.
 Do not use any alternative pipeline.
@@ -24,10 +24,13 @@ Do not use any alternative pipeline.
    - All other clips remain at default:
      - Female: `2`
      - Male: `3`
-5. Build raw WAV files first into a temp folder (for example `__wav_raw`).
-6. Apply stitch rules in Python (WAV PCM operation).
-7. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
-8. Copy female base files to neutral names (`generic.mp3`, `pass.mp3`, `last.mp3`, `kind-*.mp3`).
+5. Winner callout rate override (strict):
+     - Female: `1` (energetic)
+     - Male: `2` (energetic)
+6. Build raw WAV files first into a temp folder (for example `__wav_raw`).
+7. Apply stitch rules in Python (WAV PCM operation).
+8. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
+9. Copy female base files to neutral names (`generic.mp3`, `pass.mp3`, `last.mp3`, `kind-*.mp3`).
 
 ## Forbidden Methods
 
@@ -61,6 +64,11 @@ Do not use any alternative pipeline.
 - `line-play-tail-3`: `頂住`
 - `line-play-tail-4`: `大你少少`
 - `line-play-tail-5`: `大過你`
+- `line-winner-1`: `多謝晒`
+- `line-winner-2`: `今日手氣幾順`
+- `line-winner-3`: `贏翻杯奶茶錢`
+- `line-winner-4`: `今晚加餸`
+- `line-winner-5`: `贏到開巷`
 
 ## Stitch Rules
 
