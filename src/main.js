@@ -3614,6 +3614,13 @@ function bindGameEvents(v,arr){
   document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'pattern');render();});
   document.getElementById('suggest-btn')?.addEventListener('click',()=>{
     if(!v.canControl)return;
+    if(state.recommendation){
+      state.recommendation=null;
+      state.selected.clear();
+      setRecommendHint('');
+      render();
+      return;
+    }
     if(shouldRecommendPass(v.hand,v.lastPlay,v.isFirstTrick,v.canPass,state.solo)){
       state.recommendation={action:'pass',cardIds:[]};
       state.selected.clear();
@@ -3756,6 +3763,16 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&aiTimer){
     clearTimeout(aiTimer);
     aiTimer=null;
+  }else if(!document.hidden){
+    unlockAudio();
+    if(state.screen==='game'){
+      calloutSpeechActive=false;
+      calloutSpeechUntil=0;
+      calloutSpeechEndedAt=Date.now();
+      calloutResumePending=false;
+      maybeRunSoloAi();
+      render();
+    }
   }
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
