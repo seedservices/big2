@@ -1,4 +1,4 @@
-const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'\u2666',red:true},
   {symbol:'\u2663',red:false},
@@ -312,7 +312,7 @@ const CALLOUT_RESPONSE_TEXT = {
       '最後一張！',
       '淨翻一張！',
       '埋門一腳！',
-      '準備找數💸',
+      '準備找數💰',
     ],
     play: [
       (kind) => `${kind}！`,
@@ -323,10 +323,10 @@ const CALLOUT_RESPONSE_TEXT = {
     ],
     winner: [
       '\u591A\u8B1D\u6652\u3002',
-      '\u904B\u6C23\u597D\u5587\u3002',
+      '\u904B\u6C23\u597D\u5230\u5187\u670B\u53CB\uD83D\uDE43',
       '\u4ECA\u65E5\u624B\u6C23\u5E7E\u9806\u3002',
-      '\u4ECA\u665A\u98DF\u597D\u5572\u3002',
-      '\u8D0F\u7FFB\u676F\u5976\u8336\u9322\u3002',
+      '\u4ECA\u65E5\u526F\u724C\u597D\u975A\uD83D\uDE0C',
+      '\u8D0F\u7FFB\u676F\u5976\u8336\u2615',
     ],
     winnerRepeat: '\u5514\u597D\u610F\u601D\uff0c\u53C8\u4FC2\u6211\u3002',
   },
@@ -336,7 +336,7 @@ const CALLOUT_RESPONSE_TEXT = {
       'Last card!',
       'One card left!',
       'Final card!',
-      'Get ready to pay up 💸',
+      'Get ready to pay up 💰',
       'Last card, watch it 😉',
     ],
     play: [
@@ -349,8 +349,8 @@ const CALLOUT_RESPONSE_TEXT = {
       'Thanks a lot.',
       'Just got lucky.',
       'My luck is pretty good today.',
-      'Dinner is better tonight.',
-      'Won back bubble tea money.',
+      'This deck is really nice today.',
+      'Won back bubble tea ☕',
     ],
     winnerRepeat: 'Sorry, me again.',
   },
@@ -3777,3 +3777,4 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
+

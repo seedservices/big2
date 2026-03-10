@@ -65,9 +65,9 @@ Do not use any alternative pipeline.
 - `line-play-tail-4`: `大你少少`
 - `line-play-tail-5`: `大過你`
 - `line-winner-1`: `多謝晒`
-- `line-winner-2`: `今日手氣幾順`
-- `line-winner-3`: `贏翻杯奶茶錢`
-- `line-winner-4`: `今晚加餸`
+- `line-winner-2`: `運氣好到冇朋友🙃`
+- `line-winner-3`: `贏翻杯奶茶☕`
+- `line-winner-4`: `今日副牌好靚😌`
 - `line-winner-5`: `贏到開巷`
 
 ## Stitch Rules
@@ -95,3 +95,4 @@ No inserted gap between stitched segments.
   1. Verify preview files.
   2. Move all `*.mp3` to `public/audio/callout/zh-HK`.
   3. Delete preview folder.
+
