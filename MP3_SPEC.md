@@ -32,6 +32,10 @@ Do not use any alternative pipeline.
 8. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
 9. Copy female base files to neutral names (`generic.mp3`, `pass.mp3`, `last.mp3`, `kind-*.mp3`).
 
+## Emoji Handling
+
+- When generating any voice, strip all emoji and symbol characters from the spoken text (do not speak emoji).
+
 ## Forbidden Methods
 
 - Do not use `edge-tts`.
@@ -95,4 +99,5 @@ No inserted gap between stitched segments.
   1. Verify preview files.
   2. Move all `*.mp3` to `public/audio/callout/zh-HK`.
   3. Delete preview folder.
+
 
