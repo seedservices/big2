@@ -3168,7 +3168,12 @@ function triggerStartGameSmartLink(){
   if(now-lastStartGameAdAt<1200)return;
   lastStartGameAdAt=now;
   try{
-    window.open(START_GAME_SMART_LINK,'_blank','noopener,noreferrer');
+    const w=window.open(START_GAME_SMART_LINK,'_blank','noopener,noreferrer');
+    try{window.focus?.();}catch{}
+    if(w){
+      try{w.blur?.();}catch{}
+      setTimeout(()=>{try{window.focus?.();}catch{}},60);
+    }
   }catch{}
 }
 function setSoundEnabled(on){
@@ -3245,7 +3250,6 @@ function renderHome(){
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
     unlockAudio();
-    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
     initFirebaseIfReady();
@@ -3597,14 +3601,12 @@ function bindGameEvents(v,arr){
     startSoloGame();
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
-    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
-    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.recommendation=null;
     setRecommendHint('');
