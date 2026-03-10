@@ -1927,6 +1927,9 @@ body[data-screen='game'] .topbar-right .control-row button {
 .center-last-south { left: 50%; bottom: 8px; transform: translate(-50%, 0); }
 .center-last-west { left: 8px; top: 50%; transform: translate(0, -50%); }
 .center-last-east { right: 8px; top: 50%; transform: translate(0, -50%); }
+.game-shell {
+  --callout-scale: 1.12;
+}
 .play-type-call,
 .last-card-call {
   --bubble-border: #4a4a4a;
@@ -1941,7 +1944,7 @@ body[data-screen='game'] .topbar-right .control-row button {
   color: #fff;
   pointer-events: none;
   filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
-  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg));
+  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
 .play-type-call .hk-inner,
@@ -2084,13 +2087,13 @@ body[data-screen='game'] .topbar-right .control-row button {
   to { opacity: 1; }
 }
 @keyframes calloutPop {
-  0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(.9) rotate(var(--callout-tilt, 0deg)); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(var(--callout-tilt, 0deg)); }
+  0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(.9) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
 }
 @keyframes calloutFloat {
-  0% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)); }
-  50% { transform: translate3d(0, calc(var(--callout-float-amp, 3px) * -1), 0) rotate(calc(var(--callout-tilt, 0deg) * .6)); }
-  100% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)); }
+  0% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  50% { transform: translate3d(0, calc(var(--callout-float-amp, 3px) * -1), 0) rotate(calc(var(--callout-tilt, 0deg) * .6)) scale(var(--callout-scale, 1)); }
+  100% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
 }
 @keyframes calloutGlow {
   0% {
@@ -2845,6 +2848,20 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .seat.west,
   body[data-screen='game'] .seat.east {
     overflow: visible !important;
+  }
+
+  body[data-screen='game'][data-orientation='portrait'] .game-shell {
+    --callout-scale: 1;
+  }
+
+  /* Portrait mobile: place south callout above the seat name, tail pointing at the tag. */
+  body[data-screen='game'][data-orientation='portrait'] .action-strip .play-type-call-self,
+  body[data-screen='game'][data-orientation='portrait'] .action-strip .last-card-call-self {
+    top: auto !important;
+    bottom: calc(100% - 6px) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
   }
 
   :root {
@@ -3767,6 +3784,9 @@ body[data-screen='game'] .table-center-stack {
     radial-gradient(circle at 76% 76%, rgba(90, 170, 120, .14), transparent 44%),
     linear-gradient(165deg, #1e6a3f 0%, #175736 56%, #12472c 100%);
   box-shadow: inset 0 0 0 1px rgba(8,25,42,.5);
+  width: calc(100% + 24px);
+  margin-left: -12px;
+  margin-right: -12px;
 }
 
 /* Discard zone felt tone (snooker green). */
@@ -4325,6 +4345,21 @@ body[data-screen='game'] .center-last .seat-played {
   box-shadow: none !important;
   padding: 0 !important;
   min-height: 0 !important;
+}
+/* Fade bottom third of cards in game log and guide page. */
+.history-cards,
+.intro-hand-cards {
+  position: relative;
+}
+/* Fade cards out to transparent at the bottom. */
+.history-cards,
+.intro-hand-cards {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 /* Remove remaining-card number badges for all players in game view. */
 body[data-screen='game'] .seat-count-tag {
@@ -5244,6 +5279,10 @@ body[data-screen='game'] .seat.east.active {
 }
 body[data-screen='game'] .action-strip.active {
   background: inherit !important;
+}
+body[data-screen='game'] .action-strip.active {
+  box-shadow: none !important;
+  outline: 0 !important;
 }
 
 body[data-screen='game'] .seat.west.active .seat-section,

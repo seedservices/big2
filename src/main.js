@@ -2651,7 +2651,7 @@ function unlockAudio(){
           iosSharedCalloutAudio.setAttribute?.('playsinline','');
         }
         const a=iosSharedCalloutAudio;
-        if(!a.src)a.src=withBase('audio/callout/zh-HK/pass.mp3');
+        if(!a.src)a.src=withBase('audio/silence.mp3');
         const prevVolume=Number.isFinite(a.volume)?a.volume:1;
         a.muted=false;
         a.volume=0;
