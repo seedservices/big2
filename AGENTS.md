@@ -29,9 +29,5 @@
 - Never write files in UTF-16, UTF-32, or ANSI/legacy encodings.
 - Preserve existing UTF-8 (with/without BOM) unless explicitly requested to change.
 
-## GitHub Push Rule (except when GitHub is seedservices)
-- By default, push means push to staging branch
-- Do not push to origin branch unless specify
-
 ## Callout Generation Rule
 - We might have emoji in the callout text, but do not include the emoji in the mp3 generation
