@@ -322,11 +322,11 @@ const CALLOUT_RESPONSE_TEXT = {
       (kind) => `${kind}，大過你😏`,
     ],
     winner: [
-      '\u591A\u8B1D\u5404\u4F4D\u652F\u6301\u3002',
+      '\u591A\u8B1D\u6652\u3002',
       '\u904B\u6C23\u597D\u5587\u3002',
       '\u4ECA\u65E5\u624B\u6C23\u5E7E\u9806\u3002',
       '\u4ECA\u665A\u98DF\u597D\u5572\u3002',
-      '\u8D0F\u5230\u8CB7\u5976\u8336\u3002',
+      '\u8D0F\u7FFB\u676F\u5976\u8336\u9322\u3002',
     ],
     winnerRepeat: '\u5514\u597D\u610F\u601D\uff0c\u53C8\u4FC2\u6211\u3002',
   },
@@ -346,11 +346,11 @@ const CALLOUT_RESPONSE_TEXT = {
       (kind) => `${kind}, just slightly higher than yours 😏`,
     ],
     winner: [
-      'Thank you all for the support.',
+      'Thanks a lot.',
       'Just got lucky.',
       'My luck is pretty good today.',
       'Dinner is better tonight.',
-      'I won enough for bubble tea.',
+      'Won back bubble tea money.',
     ],
     winnerRepeat: 'Sorry, me again.',
   },
@@ -3614,6 +3614,13 @@ function bindGameEvents(v,arr){
   document.getElementById('auto-pattern-btn')?.addEventListener('click',()=>{if(!canAutoSort)return;autoArrangeCurrent(v,'pattern');render();});
   document.getElementById('suggest-btn')?.addEventListener('click',()=>{
     if(!v.canControl)return;
+    if(state.recommendation){
+      state.recommendation=null;
+      state.selected.clear();
+      setRecommendHint('');
+      render();
+      return;
+    }
     if(shouldRecommendPass(v.hand,v.lastPlay,v.isFirstTrick,v.canPass,state.solo)){
       state.recommendation={action:'pass',cardIds:[]};
       state.selected.clear();
@@ -3756,6 +3763,16 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&aiTimer){
     clearTimeout(aiTimer);
     aiTimer=null;
+  }else if(!document.hidden){
+    unlockAudio();
+    if(state.screen==='game'){
+      calloutSpeechActive=false;
+      calloutSpeechUntil=0;
+      calloutSpeechEndedAt=Date.now();
+      calloutResumePending=false;
+      maybeRunSoloAi();
+      render();
+    }
   }
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
