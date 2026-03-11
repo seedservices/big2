@@ -183,7 +183,7 @@ h1, h2, h3, p { margin: 0; }
 .game-title-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 18px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -495,7 +495,7 @@ body[data-screen='home'] .home-wrap {
   border-radius: 10px;
   flex-wrap: nowrap;
 }
-.royal-home-body #voice-combo .toggle-btn {
+.royal-home-body #voice-combo .sound-toggle-btn {
   min-height: 32px;
   padding: 3px 9px;
   border-radius: 7px;
@@ -504,11 +504,19 @@ body[data-screen='home'] .home-wrap {
   color: rgba(247, 231, 190, .95);
   white-space: nowrap;
 }
-.royal-home-body #voice-combo .toggle-btn.active {
+.royal-home-body #voice-combo .sound-toggle-btn.active {
   background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28));
   border-color: rgba(247, 222, 167, .72);
 }
 .royal-home-body #sound-combo {
+  background: rgba(10, 30, 42, .42);
+  border: 1px solid rgba(236, 204, 134, .42);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+}
+.royal-home-body #callout-display-combo {
   background: rgba(10, 30, 42, .42);
   border: 1px solid rgba(236, 204, 134, .42);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
@@ -521,7 +529,16 @@ body[data-screen='home'] .home-wrap {
   background: transparent;
   border-radius: 7px;
 }
+.royal-home-body #callout-display-combo .toggle-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 7px;
+}
 .royal-home-body #sound-combo .sound-toggle-btn.active {
+  border-color: rgba(247, 222, 167, .72);
+  background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28));
+}
+.royal-home-body #callout-display-combo .toggle-btn.active {
   border-color: rgba(247, 222, 167, .72);
   background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28));
 }
@@ -2121,6 +2138,13 @@ body[data-screen='game'] .topbar-right .control-row button {
   border-radius: 8px;
   background: rgba(255,255,255,.08);
   color: #ffd166;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.recommend-hint .recommend-bulb {
+  font-size: .95rem;
+  line-height: 1;
 }
 .recommend-inline-pass {
   display: inline-flex;
@@ -2861,7 +2885,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'][data-orientation='portrait'] .action-strip .play-type-call-self,
   body[data-screen='game'][data-orientation='portrait'] .action-strip .last-card-call-self {
     top: auto !important;
-    bottom: calc(100% + 52px) !important;
+    bottom: calc(100% + 67px) !important;
     left: 10px !important;
     right: auto !important;
     transform: none !important;
