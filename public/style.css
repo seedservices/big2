@@ -2197,6 +2197,14 @@ body[data-screen='game'] .topbar-right .control-row button {
     0 0 34px rgba(255, 214, 128, .45);
   animation: recommendGlowPulse 1.6s ease-in-out infinite;
 }
+.recommend-glow-play {
+  position: relative;
+  box-shadow:
+    0 0 0 2px rgba(82, 210, 115, .6),
+    0 0 18px rgba(82, 210, 115, .6),
+    0 0 34px rgba(82, 210, 115, .4);
+  animation: recommendGlowPlayPulse 1.6s ease-in-out infinite;
+}
 @keyframes recommendGlowPulse {
   0%, 100% {
     box-shadow:
@@ -2209,6 +2217,20 @@ body[data-screen='game'] .topbar-right .control-row button {
       0 0 0 2px rgba(255, 214, 128, .85),
       0 0 22px rgba(255, 214, 128, .8),
       0 0 44px rgba(255, 214, 128, .65);
+  }
+}
+@keyframes recommendGlowPlayPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px rgba(82, 210, 115, .55),
+      0 0 14px rgba(82, 210, 115, .5),
+      0 0 26px rgba(82, 210, 115, .38);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(82, 210, 115, .85),
+      0 0 22px rgba(82, 210, 115, .78),
+      0 0 44px rgba(82, 210, 115, .6);
   }
 }
 .recommend-hint.rec-empty {
@@ -3768,7 +3790,7 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   align-items: center;
   gap: 4px;
   position: relative;
-  padding-right: 10px;
+  padding-right: 16px;
 }
 .result-winner-crown {
   color: color-mix(in srgb, var(--winner-color, #ffd166) 92%, white 8%);
@@ -3781,9 +3803,9 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
     drop-shadow(0 0 18px color-mix(in srgb, var(--winner-color, #ffd166) 45%, transparent));
   transform-origin: center;
   animation: crownPop .6s ease-out both, crownGlow 1.8s ease-in-out infinite;
-  position: absolute;
-  right: -12px;
-  top: -10px;
+  position: relative;
+  right: 0;
+  top: -2px;
 }
 .result-row.winner .result-winner-crown {
   text-shadow:
