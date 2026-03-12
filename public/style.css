@@ -1530,7 +1530,7 @@ body[data-screen='game'] .topbar-right .control-row button {
 .east { grid-area: east; }
 .west { grid-area: west; justify-self: stretch; align-self: stretch; }
 .east { grid-area: east; justify-self: stretch; align-self: stretch; }
-.west, .east, .north, .south { min-width: 0; min-height: 0; overflow: hidden; }
+.west, .east, .north, .south { min-width: 0; min-height: 0; overflow: visible; }
 .north { overflow: visible; }
 .east, .west {
   border: 1px solid var(--player-color, rgba(126, 177, 215, .6));
@@ -3767,6 +3767,7 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
 .result-row.winner {
   border-color: color-mix(in srgb, var(--winner-color, #ffd166) 75%, white 25%);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--winner-color, #ffd166) 40%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--winner-color, #ffd166) 85%, white 15%);
 }
 .result-main {
   display: grid;
@@ -3881,8 +3882,11 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
 }
 .result-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  gap: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
   min-height: 24px;
 }
 @media (max-width: 760px) {
@@ -3918,6 +3922,7 @@ body[data-screen='game'] .action-strip {
 /* Game table shell: remove fill so enclosing panel is transparent. */
 body[data-screen='game'] .table {
   background: transparent !important;
+  overflow: visible !important;
 }
 
 /* Actual play surface: green felt. */
@@ -3941,6 +3946,10 @@ body[data-screen='game'] .table-center-grid-wrap {
     radial-gradient(circle at 24% 20%, rgba(176, 238, 196, .18), transparent 38%),
     radial-gradient(circle at 78% 74%, rgba(112, 182, 138, .16), transparent 40%),
     linear-gradient(165deg, #1f6f44 0%, #185b39 58%, #134a2f 100%) !important;
+}
+
+body[data-screen='game'] .north .seat-section {
+  overflow: visible !important;
 }
 
 /* Name badges for all seats (S/N/W/E): outlined with light text, no color dot. */
@@ -4088,8 +4097,26 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(214, 232, 222, .9) !important;
 }
 .result-cards .card.mini {
-  width: calc(var(--card-w) * .72);
-  height: calc(var(--card-h) * .72);
+  width: calc(var(--card-w) * .96);
+  height: calc(var(--card-h) * .64);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.result-cards .card.mini + .card.mini {
+  margin-left: calc(var(--card-w) * -0.62);
+}
+.result-cards .card.mini .card-art {
+  width: 100%;
+  height: calc(var(--card-h) * .96);
+  object-position: top;
+}
+.result-cards {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .game-shell.game-over .action-strip .player-tag {
   display: none !important;

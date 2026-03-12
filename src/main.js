@@ -334,7 +334,7 @@ const CALLOUT_RESPONSE_TEXT = {
       (kind) => `${kind}!`,
       (kind) => `${kind}. Beat that.`,
       (kind) => `${kind}. Holding.`,
-      (kind) => `${kind}, just slightly higher than yours 😏`,
+      (kind) => `${kind}, higher.`,
     ],
     winner: [
       'Thanks a lot.',
@@ -734,6 +734,46 @@ function deriveZhHkVariantClipKey(msg='',meta={}){
     const tpl=playTemplates[i];
     const candidate=typeof tpl==='function'?String(tpl(kindText)):String(tpl??'');
     if(normalizeCalloutText(candidate)===norm)return`line-kind-${kindKey}-${i+1}`;
+  }
+  return'';
+}
+function deriveEnVariantClipKey(msg='',meta={}){
+  if(state.language!=='en')return'';
+  const norm=normalizeCalloutText(msg);
+  if(!norm)return'';
+  const bank=CALLOUT_RESPONSE_TEXT['en']??{};
+  const passList=Array.isArray(bank.pass)?bank.pass:[];
+  for(let i=0;i<passList.length;i+=1){
+    if(normalizeCalloutText(passList[i])===norm){
+      return i===0?'':`line-pass-${i+1}`;
+    }
+  }
+  const lastList=Array.isArray(bank.last)?bank.last:[];
+  for(let i=0;i<lastList.length;i+=1){
+    if(normalizeCalloutText(lastList[i])===norm){
+      return i===0?'':`line-last-${i+1}`;
+    }
+  }
+  const explicit=String(meta?.clipKey??'').trim().toLowerCase();
+  let kindKey='';
+  if(explicit.startsWith('kind-'))kindKey=explicit.slice(5);
+  if(!kindKey){
+    const enKinds=KIND.en??{};
+    for(const[k,v] of Object.entries(enKinds)){
+      const label=normalizeCalloutText(v);
+      if(label&&norm.startsWith(label)){kindKey=k;break;}
+    }
+  }
+  if(!kindKey)return'';
+  const playTemplates=Array.isArray(bank.play)?bank.play:[];
+  const kindText=KIND.en?.[kindKey]??'';
+  if(!kindText)return'';
+  for(let i=0;i<playTemplates.length;i+=1){
+    const tpl=playTemplates[i];
+    const candidate=typeof tpl==='function'?String(tpl(kindText)):String(tpl??'');
+    if(normalizeCalloutText(candidate)===norm){
+      return i===0?'':`line-kind-${kindKey}-${i+1}`;
+    }
   }
   return'';
 }
@@ -1534,7 +1574,9 @@ function speakCallout(text,gender='male',meta={}){
     lastSpokenCalloutKey=key;
     lastSpokenCalloutAt=now;
     const clipKey=deriveCalloutClipKey(msg,meta);
-    const variantClipKey=deriveWinnerVariantClipKey(msg)||deriveZhHkVariantClipKey(msg,meta);
+    const variantClipKey=deriveWinnerVariantClipKey(msg)
+      ||deriveZhHkVariantClipKey(msg,meta)
+      ||deriveEnVariantClipKey(msg,meta);
     const composedClipKeys=deriveZhHkComposedClipKeys(variantClipKey,clipKey);
     const effectiveClipKey=variantClipKey||clipKey;
     const calloutType=clipKey==='pass'
