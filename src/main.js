@@ -315,9 +315,9 @@ const CALLOUT_RESPONSE_TEXT = {
       '\u591A\u8B1D\u6652\u3002',
       '\u904B\u6C23\u597D\u5230\u5187\u670B\u53CB\uD83D\uDE43',
       '\u4ECA\u65E5\u624B\u6C23\u5E7E\u9806\u3002',
-      '\u4ECA\u65E5\u526F\u724C\u597D\u975A\uD83D\uDE0C',
       '\u8D0F\u7FFB\u676F\u5976\u8336\u2615',
       '\u4ECA\u92EA\u6211\u8D0F\uff01',
+      '\u884C\u904B\u884C\u5230\u8173\u8DBE\u5C3E',
     ],
     winnerRepeat: '\u5514\u597D\u610F\u601D\uff0c\u53C8\u4FC2\u6211\u3002',
   },
@@ -340,9 +340,9 @@ const CALLOUT_RESPONSE_TEXT = {
       'Thanks a lot.',
       'Just got lucky.',
       'My luck is pretty good today.',
-      'This deck is really nice today.',
       'Won back bubble tea ☕',
       'This round is mine!',
+      'Lucky down to my toes.',
     ],
     winnerRepeat: 'Sorry, me again.',
   },
@@ -3203,6 +3203,17 @@ function backAssetFile(value){
 function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
+let topbarDelegateBound=false;
+function handleGameTopbarClick(ev){
+  if(state.screen!=='game')return;
+  const t=ev.target;
+  if(!(t instanceof Element))return;
+  const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle');
+  if(!btn)return;
+  if(btn.id==='game-intro-toggle'){state.home.showIntro=true;render();return;}
+  if(btn.id==='score-guide-toggle'){state.showScoreGuide=true;render();return;}
+  if(btn.id==='game-lb-toggle'){state.home.showLeaderboard=true;refreshLeaderboard(true);render();return;}
+}
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 let lastStartGameAdAt=0;
 function readGameStartTsCache(){
@@ -3496,6 +3507,9 @@ function renderGame(){
 }
 function retargetCalloutTails(){
   const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call')];
+  const vw=Math.max(0,window.innerWidth||0);
+  const vh=Math.max(0,window.innerHeight||0);
+  const margin=8;
   for(const bubble of bubbles){
     if(!(bubble instanceof HTMLElement))continue;
     const tail=bubble.querySelector('.tail');
@@ -3524,6 +3538,21 @@ function retargetCalloutTails(){
     }
     tail.classList.remove('tail-north','tail-south','tail-east','tail-west');
     tail.classList.add(`tail-${dir}`);
+    let sx=0;
+    let sy=0;
+    if(vw&&vh){
+      if(b.left<margin)sx=margin-b.left;
+      else if(b.right>vw-margin)sx=(vw-margin)-b.right;
+      if(b.top<margin)sy=margin-b.top;
+      else if(b.bottom>vh-margin)sy=(vh-margin)-b.bottom;
+    }
+    if(sx||sy){
+      bubble.style.setProperty('--callout-shift-x',`${sx.toFixed(1)}px`);
+      bubble.style.setProperty('--callout-shift-y',`${sy.toFixed(1)}px`);
+    }else{
+      bubble.style.removeProperty('--callout-shift-x');
+      bubble.style.removeProperty('--callout-shift-y');
+    }
   }
 }
 function syncHandStackMode(){
@@ -3629,24 +3658,16 @@ function bindGameEvents(v,arr){
   };
 
   document.getElementById('lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
-  document.getElementById('game-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=true;render();});
-  document.getElementById('game-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=true;refreshLeaderboard(true);render();});
   document.getElementById('intro-close')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('intro-backdrop')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
-  const topbarDelegate=(ev)=>{
-    const t=ev?.target;
-    if(!(t instanceof HTMLElement))return;
-    const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle');
-    if(!btn)return;
-    if(btn.id==='game-intro-toggle'){state.home.showIntro=true;render();return;}
-    if(btn.id==='score-guide-toggle'){state.showScoreGuide=true;render();return;}
-    if(btn.id==='game-lb-toggle'){state.home.showLeaderboard=true;refreshLeaderboard(true);render();return;}
-  };
-  document.body.addEventListener('click',topbarDelegate,true);
+  if(!topbarDelegateBound){
+    document.body.addEventListener('click',handleGameTopbarClick,true);
+    topbarDelegateBound=true;
+  }
   document.getElementById('home-btn')?.addEventListener('click',()=>{
     if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
     state.screen='home';
@@ -3686,7 +3707,6 @@ function bindGameEvents(v,arr){
     requestAnimationFrame(restore);
     setTimeout(restore,0);
   });
-  document.getElementById('score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{

@@ -55,6 +55,9 @@ This document defines the functional behavior of the Big Two web application fro
 - Drag-and-reorder support (where applicable)
 - Active-seat visual indication
 - Discard and status game log
+- Recommendation feedback:
+  - When recommendation is playable, Play button glows
+  - When recommendation is pass, Pass button glows
 - Guide/scoring/leaderboard overlays available in-game
 
 ## 8. Rules and Validation (Functional)
@@ -96,8 +99,9 @@ This document defines the functional behavior of the Big Two web application fro
 
 ## 12. Audio and Speech
 - Sound effects can be enabled/disabled by user toggle.
-- Callout speech support depends on browser capability and runtime readiness.
-- First-user-interaction unlock pattern is used for web audio/speech constraints.
+- Callout speech plays recorded clips only (no TTS).
+- Callout audio starts after first play in a new round to avoid immediate start callout.
+- First-user-interaction unlock pattern is used for web audio constraints.
 
 ## 13. Ads (Functional)
 - Start new game flow includes popunder ad trigger behavior as configured by integration logic.
@@ -112,4 +116,3 @@ This document defines the functional behavior of the Big Two web application fro
 - Minimize unintended scrollbars where possible.
 - Keep interaction latency low and feedback immediate.
 - Preserve layout stability when toggling log and overlays.
-

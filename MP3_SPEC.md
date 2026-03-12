@@ -26,9 +26,31 @@ Do not use any alternative pipeline.
 8. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
 9. Copy female base files to neutral names (`generic.mp3`, `pass.mp3`, `last.mp3`, `kind-*.mp3`).
 
+## Known-Good Cantonese Generation Pipeline (This Machine)
+
+Use this exact sequence when generating Cantonese MP3s on this machine. Do not deviate.
+
+1. Create a unique temp folder under `tools\__wav_zh_tmp_YYYYMMDDHHMMSS`.
+2. Use `System.Speech.Synthesis.SpeechSynthesizer` with:
+   - `SelectVoice("Microsoft Tracy")` at rate `2`
+   - `SelectVoice("Microsoft Danny")` at rate `3`
+3. `SetOutputToWaveFile()` **before** `Speak()`.
+4. Strip emoji/symbols before speaking.
+5. Convert each WAV with ffmpeg from `imageio_ffmpeg` to MP3 at `192k`.
+
+Reference script pattern (single line, safe to paste):
+```
+$ErrorActionPreference='Stop'; $repo=(Resolve-Path .).Path; $out=Join-Path $repo 'public\audio\callout\zh-HK'; $tmp=Join-Path $repo ('tools\__wav_zh_tmp_' + (Get-Date -Format 'yyyyMMddHHmmss')); New-Item -ItemType Directory -Path $tmp | Out-Null; $ffmpeg=(python -c 'import imageio_ffmpeg as i; print(i.get_ffmpeg_exe())').Trim(); if(-not (Test-Path $ffmpeg)){ throw ('ffmpeg not found at ' + $ffmpeg) }; function Strip-Emoji([string]$t){ if(-not $t){return ''}; $t=$t -replace '[\p{Cs}\p{So}\p{Sk}]',''; $t=$t -replace '\uFE0F',''; return $t.Trim() }; $text='今鋪我贏！'; $voices=@( @{suffix='female'; voice='Microsoft Tracy'; rate=2}, @{suffix='male'; voice='Microsoft Danny'; rate=3} ); Add-Type -AssemblyName System.Speech; foreach($v in $voices){ $s=New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.SelectVoice($v.voice); $s.Rate=$v.rate; $clean=Strip-Emoji $text; $wav=Join-Path $tmp ('line-winner-6-'+$v.suffix+'.wav'); $mp3=Join-Path $out ('line-winner-6-'+$v.suffix+'.mp3'); $s.SetOutputToWaveFile($wav); $s.Speak($clean); $s.SetOutputToNull(); & $ffmpeg -y -i $wav -codec:a libmp3lame -b:a 192k $mp3 | Out-Null; $s.Dispose(); }
+```
+
 ## Emoji Handling
 
 - When generating any voice, strip all emoji and symbol characters from the spoken text (do not speak emoji).
+
+## Cantonese Winner Line Synthesis Overrides
+
+- `line-winner-7` display text remains `行運行到腳趾尾`.
+- For synthesis only, use: `行運行到腳趾屘` (intonation guide). Do not change UI text.
 
 ## Forbidden Methods
 
@@ -65,9 +87,9 @@ Do not use any alternative pipeline.
 - `line-winner-1`: `多謝晒`
 - `line-winner-2`: `運氣好到冇朋友🙃`
 - `line-winner-3`: `贏翻杯奶茶☕`
-- `line-winner-4`: `今日副牌好靚😌`
 - `line-winner-5`: `贏到開巷`
 - `line-winner-6`: `今鋪我贏！`
+- `line-winner-7`: `行運行到腳趾尾`
 
 ## Stitch Rules
 

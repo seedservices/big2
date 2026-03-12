@@ -2074,7 +2074,7 @@ body[data-screen='game'] .table-center-stack {
   color: #fff;
   pointer-events: none;
   filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
-  transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
+  transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
 .play-type-call .hk-inner,
@@ -2217,13 +2217,13 @@ body[data-screen='game'] .table-center-stack {
   to { opacity: 1; }
 }
 @keyframes calloutPop {
-  0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(.9) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  0% { opacity: 0; transform: translate3d(var(--callout-shift-x, 0px), calc(var(--callout-shift-y, 0px) + 4px), 0) scale(.9) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  100% { opacity: 1; transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
 }
 @keyframes calloutFloat {
-  0% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
-  50% { transform: translate3d(0, calc(var(--callout-float-amp, 3px) * -1), 0) rotate(calc(var(--callout-tilt, 0deg) * .6)) scale(var(--callout-scale, 1)); }
-  100% { transform: translate3d(0, 0, 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  0% { transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
+  50% { transform: translate3d(var(--callout-shift-x, 0px), calc(var(--callout-shift-y, 0px) + (var(--callout-float-amp, 3px) * -1)), 0) rotate(calc(var(--callout-tilt, 0deg) * .6)) scale(var(--callout-scale, 1)); }
+  100% { transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1)); }
 }
 @keyframes calloutGlow {
   0% {

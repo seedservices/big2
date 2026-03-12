@@ -103,8 +103,9 @@
 ## 10. Audio and Speech Subsystem
 - Sound engine via Web Audio API context
 - Runtime unlock on first user interaction
-- Speech/callout support with browser capability checks
-- Guard logic for iOS/Safari speech lifecycle edge cases
+- Callouts use recorded audio clips only (no TTS path).
+- Audio lookup supports variant clip keys for pass/last/play/winner lines.
+- Callouts are gated until the first play of a new round.
 
 ## 11. Ads Integration
 - Popunder ad script source defined in app constants
@@ -129,4 +130,3 @@
   - `npm run build`
 - Local preview:
   - `npm run preview`
-
