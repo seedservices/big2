@@ -1355,7 +1355,13 @@ function leaderboardPanelHtml(){
   const lb=state.home.leaderboard;
   const rows=lb.rows??[];
   const lx=lbText();
-  const rowHtml=rows.length?rows.map((r)=>`<div class="lb-row"><div class="lb-rank">${Number(r.rank)===1?'<span class="lb-medal lb-medal-gold" aria-hidden="true">🥇</span>':Number(r.rank)===2?'<span class="lb-medal lb-medal-silver" aria-hidden="true">🥈</span>':Number(r.rank)===3?'<span class="lb-medal lb-medal-bronze" aria-hidden="true">🥉</span>':'#'+(r.rank??'-')}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`).join(''):`<div class="hint">${t('lbNoData')}</div>`;
+  const rowHtml=rows.length?rows.map((r)=>{
+    const rank=Number(r.rank);
+    const rowClass='lb-row';
+    const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    const medalClass=rank===1?'lb-medal gold':rank===2?'lb-medal silver':rank===3?'lb-medal bronze':'lb-medal';
+    return`<div class="${rowClass}"><div class="lb-rank">${medal?`<span class="${medalClass}" aria-hidden="true">${medal}</span>`:'#'+(r.rank??'-')}</div><div class="lb-main"><div class="lb-name-line"><div class="lb-name">${esc(r.name)}</div><div class="lb-stat">${r.totalScore}</div></div><div class="lb-sub">${t('score')}: ${r.totalScore} · ${r.wins}/${r.games} · ${lx.wr} ${fmtPct(r.winRate)}</div><div class="lb-meta2"><span>${lx.updated}: ${fmtDateTime(r.updatedAt)}</span></div></div></div>`;
+  }).join(''):`<div class="hint">${t('lbNoData')}</div>`;
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
@@ -1884,9 +1890,14 @@ function renderGoogleInline(){
   }
 }
 function isMobilePointer(){return window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;}
+function isWebView(){
+  const ua=String(navigator?.userAgent??'');
+  return /\bwv\b/.test(ua)||/WebView/i.test(ua)||/(Android.*Version\/\d+\.\d+.*Chrome\/\d+\.\d+ Mobile)/i.test(ua);
+}
 const MIN_WEB_GAME_WIDTH=480;
 const MIN_WEB_GAME_HEIGHT=520;
 function isWebViewportTooSmall(){
+  if(isWebView())return false;
   const coarse=window.matchMedia('(pointer: coarse)').matches;
   if(coarse)return false;
   const w=window.innerWidth||0;
@@ -1898,6 +1909,7 @@ function syncWebViewportGuardAttrs(){
   const w=Math.round(window.innerWidth||0);
   const h=Math.round(window.innerHeight||0);
   document.body.setAttribute('data-web-too-small',tooSmall?'1':'0');
+  document.body.setAttribute('data-webview',(isMobilePointer()||isWebView())?'1':'0');
   const msg=state.language==='zh-HK'
     ?`視窗太小（目前 ${w} x ${h}），請將瀏覽器放大至至少 ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT} 後繼續。`
     :`Window too small (current ${w} x ${h}). Please resize to at least ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT}.`;
@@ -2529,7 +2541,7 @@ const suitName=(s)=>['diamond','club','heart','spade'][s]??'club';
 const cardImagePath=(card)=>withBase(`card-assets/${suitName(card.suit)}-${RANKS[card.rank]}.png`);
 const faceRankClass=(card)=>(card.rank>=8&&card.rank<=10)?'face-jqk':'';
 function renderStaticCard(card,mini=false,extra='',inlineStyle=''){return`<div class="card face ${mini?'mini':''} ${faceRankClass(card)} ${extra}"${inlineStyle?` style="${inlineStyle}"`:''}><img class="card-art" src="${cardImagePath(card)}" alt="${RANKS[card.rank]} ${SUITS[card.suit].symbol}"/></div>`;}
-function renderHandCard(card,selected){const draggable=isMobilePointer()?'false':'true';return`<button class="card face hand-card ${faceRankClass(card)} ${selected?'selected':''}" draggable="${draggable}" data-card-id="${cardId(card)}"><img class="card-art" src="${cardImagePath(card)}" alt="${RANKS[card.rank]} ${SUITS[card.suit].symbol}"/></button>`;}
+function renderHandCard(card,selected,extraClass=''){const draggable=isMobilePointer()?'false':'true';return`<button class="card face hand-card ${faceRankClass(card)} ${selected?'selected':''} ${extraClass}" draggable="${draggable}" data-card-id="${cardId(card)}"><img class="card-art" src="${cardImagePath(card)}" alt="${RANKS[card.rank]} ${SUITS[card.suit].symbol}"/></button>`;}
 function fanNoise(seed,i,salt=''){
   const s=`${seed}|${i}|${salt}`;
   let h=2166136261;
@@ -3376,6 +3388,7 @@ function renderGame(){
   const canAutoSort=!v.gameOver&&v.hand.length>0;
   const selfScoreValue=v.mode==='solo'?(state.solo.totals?.[0]??state.score):state.score;
   const canSuggest=v.canControl;
+  const showMust3Highlight=Boolean(v.canControl&&v.isFirstTrick&&!v.lastPlay&&has3d(v.hand)&&!has3d(selected));
   const self=arr.find((p)=>p.viewIndex===0);
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
@@ -3458,8 +3471,10 @@ function renderGame(){
   const isRecEmpty=state.recommendHint===t('noSuggest');
   const showRecommendHint=Boolean(state.recommendHint)&&!isRecPass;
   const isRecPlay=state.recommendation?.action==='play';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)))).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
-  document.querySelectorAll('.intro-modal,.intro-backdrop,.lb-modal,#lb-modal,#intro-modal,#score-guide-modal,.score-guide-modal,.score-guide-backdrop,.lb-backdrop').forEach((el)=>el.remove());
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'')).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  document.body.setAttribute('data-web-too-small','0');
+  document.body.removeAttribute('data-web-too-small-msg');
+  document.getElementById('web-too-small-overlay')?.remove();
   document.getElementById('tap-debug')?.remove();
   if(document.body.dataset.tapDebugBound){
     delete document.body.dataset.tapDebugBound;
@@ -3622,6 +3637,16 @@ function bindGameEvents(v,arr){
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
+  const topbarDelegate=(ev)=>{
+    const t=ev?.target;
+    if(!(t instanceof HTMLElement))return;
+    const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle');
+    if(!btn)return;
+    if(btn.id==='game-intro-toggle'){state.home.showIntro=true;render();return;}
+    if(btn.id==='score-guide-toggle'){state.showScoreGuide=true;render();return;}
+    if(btn.id==='game-lb-toggle'){state.home.showLeaderboard=true;refreshLeaderboard(true);render();return;}
+  };
+  document.body.addEventListener('click',topbarDelegate,true);
   document.getElementById('home-btn')?.addEventListener('click',()=>{
     if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
     state.screen='home';
@@ -3806,11 +3831,6 @@ function render(){
   document.body.setAttribute('data-screen',state.screen);
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
-  if(state.screen==='game'){
-    state.home.showIntro=false;
-    state.home.showLeaderboard=false;
-    state.showScoreGuide=false;
-  }
   syncWebViewportGuardAttrs();
   if(shouldBlockLandscapeMobile()){
     renderOrientationBlock();
