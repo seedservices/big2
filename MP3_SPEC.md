@@ -18,15 +18,9 @@ Do not use any alternative pipeline.
    - Female: `2`
    - Male: `3`
 4. Word-level rate override (strict):
-   - Only for clips whose spoken text is `大` or `過`:
-     - Female: `1`
-     - Male: `2`
-   - All other clips remain at default:
-     - Female: `2`
-     - Male: `3`
+   - None (all Cantonese clips use the default rates above).
 5. Winner callout rate override (strict):
-     - Female: `1` (energetic)
-     - Male: `2` (energetic)
+   - None (all Cantonese clips use the default rates above).
 6. Build raw WAV files first into a temp folder (for example `__wav_raw`).
 7. Apply stitch rules in Python (WAV PCM operation).
 8. Convert final WAV to MP3 (`libmp3lame`, `192k`) with `ffmpeg` (via `imageio_ffmpeg` path).
@@ -73,6 +67,7 @@ Do not use any alternative pipeline.
 - `line-winner-3`: `贏翻杯奶茶☕`
 - `line-winner-4`: `今日副牌好靚😌`
 - `line-winner-5`: `贏到開巷`
+- `line-winner-6`: `今鋪我贏！`
 
 ## Stitch Rules
 

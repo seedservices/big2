@@ -317,6 +317,7 @@ const CALLOUT_RESPONSE_TEXT = {
       '\u4ECA\u65E5\u624B\u6C23\u5E7E\u9806\u3002',
       '\u4ECA\u65E5\u526F\u724C\u597D\u975A\uD83D\uDE0C',
       '\u8D0F\u7FFB\u676F\u5976\u8336\u2615',
+      '\u4ECA\u92EA\u6211\u8D0F\uff01',
     ],
     winnerRepeat: '\u5514\u597D\u610F\u601D\uff0c\u53C8\u4FC2\u6211\u3002',
   },
@@ -341,6 +342,7 @@ const CALLOUT_RESPONSE_TEXT = {
       'My luck is pretty good today.',
       'This deck is really nice today.',
       'Won back bubble tea ☕',
+      'This round is mine!',
     ],
     winnerRepeat: 'Sorry, me again.',
   },
@@ -519,6 +521,7 @@ let calloutSpeechUntil=0;
 let calloutSpeechEndedAt=0;
 let calloutResumePending=false;
 let calloutSpeakSeq=0;
+let calloutGateUntilPlay=false;
 let turnLockUntil=0;
 let calloutDisplayEnabled=true;
 let calloutVoiceMode='auto'; // auto | recorded | off
@@ -1509,6 +1512,7 @@ function speakCallout(text,gender='male',meta={}){
   try{
     const msg=String(text??'').trim();
     if(!msg)return;
+    if(calloutGateUntilPlay&&state.screen==='game'&&state.home.mode==='solo'&&((state.solo?.history?.length??0)===0))return;
     if(calloutVoiceMode==='off')return;
     const speakSeq=++calloutSpeakSeq;
     try{
@@ -2545,7 +2549,7 @@ function lockTurnProgress(ms=0){
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;markGameStartedInCache();playSound('start');render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;markGameStartedInCache();playSound('start');render();maybeRunSoloAi();}
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
   if(shouldForceMaxAgainstLastCard(g,seat)){
