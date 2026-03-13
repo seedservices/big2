@@ -1372,16 +1372,19 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .score-guide-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  gap: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 .score-guide-card-art {
-  width: clamp(36px, 6.8vw, 56px);
-  height: calc(clamp(36px, 6.8vw, 56px) * 1.45);
-  object-fit: contain;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,.24);
-  background: rgba(5,14,24,.3);
+  width: calc(var(--card-w) * 1.36);
+  height: calc(var(--card-h) * 0.91);
+  object-fit: cover;
+  object-position: top;
+  border-radius: 4px;
+}
+.score-guide-card-art + .score-guide-card-art {
+  margin-left: calc(var(--card-w) * -0.86);
 }
 .suit-red {
   color: #d9252a;
@@ -2775,6 +2778,18 @@ body[data-screen='game'] .table-center-stack {
 }
 .hand-card.must3-highlight .card-art {
   filter: drop-shadow(0 0 12px rgba(255, 209, 102, .7));
+}
+body[data-screen='game'] .hand.hand-stacked .hand-card.must3-highlight {
+  box-shadow: none !important;
+  outline: 2px solid rgba(255, 232, 160, .9);
+  animation: must3PulseStacked 1.4s ease-in-out infinite;
+}
+body[data-screen='game'] .hand.hand-stacked .hand-card.must3-highlight .card-art {
+  filter: none;
+}
+@keyframes must3PulseStacked {
+  0%, 100% { transform: translateY(0); outline-color: rgba(255, 232, 160, .75); }
+  50% { transform: translateY(-2px); outline-color: rgba(255, 232, 160, 1); }
 }
 @keyframes must3Pulse {
   0%, 100% { transform: translateY(0) scale(1.02); box-shadow: 0 0 0 3px rgba(255, 232, 160, .85), 0 0 18px rgba(255, 209, 102, .6), 0 0 28px rgba(255, 209, 102, .4); }
@@ -4682,12 +4697,14 @@ body[data-screen='game'] .center-last .seat-played {
 }
 /* Fade bottom third of cards in game log and guide page. */
 .history-cards,
-.intro-hand-cards {
+.intro-hand-cards,
+.score-guide-cards {
   position: relative;
 }
 /* Fade cards out to transparent at the bottom. */
 .history-cards,
-.intro-hand-cards {
+.intro-hand-cards,
+.score-guide-cards {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   -webkit-mask-size: 100% 100%;
