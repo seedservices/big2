@@ -641,15 +641,14 @@ body[data-screen='home'] .home-wrap {
   transition: transform .16s ease, border-color .16s ease, box-shadow .2s ease, background .2s ease;
 }
 .gender-image-combo .gender-image-btn .gender-symbol {
-  width: auto;
-  height: auto;
+  width: 1.1em;
+  height: 1.1em;
   border-radius: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   font-size: 1rem;
   font-weight: 800;
   line-height: 1;
@@ -657,6 +656,7 @@ body[data-screen='home'] .home-wrap {
   font-variant-emoji: text;
   color: #f5e3b4;
   text-shadow: 0 2px 8px rgba(0,0,0,.35);
+  transform: translateY(1px);
 }
 .gender-image-combo .gender-image-btn .gender-label {
   font-size: .8rem;
