@@ -1145,14 +1145,18 @@ async function readProfileDocByRest(docId){
   Object.keys(rawFields).forEach((k)=>{out[k]=fromFirestoreValue(rawFields[k]);});
   return out;
 }
+function isBotIdentity(identity){return Boolean(identity?.isBot);}
 function buildProfilePayload(identity,entry,updatedAt){
+  const isBot=isBotIdentity(identity);
+  const picture=isBot?'':String(identity?.picture??state.home.google?.picture??'').trim();
+  const settings=isBot?{}:(identity?.settings&&typeof identity.settings==='object'?identity.settings:collectMainSettings());
   return{
     id:String(entry.id),
     name:String(identity?.name??entry.name??'Player').slice(0,32),
     email:String(identity?.email??entry.email??'').toLowerCase().slice(0,120),
     gender:String(identity?.gender??entry.gender??'male')==='female'?'female':'male',
-    picture:String(state.home.google?.picture??'').trim(),
-    settings:collectMainSettings(),
+    picture,
+    settings,
     totalScore:scoreFromStoredTotal(entry.totalScore),
     games:Number(entry.games)||0,
     wins:Number(entry.wins)||0,
@@ -1207,6 +1211,11 @@ function currentLeaderboardIdentity(){
   const fallback=String(state.home.name??'').trim().slice(0,32)||'Player';
   return{id:`name:${fallback.toLowerCase()}`,name:fallback,email:'',gender};
 }
+function botLeaderboardIdentity(name,gender){
+  const safe=String(name??'Bot').trim().slice(0,32)||'Bot';
+  const g=String(gender??'male')==='female'?'female':'male';
+  return{id:`bot:${safe.toLowerCase()}`,name:safe,email:'',gender:g,isBot:true,picture:'',settings:{}};
+}
 function identityLookupIds(identity){
   const out=[];
   const id=String(identity?.id??'').trim();
@@ -1237,17 +1246,19 @@ function ensureLeaderboardEntry(store,identity){
   if(!safe)return null;
   const email=String(identity?.email??'').trim().toLowerCase().slice(0,120);
   const gender=String(identity?.gender??state.home.gender??'male')==='female'?'female':'male';
-  const picture=String(state.home.google?.picture??'').trim();
+  const isBot=isBotIdentity(identity);
+  const picture=isBot?'':String(identity?.picture??state.home.google?.picture??'').trim();
   const key=String(identity?.id??(email?`account:${email}`:`name:${safe.toLowerCase()}`)).trim().slice(0,180);
   if(!key)return null;
   if(!store.players[key]){
-    store.players[key]={id:key,name:safe,email,gender,picture,settings:collectMainSettings(),games:0,wins:0,totalScore:5000,updatedAt:Date.now()};
+    store.players[key]={id:key,name:safe,email,gender,picture,settings:isBot?{}:collectMainSettings(),games:0,wins:0,totalScore:5000,updatedAt:Date.now()};
   }
   if(safe)store.players[key].name=safe;
   if(email)store.players[key].email=email;
   store.players[key].gender=String(store.players[key].gender??gender)==='female'?'female':'male';
   if(picture)store.players[key].picture=picture;
-  store.players[key].settings=collectMainSettings();
+  if(isBot)store.players[key].picture='';
+  store.players[key].settings=isBot?{}:collectMainSettings();
   store.players[key].totalScore=scoreFromStoredTotal(store.players[key].totalScore);
   return store.players[key];
 }
@@ -1369,7 +1380,8 @@ function leaderboardPanelHtml(){
     totalScore:5000,
     updatedAt:0
   }));
-  const combinedRows=[...rows,...botRows].sort((a,b)=>{
+  const hasBotRows=rows.some((r)=>String(r.id??'').startsWith('bot:'));
+  const combinedRows=(hasBotRows?rows:[...rows,...botRows]).sort((a,b)=>{
     if(lb.sort==='wins')return b.wins-a.wins||b.totalScore-a.totalScore||a.name.localeCompare(b.name);
     if(lb.sort==='games')return b.games-a.games||b.wins-a.wins||a.name.localeCompare(b.name);
     if(lb.sort==='winRate')return b.winRate-a.winRate||b.wins-a.wins||a.name.localeCompare(b.name);
@@ -2732,7 +2744,17 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     }
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
-  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);recordLeaderboardRound(currentLeaderboardIdentity(),seat===0?winnerGain:-deductions[0],seat===0);playSound('win');{const wc=buildWinnerCalloutForSeat(g,seat);if(wc.text)speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});}return true;
+  g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
+  const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
+  setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);
+  const deltas=g.players.map((_,i)=>i===seat?winnerGain:-deductions[i]);
+  g.players.forEach((p,i)=>{
+    const identity=p.isHuman?currentLeaderboardIdentity():botLeaderboardIdentity(p.name,p.gender);
+    void recordLeaderboardRound(identity,deltas[i],i===seat);
+  });
+  playSound('win');
+  {const wc=buildWinnerCalloutForSeat(g,seat);if(wc.text)speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});}
+  return true;
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   lockTurnProgress(900);

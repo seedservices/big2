@@ -650,8 +650,11 @@ body[data-screen='home'] .home-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 800;
+  line-height: 1;
+  font-family: "Apple Symbols", "Noto Sans Symbols 2", "Segoe UI Symbol", "Helvetica Neue", Arial, sans-serif;
+  font-variant-emoji: text;
   color: #f5e3b4;
   text-shadow: 0 2px 8px rgba(0,0,0,.35);
 }
