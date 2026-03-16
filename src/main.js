@@ -125,6 +125,12 @@ const I18N={
     useGoogleName:'使用 Google 名稱',
     signOut:'登出',
     lb:'排行榜',
+    opponents:'對手資料',
+    dob:'出生日期',
+    hobbies:'興趣',
+    profile:'簡介',
+    zodiac:'星座',
+    motto:'金句/座右銘',
     lbHeadingDesc:'根據分數變動、勝場與勝率等表現指標即時更新排名。',
     lbRefresh:'更新排行榜',
     lbSort:'排序',
@@ -139,6 +145,7 @@ const I18N={
     lb7d:'7日',
     lb30d:'30日',
     scoreGuide:'計分方法',
+    clickProfile:'點擊名稱卡查看',
     scoreGuideTitle:'計分方法',
     scoreGuideItems:[
       '所有玩家起始 5000 分。',
@@ -266,6 +273,12 @@ const I18N={
     useGoogleName:'Use Google Name',
     signOut:'Sign out',
     lb:'Leaderboard',
+    opponents:'Opponents',
+    dob:'Date of Birth',
+    hobbies:'Hobbies',
+    profile:'Profile',
+    zodiac:'Zodiac',
+    motto:'Motto',
     lbHeadingDesc:'Live ranking updates based on score delta, wins, and win rate.',
     lbRefresh:'Refresh Leaderboard',
     lbSort:'Sort',
@@ -280,6 +293,7 @@ const I18N={
     lb7d:'7D',
     lb30d:'30D',
     scoreGuide:'Scoring',
+    clickProfile:'Click name card to view',
     scoreGuideTitle:'Scoring Method',
     scoreGuideItems:[
       'All players start at 5000 points.',
@@ -348,7 +362,7 @@ const CALLOUT_RESPONSE_TEXT = {
   },
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -504,6 +518,16 @@ let recommendHintTimer=null;
 let lastCardCallTimer=null;
 const lastCardCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:'',historyLen:0};
 const lastCardAnnouncedSeats=new Set();
+let calloutExpireTimer=null;
+function scheduleCalloutExpiry(until=0){
+  const wait=Math.max(0,Number(until||0)-Date.now()+40);
+  if(!Number.isFinite(wait))return;
+  if(calloutExpireTimer)clearTimeout(calloutExpireTimer);
+  calloutExpireTimer=window.setTimeout(()=>{
+    calloutExpireTimer=null;
+    if(state.screen==='game')render();
+  },wait);
+}
 let lastCardProcessedHistoryLen=0;
 let googleInlineRetryTimer=null;
 let googleIdentityInitialized=false;
@@ -526,6 +550,7 @@ let turnLockUntil=0;
 let calloutDisplayEnabled=true;
 let calloutVoiceMode='auto'; // auto | recorded | off
 let calloutStylePack='energetic'; // forced energetic
+let opponentProfileDelegateBound=false;
 const calloutAudioCache=new Map();
 let iosSharedCalloutAudio=null;
 let mobileTapAt=0;
@@ -543,7 +568,8 @@ const BOT_PROFILES={
     {name:'穎欣',gender:'female'},
     {name:'佩儀',gender:'female'},
     {name:'詠琪',gender:'female'},
-    {name:'秀文',gender:'female'}
+    {name:'秀文',gender:'female'},
+    {name:'澄希',gender:'female'}
   ],
   en:[
     {name:'Nova',gender:'female'},
@@ -555,8 +581,179 @@ const BOT_PROFILES={
     {name:'Rex',gender:'male'},
     {name:'Nora',gender:'female'},
     {name:'Kane',gender:'male'},
-    {name:'Skye',gender:'female'}
+    {name:'Skye',gender:'female'},
+    {name:'Orion',gender:'male'}
   ]
+};
+const OPPONENT_PROFILE_BY_NAME={
+  '志明':{
+    dob:'1992-05-18',
+    hobbies:{'zh-HK':['海釣','桌上遊戲','即影即有'],en:['shore fishing','board games','instant photos']},
+    profile:{'zh-HK':['開局像慢煮湯，越拖越香。他最愛說「再等一手」，其實早就算好你會誤判，連你會用哪張牌都猜中。','他最擅長拖你到你自己心急，然後在你出錯那秒收尾。桌上最安靜，但最會算，像老派會計把每張牌都記在心裡。'],en:['Opens like a slow simmer, then flips the table at the perfect time. He says “one more hand” while already reading your next card.','He drags you into impatience and ends it on your mistake. Quiet at the table, loud in the math—every card is already booked.']},
+    zodiac:{'zh-HK':'金牛座',en:'Taurus'},
+    motto:{'zh-HK':'慢就係快。',en:'Slow is smooth.'}
+  },
+  '俊傑':{
+    dob:'1990-11-03',
+    hobbies:{'zh-HK':['跑步','棋類','咖啡拉花'],en:['running','chess variants','latte art']},
+    profile:{'zh-HK':['最愛把牌排成棋盤，再用咖啡杯當計時器。輸給他不是輸牌，是輸節奏，連你呼吸的節拍都會被他帶走。','他會記你每一次出錯的節奏，下一局還會重播。對他而言，牌局只是時間管理課，勝負只是加分題。'],en:['Arranges cards like a chessboard and times turns with a coffee cup. You don’t lose to his cards, you lose to his tempo—even your breathing follows it.','He remembers your mistakes by tempo and replays them next round. To him, the game is time management, winning is just extra credit.']},
+    zodiac:{'zh-HK':'天蠍座',en:'Scorpio'},
+    motto:{'zh-HK':'每步都要值回票價。',en:'Make every move count.'}
+  },
+  '家樂':{
+    dob:'1994-02-27',
+    hobbies:{'zh-HK':['街拍','電影海報收藏','模型'],en:['street photography','movie posters','model kits']},
+    profile:{'zh-HK':['出牌像快門，咔嚓一聲就爆你節奏。喜歡快攻，偶爾也會浪漫到留最後一張，讓你以為還有機會。','他會在你覺得要爆的時候留一手，然後用最後的浪漫收尾。照片上你還在笑，結果他已經清桌。'],en:['Plays like a camera shutter—click, your rhythm is gone. Loves fast attacks, sometimes keeps one card just for the drama.','He keeps a card when you think he is all-in, then finishes with a dramatic last touch. You are still smiling in the photo while he already cleared the table.']},
+    zodiac:{'zh-HK':'雙魚座',en:'Pisces'},
+    motto:{'zh-HK':'快一步，靚好多。',en:'One step faster, a lot sharper.'}
+  },
+  '子朗':{
+    dob:'1996-07-09',
+    hobbies:{'zh-HK':['籃球','機械鍵盤','城市夜景'],en:['basketball','mechanical keyboards','city nights']},
+    profile:{'zh-HK':['看似佛系，其實暗藏殺招。末段一波連出，像球場快攻，快到你還在想就已經結束。','他不多話，卻最愛用一波連出讓你懷疑人生。你以為是運氣，其實是他早就排好的路線。'],en:['Looks chill, hides a dagger. Late game bursts like a fast break—so fast you are still thinking when it ends.','Few words, but a rapid sequence that makes you question everything. What looks like luck is just his route, pre‑planned.']},
+    zodiac:{'zh-HK':'巨蟹座',en:'Cancer'},
+    motto:{'zh-HK':'留到最後先開火。',en:'Save the strike for last.'}
+  },
+  '少龍':{
+    dob:'1991-03-22',
+    hobbies:{'zh-HK':['登山','拳擊訓練','武俠小說'],en:['hiking','boxing drills','wuxia novels']},
+    profile:{'zh-HK':['出牌像練拳，先探路再重擊。你一眨眼，他就全桌清空，連你的反應都變慢。','他會先讓你覺得安全，然後突然加速收尾。等你回神，他已經把節奏鎖死。'],en:['Boxes with the deck—probe, feint, then a heavy punch. Blink and the table is empty, and your reactions feel slow.','He lets you feel safe, then hits the accelerator to finish. By the time you notice, the tempo is locked.']},
+    zodiac:{'zh-HK':'白羊座',en:'Aries'},
+    motto:{'zh-HK':'先手就係王道。',en:'Lead and dominate.'}
+  },
+  '天樂':{
+    dob:'1993-09-14',
+    hobbies:{'zh-HK':['吉他','慢跑','旅行計劃'],en:['guitar','jogging','trip planning']},
+    profile:{'zh-HK':['說話慢慢，出牌更慢，但每一步都踩在節拍上。你越急，他越穩，像慢歌的鼓點。','他會把節奏拉到你睡著，再用一記乾淨收牌。最後一手很安靜，但你會聽到心碎聲。'],en:['Speaks slow, plays slower—always on beat. The more you rush, the steadier he becomes, like a slow drum.','He slows the tempo until you drift, then closes with clean hands. The last move is quiet, but it lands.']},
+    zodiac:{'zh-HK':'處女座',en:'Virgo'},
+    motto:{'zh-HK':'穩先，唔好急。',en:'Steady first, speed later.'}
+  },
+  '嘉欣':{
+    dob:'1995-01-30',
+    hobbies:{'zh-HK':['烘焙','插畫','香薰'],en:['baking','illustration','aromatherapy']},
+    profile:{'zh-HK':['牌桌像烤箱，先升溫再反殺。最怕你亂來，因為她最愛你亂來，越亂越香。','她最愛看你自亂陣腳，因為那是她的甜點時間。你以為她在放水，她其實在量火候。'],en:['Treats the table like an oven—preheat, then serve a surprise. Hopes you overreach, then punishes it.','She waits for you to spiral; that is when dessert is served. What you think is mercy is just heat control.']},
+    zodiac:{'zh-HK':'水瓶座',en:'Aquarius'},
+    motto:{'zh-HK':'氣定神閒先贏。',en:'Stay cool, win clean.'}
+  },
+  '芷晴':{
+    dob:'1997-06-12',
+    hobbies:{'zh-HK':['瑜伽','花藝','攝影'],en:['yoga','floral design','photography']},
+    profile:{'zh-HK':['動作輕柔卻刀刀見骨。別被她的微笑騙了，微笑是她的煙幕彈。','你以為她在養牌，其實她在養你。等你以為安全，她就用最小的牌把你推下去。'],en:['Soft moves, sharp results. Don’t let the smile fool you—it is just smoke.','You think she is slow-building, she is just baiting you. When you feel safe, the smallest card pushes you off.']},
+    zodiac:{'zh-HK':'雙子座',en:'Gemini'},
+    motto:{'zh-HK':'溫柔也可以致命。',en:'Soft can still sting.'}
+  },
+  '穎欣':{
+    dob:'1992-08-05',
+    hobbies:{'zh-HK':['爵士樂','手作','陶藝'],en:['jazz','handcrafts','ceramics']},
+    profile:{'zh-HK':['喜歡連段節奏，像即興爵士。你以為她迷路，其實她在鋪路，每一手都是節拍器。','她會把最強的組合留到你覺得安全那刻。等你放鬆，她的副歌就上來了。'],en:['Strings combos like jazz riffs. When you think she is lost, she is setting a trap, each hand a metronome.','She saves the strongest combo for the moment you feel safe. Once you relax, the chorus hits.']},
+    zodiac:{'zh-HK':'獅子座',en:'Leo'},
+    motto:{'zh-HK':'連段先係表演。',en:'Combos are the show.'}
+  },
+  '佩儀':{
+    dob:'1994-12-19',
+    hobbies:{'zh-HK':['閱讀','烘焙','拼圖'],en:['reading','baking','puzzles']},
+    profile:{'zh-HK':['慢慢拼圖，慢慢拆你手牌。看起來保守，其實很會算，每一張都在她的棋盤裡。','她的牌桌像拼圖桌，最後一塊永遠在她手上。你以為只差一張，她已經收好盒子。'],en:['Builds a puzzle, then disassembles your hand. Conservative on the surface, ruthless underneath, every card has a slot.','Her table is a puzzle; the last piece is always in her hand. When you think you are one card away, she is already packing.']},
+    zodiac:{'zh-HK':'射手座',en:'Sagittarius'},
+    motto:{'zh-HK':'算清楚先出手。',en:'Count it, then strike.'}
+  },
+  '詠琪':{
+    dob:'1991-10-11',
+    hobbies:{'zh-HK':['旅行誌','街頭小吃','畫畫'],en:['travel journals','street food','sketching']},
+    profile:{'zh-HK':['喜歡冒險路線，一手牌能走三條路。你猜不透她下一站，因為她自己也想試新路。','她的路線不固定，你的預判卻一直固定。她最愛用你的自信把你帶離正路。'],en:['Always takes the scenic route—one hand, three lines. You never know her next stop because she likes the detour.','Her routes change; your predictions do not. She uses your confidence to pull you off course.']},
+    zodiac:{'zh-HK':'天秤座',en:'Libra'},
+    motto:{'zh-HK':'隨機應變，最穩。',en:'Adapt fast, stay balanced.'}
+  },
+  '秀文':{
+    dob:'1993-04-02',
+    hobbies:{'zh-HK':['園藝','輕音樂','手沖咖啡'],en:['gardening','lo-fi music','pour-over coffee']},
+    profile:{'zh-HK':['慢熱型，但一開花就停不下來。最後幾手通常最兇，你會突然發現已經追不回來。','前半場像散步，後半場像開花火。她會等到你放鬆那刻再點火。'],en:['Slow grower, then unstoppable bloom. Most dangerous in the last few hands—you realize too late.','First half is a stroll, second half is fireworks. She waits for your guard to drop, then lights it up.']},
+    zodiac:{'zh-HK':'白羊座',en:'Aries'},
+    motto:{'zh-HK':'後段先係主場。',en:'Late game is home turf.'}
+  },
+  '澄希':{
+    dob:'1996-09-03',
+    hobbies:{'zh-HK':['海邊跑步','城市探店','底片相機'],en:['seaside runs','city food hunts','film cameras']},
+    profile:{'zh-HK':['她像海風一樣，來得快、走得也快。前段用節奏把你帶離正軌，後段直接收線。','她最擅長用很普通的牌打出高級感，讓你以為她在省牌，其實她在省你的路。'],en:['She moves like a sea breeze—fast in, fast out. Early tempo pulls you off course; late game she just closes the line.','She makes ordinary cards look premium, so you think she is conserving. She is really conserving your options.']},
+    zodiac:{'zh-HK':'處女座',en:'Virgo'},
+    motto:{'zh-HK':'風向對，就唔洗出力。',en:'With the right wind, you barely push.'}
+  },
+  'Nova':{
+    dob:'1998-03-08',
+    hobbies:{'zh-HK':['觀星','合成器音樂','魔方'],en:['stargazing','synth music','speed cubing']},
+    profile:{'zh-HK':['腦內像星圖，總能預判你下手。出牌乾脆，收尾超快，像導航把你帶進死巷。','她會先清出你能看到的路，再把看不到的路封死。你以為有三條路，其實只有她那條。'],en:['Plays with a star map in mind—predicts your next move. Clean, fast, and surgical, like a GPS into a dead end.','She clears the obvious path, then blocks the hidden one. You think you have three routes; she keeps one.']},
+    zodiac:{'zh-HK':'雙魚座',en:'Pisces'},
+    motto:{'zh-HK':'看得遠，先著數。',en:'See far, win early.'}
+  },
+  'Milo':{
+    dob:'1991-07-21',
+    hobbies:{'zh-HK':['街籃','滑板','拉麵地圖'],en:['streetball','skateboarding','ramen hunts']},
+    profile:{'zh-HK':['快攻型選手，第一波就要把你推下坡，讓你從一開始就被迫防守。','他要你跟他跑，但你根本跟不上。等你喘過氣，他已經在終點線上揮手。'],en:['All-in on speed. The first rush is meant to push you downhill and keep you defending.','He wants you to run with him. You cannot. By the time you breathe, he is waving at the finish.']},
+    zodiac:{'zh-HK':'獅子座',en:'Leo'},
+    motto:{'zh-HK':'快，先贏一半。',en:'Speed wins half.'}
+  },
+  'Jade':{
+    dob:'1996-01-16',
+    hobbies:{'zh-HK':['書法','城市散步','黑膠'],en:['calligraphy','city walks','vinyl']},
+    profile:{'zh-HK':['出牌像寫字，線條俐落。你以為他慢，其實他只是不亂，筆畫少但每一筆都準。','他討厭浪費牌，因為每張都該有角色。你打亂他的節奏，他會用更簡短的句子回你。'],en:['Plays like calligraphy—clean lines, no wasted strokes. You think he is slow, he just refuses chaos.','He hates wasting cards; every card must play a role. Try to disrupt him and he answers with shorter, cleaner lines.']},
+    zodiac:{'zh-HK':'摩羯座',en:'Capricorn'},
+    motto:{'zh-HK':'唔亂先贏。',en:'Order beats chaos.'}
+  },
+  'Axel':{
+    dob:'1990-09-27',
+    hobbies:{'zh-HK':['滑雪','街機','復古相機'],en:['snowboarding','arcades','retro cameras']},
+    profile:{'zh-HK':['敢上高坡就敢滑下來。高風險高回報，輸一次都不介意。','他相信一波翻盤勝過十次小贏。你以為他亂，其實他在等最刺激的角度。'],en:['High slopes, high stakes. He is fine losing once for a big return.','He would rather flip the table once than win small ten times. What looks wild is just his favorite angle.']},
+    zodiac:{'zh-HK':'天秤座',en:'Libra'},
+    motto:{'zh-HK':'搏一搏，單車變跑車。',en:'Bet big, win big.'}
+  },
+  'Iris':{
+    dob:'1995-05-04',
+    hobbies:{'zh-HK':['陶藝','書店咖啡','水彩'],en:['pottery','book cafés','watercolor']},
+    profile:{'zh-HK':['喜歡慢慢堆塔，堆好就一口氣推倒。她的耐心比你的手牌還長。','她會把你最愛的路線一點點封起來。等你發現時，你的路已經變成她的路。'],en:['Builds patiently, then knocks the tower down. Her patience outlasts your hand.','She quietly seals off the line you love most. When you notice, your road already belongs to her.']},
+    zodiac:{'zh-HK':'金牛座',en:'Taurus'},
+    motto:{'zh-HK':'慢功出細貨。',en:'Patience pays.'}
+  },
+  'Luna':{
+    dob:'1997-10-23',
+    hobbies:{'zh-HK':['夜市','獨立電影','手帳'],en:['night markets','indie films','journaling']},
+    profile:{'zh-HK':['節奏多變，忽快忽慢。你一鬆懈，她就收尾，像突然關燈那一刻。','她會故意慢一拍，讓你先出錯。你以為是錯覺，其實是她的節拍器。'],en:['Switches pace on a dime. Relax once and she finishes, like lights out.','She pauses a beat on purpose, so you blink first. What feels like a glitch is her metronome.']},
+    zodiac:{'zh-HK':'天蠍座',en:'Scorpio'},
+    motto:{'zh-HK':'變速先係武器。',en:'Tempo is the weapon.'}
+  },
+  'Rex':{
+    dob:'1989-12-07',
+    hobbies:{'zh-HK':['羽毛球','策略遊戲','播客'],en:['badminton','strategy games','podcasts']},
+    profile:{'zh-HK':['穩定器型選手，犯錯率極低。你要贏他得靠冒險，但冒險就是他的陷阱。','他會逼你做選擇，然後把兩條路都堵住。你越想贏，越掉進他的節奏。'],en:['Low error rate, high discipline. You beat him by taking risks, but risk is his trap.','He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.']},
+    zodiac:{'zh-HK':'射手座',en:'Sagittarius'},
+    motto:{'zh-HK':'穩定先係輸少。',en:'Stability saves.'}
+  },
+  'Nora':{
+    dob:'1996-02-10',
+    hobbies:{'zh-HK':['烘焙','網球','修圖'],en:['baking','tennis','photo edits']},
+    profile:{'zh-HK':['平衡型，節奏舒服但不會放水。她像空調一樣，永遠在你覺得剛好的溫度。','她最會把局勢維持在剛剛好，讓你不敢冒險。等你猶豫，她就已經走完。'],en:['Balanced and steady—friendly pace, no free wins. She is like perfect air‑conditioning, always “just right.”','She keeps the game at just right so you will not risk it. While you hesitate, she is already done.']},
+    zodiac:{'zh-HK':'水瓶座',en:'Aquarius'},
+    motto:{'zh-HK':'舒服唔代表放鬆。',en:'Calm doesn’t mean soft.'}
+  },
+  'Kane':{
+    dob:'1992-04-15',
+    hobbies:{'zh-HK':['拳擊','圖案T','電單車'],en:['boxing','graphic tees','motorbikes']},
+    profile:{'zh-HK':['喜歡硬碰硬，越打越亢奮。對他來說，安穩的牌局等於無聊。','他越被壓就越狠，像彈簧。你以為他在撐，其實他在蓄力。'],en:['Prefers head‑on clashes. The longer the fight, the more alive he gets.','The more you press, the harder he snaps back. You think he is surviving; he is charging.']},
+    zodiac:{'zh-HK':'白羊座',en:'Aries'},
+    motto:{'zh-HK':'硬拼先有戲。',en:'Go hard or go home.'}
+  },
+  'Skye':{
+    dob:'1998-11-29',
+    hobbies:{'zh-HK':['皮拉提斯','lo‑fi','文具收藏'],en:['pilates','lo‑fi beats','stationery']},
+    profile:{'zh-HK':['表面溫柔，內心精算。最後一手最狠，像畫龍點睛。','她的微笑是陷阱，最後一張是鎖。你以為她在聊天，其實她在收網。'],en:['Soft vibe, sharp math. Deadly on the last card, like the final stroke.','Her smile is bait, her last card is the lock. You think she is chatting; she is closing the net.']},
+    zodiac:{'zh-HK':'射手座',en:'Sagittarius'},
+    motto:{'zh-HK':'尾段才是真功夫。',en:'The endgame tells all.'}
+  },
+  'Orion':{
+    dob:'1990-02-02',
+    hobbies:{'zh-HK':['天文攝影','登高夜景','競技遊戲'],en:['astro photography','city night hikes','competitive games']},
+    profile:{'zh-HK':['他像星圖導航，先標記你所有出路，再一個個收掉。你以為還有選擇，其實已經被他圈住。','他不怕慢，怕的是你太快亂來。只要你一急，他就會用最簡單的牌把你關燈。'],en:['He plays like a star chart—marks every exit, then closes them one by one. You think you have options; he has already ringed you.','He is not afraid of slow, only of you rushing. The moment you panic, he ends it with the simplest cards.']},
+    zodiac:{'zh-HK':'水瓶座',en:'Aquarius'},
+    motto:{'zh-HK':'睇清先落。',en:'See it, then land it.'}
+  }
 };
 const BACK_OPTIONS=[
   {value:'blue',file:'back-blue-clean.png',label:{'zh-HK':'藍色',en:'Blue'}},
@@ -579,6 +776,23 @@ const normalizeCalloutStylePack=(v)=>{
 const winnerCalloutWinsByName=new Map();
 
 const t=(k)=>I18N[state.language][k]??k;
+function zodiacSymbol(name=''){
+  const key=String(name??'').toLowerCase();
+  if(!key)return'';
+  if(key.includes('aries')||key.includes('白羊'))return'♈';
+  if(key.includes('taurus')||key.includes('金牛'))return'♉';
+  if(key.includes('gemini')||key.includes('雙子'))return'♊';
+  if(key.includes('cancer')||key.includes('巨蟹'))return'♋';
+  if(key.includes('leo')||key.includes('獅子'))return'♌';
+  if(key.includes('virgo')||key.includes('處女'))return'♍';
+  if(key.includes('libra')||key.includes('天秤'))return'♎';
+  if(key.includes('scorpio')||key.includes('天蠍'))return'♏';
+  if(key.includes('sagittarius')||key.includes('射手'))return'♐';
+  if(key.includes('capricorn')||key.includes('摩羯'))return'♑';
+  if(key.includes('aquarius')||key.includes('水瓶'))return'♒';
+  if(key.includes('pisces')||key.includes('雙魚'))return'♓';
+  return'';
+}
 function hashTextSeed(seed=''){
   const txt=String(seed??'');
   let h=0;
@@ -2023,14 +2237,24 @@ const AVATAR_VARIANT_BY_NAME={
   '穎欣':'v2'
 };
 const AVATAR_IMAGE_BY_BOT_NAME={
+  '志明':'https://avataaars.io/?topType=WinterHat3&accessoriesType=Round&hatColor=Blue02&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Blue02&graphicType=Bear&eyeType=Squint&eyebrowType=UpDown&mouthType=Smile&skinColor=Light',
   '子朗':'https://avataaars.io/?topType=Hat&accessoriesType=Prescription02&facialHairType=BeardLight&facialHairColor=BrownDark&clotheType=BlazerShirt&eyeType=EyeRoll&eyebrowType=Default&mouthType=Twinkle&skinColor=Light&scale=200',
-  '家樂':'https://avataaars.io/?avatarStyle=Transparent&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=BeardMedium&facialHairColor=Black&clotheType=BlazerSweater&eyeType=Happy&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Brown',
-  '芷晴':'https://avataaars.io/?topType=LongHairDreads&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=ShirtScoopNeck&clotheColor=Pink&eyeType=Default&eyebrowType=DefaultNatural&mouthType=Default&skinColor=Light&backgroundColor=ffdfbf',
+  '家樂':'https://avataaars.io/?topType=ShortHairDreads02&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=BeardLight&facialHairColor=BrownDark&clotheType=Hoodie&clotheColor=PastelRed&eyeType=Wink&eyebrowType=Default&mouthType=Grimace&skinColor=Pale',
+  '嘉欣':'https://avataaars.io/?topType=LongHairCurvy&accessoriesType=Round&hairColor=Black&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Pink&graphicType=Diamond&eyeType=Default&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Light',
+  '芷晴':'https://avataaars.io/?topType=LongHairStraightStrand&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Blue03&graphicType=Selena&eyeType=Happy&eyebrowType=Default&mouthType=Smile&skinColor=Light',
   'Rex':'https://avataaars.io/?topType=ShortHairShortFlat&accessoriesType=Prescription02&hairColor=Black&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Wink&eyebrowType=DefaultNatural&mouthType=Smile&skinColor=Light',
-  'Axel':'https://avataaars.io/?topType=WinterHat2&accessoriesType=Blank&hatColor=Blue03&facialHairType=BeardLight&facialHairColor=Black&clotheType=Hoodie&clotheColor=Blue03&eyeType=Cry&eyebrowType=FlatNatural&mouthType=Sad&skinColor=Pale&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede,d1d4f9',
+  'Axel':'https://avataaars.io/?topType=ShortHairDreads02&accessoriesType=Round&hairColor=Red&facialHairType=BeardMajestic&facialHairColor=Red&clotheType=Hoodie&clotheColor=Red&eyeType=Default&eyebrowType=UnibrowNatural&mouthType=Eating&skinColor=Pale',
   '穎欣':'https://avataaars.io/?topType=LongHairFroBand&accessoriesType=Kurt&hairColor=Blonde&facialHairType=Blank&clotheType=ShirtVNeck&clotheColor=Red&eyeType=Squint&eyebrowType=RaisedExcitedNatural&mouthType=Twinkle&skinColor=Light',
   '佩儀':'https://avataaars.io/?topType=LongHairFrida&accessoriesType=Round&hairColor=Blonde&facialHairType=Blank&clotheType=CollarSweater&clotheColor=Pink&eyeType=WinkWacky&eyebrowType=Default&mouthType=Grimace&skinColor=Pale&backgroundColor=b6e3f4,c0aede,d1d4f9',
-  '少龍':'https://avataaars.io/?avatarStyle=Transparent&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=Brown&facialHairType=BeardLight&facialHairColor=BrownDark&clotheType=BlazerShirt&eyeType=Side&eyebrowType=AngryNatural&mouthType=Concerned&skinColor=Brown&backgroundColor=b6e3f4,c0aede,d1d4f9'
+  '少龍':'https://avataaars.io/?avatarStyle=Transparent&topType=ShortHairDreads01&accessoriesType=Sunglasses&hairColor=Brown&facialHairType=BeardLight&facialHairColor=BrownDark&clotheType=BlazerShirt&eyeType=Side&eyebrowType=AngryNatural&mouthType=Concerned&skinColor=Brown&backgroundColor=b6e3f4,c0aede,d1d4f9',
+  'Kane':'https://avataaars.io/?topType=Eyepatch&facialHairType=BeardMedium&facialHairColor=Black&clotheType=ShirtVNeck&clotheColor=Black&eyeType=Surprised&eyebrowType=AngryNatural&mouthType=Grimace&skinColor=DarkBrown&scale=150',
+  'Milo':'https://avataaars.io/?topType=WinterHat2&accessoriesType=Blank&hatColor=Blue03&facialHairType=Blank&clotheType=Hoodie&clotheColor=Heather&eyeType=Squint&eyebrowType=UpDownNatural&mouthType=Smile&skinColor=Light',
+  'Nora':'https://avataaars.io/?topType=LongHairFroBand&accessoriesType=Blank&hairColor=Auburn&facialHairType=Blank&clotheType=ShirtScoopNeck&clotheColor=Pink&eyeType=Close&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Light',
+  '天樂':'https://avataaars.io/?topType=ShortHairDreads01&accessoriesType=Prescription01&hairColor=Black&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Wink&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Brown'
+  ,
+  'Nova':'https://avataaars.io/?topType=LongHairDreads&accessoriesType=Blank&hairColor=Black&facialHairType=Blank&clotheType=ShirtScoopNeck&clotheColor=Pink&eyeType=Default&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Brown',
+  'Skye':'https://avataaars.io/?topType=LongHairStraight&accessoriesType=Prescription01&hairColor=Black&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Blue03&graphicType=Cumbia&eyeType=Close&eyebrowType=RaisedExcitedNatural&mouthType=Smile&skinColor=Light',
+  'Iris':'https://avataaars.io/?topType=LongHairBun&accessoriesType=Kurt&hairColor=Red&facialHairType=Blank&clotheType=ShirtVNeck&clotheColor=Pink&eyeType=Close&eyebrowType=UpDown&mouthType=Disbelief&skinColor=Light'
 };
 const AVATAR_OVERRIDE_BY_NAME={
   '少龍':{
@@ -2198,11 +2422,8 @@ function avatarDataUri(name,color,gender='male',isBot=false){
   params.set('hairColor',override?.hairColor??pick(AVATAR_A4_HK.hairColor,seedHash,9));
   params.set('facialHair',pick(AVATAR_A4_FACIAL_HAIR.list,seedHash,10));
   params.set('facialHairProbability','0');
-  if(seatColor){
-    const bgList=[seatColor,seatLight].filter(Boolean).map((v)=>v.replace('#','')).join(',');
-    params.set('backgroundColor',bgList);
-    params.set('backgroundType','gradientLinear');
-  }
+  void seatColor;
+  void seatLight;
   Object.entries(AVATAR_A4_COMMON).forEach(([k,v])=>{
     if(params.has(k))return;
     params.set(k,v);
@@ -2634,7 +2855,7 @@ const opponentFanStyleByName=(name)=>{
 };
 const hasAnyBeatingPlay=(hand,lastPlay,isFirst)=>{if(isFirst)return allValidPlays(hand).some((e)=>has3d(e.cards));if(!lastPlay)return allValidPlays(hand).length>0;return allValidPlays(hand).some((e)=>canBeat(e.eval,lastPlay.eval));};
 function randomBotProfiles(){
-  const list=state.language==='en'?BOT_PROFILES.en:BOT_PROFILES.zh;
+  const list=[...BOT_PROFILES.zh,...BOT_PROFILES.en];
   const bag=[...list];
   const out=[];
   while(out.length<3){
@@ -3049,7 +3270,8 @@ function centerMobileOpponentNamesHtml(arr,currentSeat,gameOver){
   return`<div class="mobile-opponent-names">${others.map((p)=>{
     const avatarSrc=avatarDataUri(p.name,playerColorByViewClass(p.cls),p.gender,p.isBot);
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
-    return`<span class="mobile-opponent-name ${(!gameOver&&currentSeat===p.seat)?'active':''}" style="--player-color:${playerColorByViewClass(p.cls)};"><img class="player-avatar mini" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/><span class="seat-name-text">${esc(p.name)}</span><span class="mobile-seat-tag">${seatShortByViewClass(p.cls)}</span></span>`;
+    const opponentAttr=p.isBot?` data-opponent-name="${esc(p.name)}"`:'';
+    return`<span class="mobile-opponent-name ${(!gameOver&&currentSeat===p.seat)?'active':''}" style="--player-color:${playerColorByViewClass(p.cls)};"${opponentAttr}><img class="player-avatar mini" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/><span class="seat-name-text">${esc(p.name)}</span><span class="mobile-seat-tag">${seatShortByViewClass(p.cls)}</span></span>`;
   }).join('')}</div>`;
 }
 function lastActionBySeat(h){
@@ -3127,6 +3349,7 @@ function currentLastCardSeat(v){
   lastCardCallState.startedAt=now;
   lastCardCallState.nonce=newCalloutNonce();
   lastCardCallState.historyLen=history.length;
+  scheduleCalloutExpiry(lastCardCallState.until);
   lockTurnProgress(900);
   clearCalloutStates('last');
   playSound('last');
@@ -3207,6 +3430,7 @@ function currentPlayTypeCall(v){
     playTypeCallState.startedAt=now;
     playTypeCallState.nonce=newCalloutNonce();
     playTypeCallState.historyLen=v.history.length;
+    scheduleCalloutExpiry(playTypeCallState.until);
     lockTurnProgress(900);
     clearCalloutStates('play');
     speakCallout(playTypeCallState.text,seatGenderBySeat(v,lastPlay.seat),{clipKey:`kind-${String(lastPlay.kind||'').toLowerCase()}`,seat:lastPlay.seat});
@@ -3263,6 +3487,7 @@ function currentPassCall(v){
     passCallState.startedAt=now;
     passCallState.nonce=newCalloutNonce();
     passCallState.historyLen=history.length;
+    scheduleCalloutExpiry(passCallState.until);
     lockTurnProgress(850);
     clearCalloutStates('pass');
     speakCallout(passCallState.text,seatGenderBySeat(v,latest.seat),{clipKey:'pass',seat:latest.seat});
@@ -3458,15 +3683,20 @@ function renderHome(){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo gender-avatar-combo" id="gender-combo"><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-male.png')}" alt="${t('male')}" class="gender-avatar-img"/></span></button><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-female.png')}" alt="${t('female')}" class="gender-avatar-img"/></span></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button><button id="home-opponents-toggle" class="secondary">${t('opponents')}</button><button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo gender-avatar-combo" id="gender-combo"><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-male.png')}" alt="${t('male')}" class="gender-avatar-img"/></span></button><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-female.png')}" alt="${t('female')}" class="gender-avatar-img"/></span></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
   document.getElementById('home-lb-toggle')?.addEventListener('click',()=>{state.home.showLeaderboard=!state.home.showLeaderboard;if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
+  document.getElementById('home-opponents-toggle')?.addEventListener('click',()=>{state.screen='opponents';render();});
   document.getElementById('intro-close')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('intro-backdrop')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
+  document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
+  document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
+  document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
+  document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
@@ -3529,6 +3759,130 @@ function renderConfig(){
   bindSoundToggle('config-sound-combo');
   bindCalloutDisplayToggle('config-callout-display-combo');
   bindCalloutVoiceToggle('config-voice-combo');
+}
+function avatarCharacteristics(url){
+  try{
+    const u=new URL(url);
+    const params=u.searchParams;
+    const isDicebear=/dicebear\.com/i.test(u.hostname);
+    const allow=isDicebear
+      ?[
+        'seed','top','accessories','hairColor','facialHair','facialHairColor',
+        'clothing','clothesColor','eyes','eyebrows','mouth','skinColor','backgroundColor','backgroundType','style','size','scale'
+      ]
+      :[
+        'avatarStyle','topType','accessoriesType','hairColor','hatColor','facialHairType','facialHairColor',
+        'clotheType','clotheColor','eyeType','eyebrowType','mouthType','skinColor','backgroundColor','backgroundType','scale'
+      ];
+    const out=[];
+    allow.forEach((key)=>{
+      const v=params.get(key);
+      if(!v)return;
+      out.push({k:key,v});
+    });
+    return out;
+  }catch{
+    return[];
+  }
+}
+function profileParagraphsHtml(profileText){
+  const parts=Array.isArray(profileText)?profileText:[profileText];
+  const clean=parts.map((p)=>String(p??'').trim()).filter(Boolean);
+  if(!clean.length)return'<p>-</p>';
+  return clean.map((p)=>`<p>${esc(p)}</p>`).join('');
+}
+function renderOpponents(){
+  const bots=[...BOT_PROFILES.zh,...BOT_PROFILES.en];
+  const cards=bots.map((b)=>{
+    const accent=pick(NPC_COLOR_POOL,hashNameSeed(b.name));
+    const link=avatarDataUri(b.name,'#7aaed8',b.gender,true);
+    const profile=OPPONENT_PROFILE_BY_NAME[b.name]??{dob:'-',hobbies:{},profile:{}};
+    const langKey=state.language==='zh-HK'?'zh-HK':'en';
+    const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
+    const hobbyText=Array.isArray(hobbies)&&hobbies.length
+      ?hobbies.join(state.language==='zh-HK'?'、':', ')
+      :'-';
+    const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
+    const profileHtml=profileParagraphsHtml(profileText);
+    const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
+    const zodiacMark=zodiacSymbol(zodiacText);
+    const mottoText=profile.motto?.[langKey]??profile.motto?.['zh-HK']??'-';
+    return`<article class="opponent-card">
+      <div class="opponent-head">
+        <img class="opponent-avatar" src="${link}" alt="${esc(b.name)}"/>
+        <div class="opponent-meta">
+          <div class="opponent-name">${esc(b.name)}</div>
+          <div class="opponent-sub">${b.gender==='female'?t('female'):t('male')}</div>
+        </div>
+      </div>
+      <div class="opponent-info-row">
+        <div class="opponent-info-item"><span class="opponent-chip-icon zodiac" aria-hidden="true"></span><span class="opponent-info-label">${t('zodiac')}</span><span class="opponent-info-value">${zodiacMark?`${zodiacMark} `:''}${esc(zodiacText)}</span></div>
+        <div class="opponent-info-item"><span class="opponent-chip-icon dob" aria-hidden="true"></span><span class="opponent-info-label">${t('dob')}</span><span class="opponent-info-value">${esc(profile.dob)}</span></div>
+        <div class="opponent-info-item opponent-info-hobbies"><span class="opponent-chip-icon hobby" aria-hidden="true"></span><span class="opponent-info-label">${t('hobbies')}</span><span class="opponent-info-value">${esc(hobbyText)}</span></div>
+      </div>
+      <div class="opponent-motto"><span class="opponent-chip-icon motto" aria-hidden="true"></span><div class="opponent-motto-text">${esc(mottoText)}</div></div>
+      <div class="opponent-bio opponent-bio-block">
+        <div class="opponent-profile-summary"><strong>${t('profile')}</strong></div>
+        <div class="opponent-profile-paragraphs">${profileHtml}</div>
+      </div>
+    </article>`;
+  }).join('');
+  app.innerHTML=`<section class="home-wrap opponent-wrap"><header class="topbar home-topbar"><div><h2>${t('opponents')}</h2></div><div class="topbar-right"><div class="control-row"><button id="opponents-back" class="secondary">${t('home')}</button><button id="opponents-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel opponent-panel"><div class="opponent-grid">${cards}</div></section></section>`;
+  document.getElementById('opponents-back')?.addEventListener('click',()=>{state.screen='home';render();});
+  document.getElementById('opponents-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';render();});
+}
+function opponentProfileModalHtml(name){
+  const langKey=state.language==='zh-HK'?'zh-HK':'en';
+  const profile=OPPONENT_PROFILE_BY_NAME[name]??{dob:'-',hobbies:{},profile:{},zodiac:{},motto:{}};
+  const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
+  const hobbyText=Array.isArray(hobbies)&&hobbies.length
+    ?hobbies.join(state.language==='zh-HK'?'、':', ')
+    :'-';
+  const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
+  const profileHtml=profileParagraphsHtml(profileText);
+  const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
+  const zodiacMark=zodiacSymbol(zodiacText);
+  const mottoText=profile.motto?.[langKey]??profile.motto?.['zh-HK']??'-';
+  const gender=botGenderByName(name);
+  const genderLabel=gender==='female'?t('female'):t('male');
+  const genderIcon=gender==='female'?'♀':'♂';
+  const genderClass=gender==='female'?'gender-female':'gender-male';
+  const avatarSrc=avatarDataUri(name,'#7aaed8',gender,true);
+  const closeLabel=state.language==='en'?'Close':'關閉';
+  return`<div class="intro-modal opponent-profile-modal" id="opponent-profile-modal">
+    <button class="intro-backdrop" id="opponent-profile-backdrop" aria-label="close"></button>
+    <section class="intro-sheet opponent-profile-sheet">
+      <header class="intro-head">
+        <div>
+          <h3 class="title-with-icon"><span class="title-icon title-icon-player" aria-hidden="true"></span><span>${esc(name)}</span><span class="opponent-gender-icon ${genderClass}" aria-label="${esc(genderLabel)}" title="${esc(genderLabel)}">${genderIcon}</span></h3>
+        </div>
+        <button id="opponent-profile-close" class="secondary">${closeLabel}</button>
+      </header>
+      <div class="opponent-profile-body">
+        <div class="opponent-profile-header">
+          <img class="opponent-profile-avatar" src="${avatarSrc}" alt="${esc(name)}"/>
+          <div class="opponent-profile-header-text">
+            <div class="opponent-profile-chips">
+              <span class="opponent-chip"><span class="opponent-chip-icon zodiac" aria-hidden="true"></span><span>${t('zodiac')} ${zodiacMark?`${zodiacMark} `:''}${esc(zodiacText)}</span></span>
+              <span class="opponent-chip"><span class="opponent-chip-icon dob" aria-hidden="true"></span><span>${t('dob')} ${esc(profile.dob)}</span></span>
+              <span class="opponent-chip"><span class="opponent-chip-icon hobby" aria-hidden="true"></span><span>${t('hobbies')} ${esc(hobbyText)}</span></span>
+            </div>
+            <div class="opponent-profile-motto">
+              <span class="opponent-chip-icon motto" aria-hidden="true"></span>
+              <div>
+                <div class="opponent-motto-label">${t('motto')}</div>
+                <div class="opponent-motto-text">${esc(mottoText)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="opponent-profile-details">
+          <div class="opponent-profile-summary"><strong>${t('profile')}</strong></div>
+          <div class="opponent-profile-paragraphs">${profileHtml}</div>
+        </div>
+      </div>
+    </section>
+  </div>`;
 }
 function renderGame(){
   const v=buildView();
@@ -3611,8 +3965,19 @@ function renderGame(){
     const fan=v.gameOver&&v.revealedHands?(v.revealedHands[p.seat]??[]).map((c)=>renderStaticCard(c,true,'flip-in')).join(''):renderBackCards(p.count,`${p.rawName||p.name}-${p.seat}`);
     const avatarSrc=avatarDataUri(p.name,pColor,p.gender,p.isBot);
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
-    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span></span></div>`;
-    const outerLabel=`<div class="seat-name-fixed">${labelName}</div>`;
+    const opponentAttr=p.isBot?` data-opponent-name="${esc(p.rawName||p.name)}"`:'';
+    const langKey=state.language==='zh-HK'?'zh-HK':'en';
+    const profile=OPPONENT_PROFILE_BY_NAME[p.rawName||p.name];
+    const mottoText=profile?.motto?.[langKey]??profile?.motto?.['zh-HK']??'';
+    const hintText=p.isBot?t('clickProfile'):'';
+    const mottoClass=state.language==='en'?'hk-power-motto motto-en':'hk-power-motto';
+    const mottoTilt=(() => {
+      const seed=hashTextSeed(`${p.rawName||p.name}|motto`);
+      const raw=(seed%11)-5; // -5..5
+      return `${raw}deg`;
+    })();
+    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
+    const outerLabel=`<div class="seat-name-fixed"${opponentAttr}>${labelName}</div>`;
     const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
@@ -3643,7 +4008,7 @@ function renderGame(){
   const isRecEmpty=state.recommendHint===t('noSuggest');
   const showRecommendHint=Boolean(state.recommendHint)&&!isRecPass;
   const isRecPlay=state.recommendation?.action==='play';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'')).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'')).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   document.body.setAttribute('data-web-too-small','0');
   document.body.removeAttribute('data-web-too-small-msg');
   document.getElementById('web-too-small-overlay')?.remove();
@@ -3776,11 +4141,20 @@ function bindGameEvents(v,arr){
   const canAutoSort=!v.gameOver&&v.hand.length>0;
   const dragEnabled=canReorder&&!isMobilePointer();
   let dragPopupTimer=null;
+  let dragPopupActive=false;
   const popupEl=()=>document.getElementById('drag-popup');
+  const positionDragPopup=(x,y)=>{
+    const el=popupEl();
+    if(!el)return;
+    const offset=18;
+    el.style.left=`${Math.round(x+offset)}px`;
+    el.style.top=`${Math.round(y+offset)}px`;
+  };
   const hideDragPopup=()=>{
     const el=popupEl();
     if(dragPopupTimer){clearTimeout(dragPopupTimer);dragPopupTimer=null;}
     el?.classList.remove('show');
+    dragPopupActive=false;
   };
   const showDragPopup=(autoHideMs=0)=>{
     const el=popupEl();
@@ -3789,6 +4163,7 @@ function bindGameEvents(v,arr){
     el.classList.remove('show');
     void el.offsetWidth;
     el.classList.add('show');
+    dragPopupActive=true;
     if(autoHideMs>0){
       dragPopupTimer=window.setTimeout(()=>{dragPopupTimer=null;popupEl()?.classList.remove('show');},autoHideMs);
     }
@@ -3817,6 +4192,13 @@ function bindGameEvents(v,arr){
       maybeRunSoloAi();
     }else render();
   };
+  const triggerClickBanner=(el)=>{
+    if(!(el instanceof HTMLElement))return;
+    el.classList.remove('click-banner');
+    void el.offsetWidth;
+    el.classList.add('click-banner');
+    setTimeout(()=>{el.classList.remove('click-banner');},520);
+  };
 
   document.getElementById('lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
   document.getElementById('intro-close')?.addEventListener('click',()=>{state.home.showIntro=false;render();});
@@ -3829,16 +4211,27 @@ function bindGameEvents(v,arr){
     document.body.addEventListener('click',handleGameTopbarClick,true);
     topbarDelegateBound=true;
   }
+  if(!opponentProfileDelegateBound){
+    document.body.addEventListener('click',(e)=>{
+      const btn=e.target.closest?.('#opponent-profile-close,#opponent-profile-backdrop');
+      if(!btn)return;
+      e.preventDefault();
+      state.opponentProfileName='';
+      render();
+    });
+    opponentProfileDelegateBound=true;
+  }
   document.getElementById('home-btn')?.addEventListener('click',()=>{
     if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+    state.opponentProfileName='';
     state.screen='home';
     state.selected.clear();
     state.recommendation=null;
     setRecommendHint('');
     render();
   });
-  document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
-  document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
+  document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
+  document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('log-toggle')?.addEventListener('click',(ev)=>{
     ev.preventDefault();
     const lockOpen=window.matchMedia('(min-width: 1081px)').matches||window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches||window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
@@ -3870,21 +4263,29 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
+  document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
+  document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{
+    triggerClickBanner(document.getElementById('restart-btn'));
     if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
+    state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
+    triggerClickBanner(document.getElementById('result-again'));
     await waitMs(120);
+    state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
+    triggerClickBanner(document.getElementById('congrats-again'));
     await waitMs(120);
+    state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
@@ -3945,8 +4346,19 @@ function bindGameEvents(v,arr){
       render();
     };
     n.addEventListener('mouseenter',()=>{if(!dragEnabled||!id)return;playSound('select');});
-    n.addEventListener('dragstart',(e)=>{if(!dragEnabled||!id)return;state.drag.id=id;state.drag.moved=false;showDragPopup();e.dataTransfer?.setData('text/plain',id);});
-    n.addEventListener('dragover',(e)=>{if(!dragEnabled)return;e.preventDefault();});
+    n.addEventListener('dragstart',(e)=>{
+      if(!dragEnabled||!id)return;
+      state.drag.id=id;
+      state.drag.moved=false;
+      positionDragPopup(e.clientX,e.clientY);
+      showDragPopup();
+      e.dataTransfer?.setData('text/plain',id);
+    });
+    n.addEventListener('dragover',(e)=>{
+      if(!dragEnabled)return;
+      e.preventDefault();
+      if(dragPopupActive)positionDragPopup(e.clientX,e.clientY);
+    });
     n.addEventListener('drop',(e)=>{if(!dragEnabled||!id)return;e.preventDefault();hideDragPopup();const fromId=state.drag.id||e.dataTransfer?.getData('text/plain');if(!fromId||fromId===id)return;reorderCurrent(v,fromId,id);state.drag.moved=true;render();});
     n.addEventListener('dragend',()=>{hideDragPopup();setTimeout(()=>{state.drag.id=null;},0);});
     if(isMobilePointer()){
@@ -4002,6 +4414,22 @@ function bindGameEvents(v,arr){
     });
   });
 
+  document.addEventListener('dragover',(e)=>{
+    if(!dragEnabled||!dragPopupActive)return;
+    positionDragPopup(e.clientX,e.clientY);
+  },{passive:true});
+
+  app.querySelectorAll('[data-opponent-name]').forEach((el)=>{
+    const name=el.getAttribute('data-opponent-name');
+    if(!name)return;
+    el.addEventListener('click',(ev)=>{
+      ev.preventDefault();
+      ev.stopPropagation();
+      state.opponentProfileName=name;
+      render();
+    });
+  });
+
   document.getElementById('pass-btn')?.addEventListener('click',()=>{unlockAudio();runPass();});
   document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));runPlay(cards);});
 }
@@ -4019,6 +4447,7 @@ function render(){
   }
   if(state.screen==='home'){renderHome();return;}
   if(state.screen==='config'){renderConfig();return;}
+  if(state.screen==='opponents'){renderOpponents();return;}
   renderGame();
 }
 function syncViewport(){
