@@ -3986,7 +3986,7 @@ function renderOpponents(){
         <img class="opponent-avatar" src="${link}" alt="${esc(b.name)}"/>
         <div class="opponent-meta">
           <div class="opponent-name">${esc(b.name)}</div>
-          <div class="opponent-sub"><span class="opponent-gender-symbol ${genderClass}" aria-label="${esc(genderLabel)}" title="${esc(genderLabel)}">${genderIcon}</span></div>
+          <div class="opponent-sub"><span class="opponent-gender-symbol ${genderClass}" data-symbol="${genderIcon}" aria-label="${esc(genderLabel)}" title="${esc(genderLabel)}">${genderIcon}</span></div>
         </div>
       </div>
       <div class="opponent-info-row">
@@ -4026,7 +4026,7 @@ function opponentProfileModalHtml(name){
     <section class="intro-sheet opponent-profile-sheet">
       <header class="intro-head">
         <div>
-          <h3 class="title-with-icon"><span class="title-icon title-icon-player" aria-hidden="true"></span><span>${esc(name)}</span><span class="opponent-gender-icon ${genderClass}" aria-label="${esc(genderLabel)}" title="${esc(genderLabel)}">${genderIcon}</span></h3>
+          <h3 class="title-with-icon"><span class="title-icon title-icon-player" aria-hidden="true"></span><span>${esc(name)}</span><span class="opponent-gender-icon ${genderClass}" data-symbol="${genderIcon}" aria-label="${esc(genderLabel)}" title="${esc(genderLabel)}">${genderIcon}</span></h3>
         </div>
         <button id="opponent-profile-close" class="secondary">${closeLabel}</button>
       </header>

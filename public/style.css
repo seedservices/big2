@@ -718,6 +718,13 @@ body[data-screen='home'] .home-wrap {
   background: rgba(255,255,255,.08);
   box-shadow: 0 3px 10px rgba(0,0,0,.18);
 }
+.opponent-gender-symbol::before {
+  content: attr(data-symbol);
+  line-height: 1;
+}
+.opponent-gender-symbol {
+  color: transparent;
+}
 .opponent-gender-symbol.gender-male {
   color: #7cc4ff;
   border-color: rgba(124, 196, 255, .42);
@@ -1582,6 +1589,13 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   border: 1px solid rgba(255,255,255,.2);
   background: rgba(255,255,255,.08);
   box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.opponent-gender-icon::before {
+  content: attr(data-symbol);
+  line-height: 1;
+}
+.opponent-gender-icon {
+  color: transparent;
 }
 .opponent-gender-icon.gender-male {
   color: #7cc4ff;
@@ -5432,8 +5446,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini,
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.8) !important;
-    height: calc(var(--card-h) * 1.8) !important;
+    width: calc(var(--card-w) * 2) !important;
+    height: calc(var(--card-h) * 2) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
