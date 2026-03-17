@@ -5247,6 +5247,10 @@ body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.min
   width: calc(var(--card-w) * 1.48) !important;
   height: calc(var(--card-h) * 1.48) !important;
 }
+body[data-screen='game'][data-ios='1'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * 1.7) !important;
+  height: calc(var(--card-h) * 1.7) !important;
+}
 
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */
 body[data-screen='game'] .action-strip.active {
