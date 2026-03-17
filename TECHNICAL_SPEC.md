@@ -36,6 +36,9 @@
     - `renderHome()`
     - `renderConfig()`
     - `renderGame()`
+- Hash route:
+  - `#opponents` switches the screen to the opponents view.
+  - Home menu hides the opponents button unless the hash is present.
 - View updates are achieved by HTML template regeneration and event rebinding.
 
 ## 4. Core Game Engine
