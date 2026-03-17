@@ -705,14 +705,16 @@ body[data-screen='home'] .home-wrap {
   color: var(--muted);
 }
 .opponent-gender-symbol {
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  font-size: .9rem;
+  font-size: 0;
   font-weight: 800;
-  line-height: 1;
+  line-height: 0;
   font-family: "Segoe UI Symbol","Noto Sans Symbols2","Apple Symbols",var(--ui-font);
   border: 1px solid rgba(255,255,255,.2);
   background: rgba(255,255,255,.08);
@@ -720,10 +722,14 @@ body[data-screen='home'] .home-wrap {
 }
 .opponent-gender-symbol::before {
   content: attr(data-symbol);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: .9rem;
   line-height: 1;
-}
-.opponent-gender-symbol {
-  color: transparent;
+  font-family: inherit;
+  color: inherit;
 }
 .opponent-gender-symbol.gender-male {
   color: #7cc4ff;
@@ -1576,15 +1582,17 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   gap: 8px;
 }
 .opponent-gender-icon {
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 22px;
   height: 22px;
   margin-left: 6px;
   border-radius: 999px;
-  font-size: .86rem;
+  font-size: 0;
   font-weight: 800;
-  line-height: 1;
+  line-height: 0;
   font-family: "Segoe UI Symbol","Noto Sans Symbols2","Apple Symbols",var(--ui-font);
   border: 1px solid rgba(255,255,255,.2);
   background: rgba(255,255,255,.08);
@@ -1592,10 +1600,14 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .opponent-gender-icon::before {
   content: attr(data-symbol);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: .86rem;
   line-height: 1;
-}
-.opponent-gender-icon {
-  color: transparent;
+  font-family: inherit;
+  color: inherit;
 }
 .opponent-gender-icon.gender-male {
   color: #7cc4ff;
@@ -5230,6 +5242,10 @@ body[data-screen='game'][data-is-mobile='1'] .seat-played .card.mini,
 body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * 1.24) !important;
   height: calc(var(--card-h) * 1.24) !important;
+}
+body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * 1.48) !important;
+  height: calc(var(--card-h) * 1.48) !important;
 }
 
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */
