@@ -1459,6 +1459,18 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   box-shadow: 0 16px 48px rgba(0,0,0,.32);
 }
 .intro-sheet,
+.opponent-profile-sheet,
+.lb-sheet {
+  animation: modalPop .18s ease-out;
+  transform-origin: center;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+@keyframes modalPop {
+  0% { transform: translateY(10px) scale(.98); opacity: .7; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.intro-sheet,
 .intro-sheet *,
 .lb-sheet,
 .lb-sheet * {
@@ -5243,13 +5255,15 @@ body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.min
   width: calc(var(--card-w) * 1.24) !important;
   height: calc(var(--card-h) * 1.24) !important;
 }
-body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.48) !important;
-  height: calc(var(--card-h) * 1.48) !important;
+body[data-screen='game'] {
+  --center-discard-scale: 1.48;
 }
-body[data-screen='game'][data-ios='1'] .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.7) !important;
-  height: calc(var(--card-h) * 1.7) !important;
+body[data-screen='game'][data-ios='1'] {
+  --center-discard-scale: 3;
+}
+body[data-screen='game'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
+  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
 }
 
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */

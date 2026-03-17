@@ -2927,7 +2927,7 @@ const opponentFanStyleByName=(name)=>{
 };
 const hasAnyBeatingPlay=(hand,lastPlay,isFirst)=>{if(isFirst)return allValidPlays(hand).some((e)=>has3d(e.cards));if(!lastPlay)return allValidPlays(hand).length>0;return allValidPlays(hand).some((e)=>canBeat(e.eval,lastPlay.eval));};
 function randomBotProfiles(){
-  const list=[...BOT_PROFILES.zh,...BOT_PROFILES.en];
+  const list=[...BOT_PROFILE_POOL];
   const bag=[...list];
   const out=[];
   while(out.length<3){
@@ -2942,7 +2942,7 @@ function randomBotNames(){return randomBotProfiles().map((p)=>p.name);}
 function botGenderByName(name){
   const n=String(name??'').trim();
   const map=Object.fromEntries(
-    [...BOT_PROFILES.zh,...BOT_PROFILES.en].map((p)=>[p.name,p.gender==='female'?'female':'male'])
+    BOT_PROFILE_POOL.map((p)=>[p.name,p.gender==='female'?'female':'male'])
   );
   return map[n]??(Math.random()<0.5?'female':'male');
 }
@@ -3115,9 +3115,10 @@ function maybeRunSoloAi(){
   const afterCallout=calloutResumePending;
   if(afterCallout)calloutResumePending=false;
   const DEFAULT_AI_DELAY_MS=1000;
-  const POST_CALLOUT_DELAY_MS=120;
+  const POST_CALLOUT_DELAY_MS=220;
+  const MIN_AI_DELAY_MS=220;
   const wait=(calloutSpeechActive||remaining>0||turnLockRemaining>0)
-    ?Math.max(35,remaining,turnLockRemaining)
+    ?Math.max(MIN_AI_DELAY_MS,remaining,turnLockRemaining)
     :afterCallout?POST_CALLOUT_DELAY_MS:DEFAULT_AI_DELAY_MS;
   aiTimer=window.setTimeout(()=>{
     try{
