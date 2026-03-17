@@ -704,6 +704,30 @@ body[data-screen='home'] .home-wrap {
   font-size: .78rem;
   color: var(--muted);
 }
+.opponent-gender-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: .9rem;
+  font-weight: 800;
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+}
+.opponent-gender-symbol.gender-male {
+  color: #7cc4ff;
+  border-color: rgba(124, 196, 255, .42);
+  background: rgba(124, 196, 255, .14);
+}
+.opponent-gender-symbol.gender-female {
+  color: #ff9fcf;
+  border-color: rgba(255, 159, 207, .45);
+  background: rgba(255, 159, 207, .14);
+}
 .opponent-info-row {
   display: flex;
   flex-wrap: wrap;
@@ -792,6 +816,14 @@ body[data-screen='home'] .home-wrap {
 @media (max-width: 900px) {
   .opponent-info-item.opponent-info-hobbies {
     flex: 1 1 100%;
+  }
+  .opponent-sub {
+    line-height: 1;
+  }
+  .opponent-gender-symbol {
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
   }
 }
 .field-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
@@ -2459,13 +2491,13 @@ body[data-screen='game'] .table-center-stack {
   justify-content: flex-start;
 }
 .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.24);
-  height: calc(var(--card-h) * 1.24);
+  width: calc(var(--card-w) * 1.48);
+  height: calc(var(--card-h) * 1.48);
 }
 .center-last-west .seat-played .card.mini,
 .center-last-east .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.24);
-  height: calc(var(--card-h) * 1.24);
+  width: calc(var(--card-w) * 1.48);
+  height: calc(var(--card-h) * 1.48);
   transform: none;
 }
 .center-last .seat-played-pass {
@@ -5334,10 +5366,13 @@ body[data-screen='game'] .seat-count-tag {
   }
   /* Web view: reduce discarded cards. */
   body[data-screen='game'] .seat-played .card.mini,
-  body[data-screen='game'] .center-last .seat-played .card.mini,
   body[data-screen='game'] .seat-last .card.mini {
     width: calc(var(--card-w) * 1.2) !important;
     height: calc(var(--card-h) * 1.2) !important;
+  }
+  body[data-screen='game'] .center-last .seat-played .card.mini {
+    width: calc(var(--card-w) * 1.48) !important;
+    height: calc(var(--card-h) * 1.48) !important;
   }
   body[data-screen='game'] .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
@@ -5384,6 +5419,13 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
     width: calc(var(--card-w) * 1.24) !important;
     height: calc(var(--card-h) * 1.24) !important;
+  }
+  body[data-screen='game'] .center-last-north .seat-played .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini,
+  body[data-screen='game'] .center-last-south .seat-played .card.mini {
+    width: calc(var(--card-w) * 1.48) !important;
+    height: calc(var(--card-h) * 1.48) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
