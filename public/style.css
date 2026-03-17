@@ -2309,6 +2309,12 @@ body[data-screen='game'] .table-center-stack {
 .seat-played .card.mini + .card.mini {
   margin-left: calc(var(--card-w) * -0.52);
 }
+.seat-played.seat-played-fan .card.mini + .card.mini {
+  margin-left: calc(var(--card-w) * -0.98) !important;
+}
+.seat-played.seat-played-fan .card.mini {
+  transform-origin: 50% 50%;
+}
 .seat-played .card.face.mini,
 .table-recent .card.face.mini,
 .mobile-discard-cards .card.face.mini {
@@ -5153,6 +5159,16 @@ body[data-screen='game'] .seat.east.active {
 body[data-screen='game'] .seat.west.active::before,
 body[data-screen='game'] .seat.east.active::before {
   content: none !important;
+}
+
+/* Hard override: ultra-tight overlap for 5-card fan in all game views. */
+body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
+body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
+body[data-screen='game'] .center-last-north .seat-played.seat-played-fan .card.mini + .card.mini,
+body[data-screen='game'] .center-last-west .seat-played.seat-played-fan .card.mini + .card.mini,
+body[data-screen='game'] .center-last-east .seat-played.seat-played-fan .card.mini + .card.mini,
+body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.mini + .card.mini {
+  margin-left: calc(var(--card-w) * -0.94) !important;
 }
 
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */

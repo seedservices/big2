@@ -2666,6 +2666,13 @@ function recommendPassScore(ctx,bestPlayScore){
   score-=(bestPlayScore>0?Math.min(64,bestPlayScore*0.16):0);
   return score;
 }
+function fullhousePairRank(play){
+  if(play?.eval?.kind!=='fullhouse')return Infinity;
+  const cnt=new Map();
+  for(const c of play.cards??[])cnt.set(c.rank,(cnt.get(c.rank)??0)+1);
+  for(const [r,n] of cnt.entries())if(n===2)return r;
+  return Infinity;
+}
 function suggestPlay(hand,lastPlay,isFirstTrick,game){
   let legal=allValidPlays(hand);
   if(isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));
@@ -2712,6 +2719,17 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
     if(nearBest[0]){
       best=nearBest[0].play;
       bestScore=nearBest[0].score;
+    }
+  }
+  if(best&&best.eval.kind==='fullhouse'){
+    const bestPair=fullhousePairRank(best);
+    for(const row of scored){
+      if(row.play.eval.kind!=='fullhouse')continue;
+      if(row.score<bestScore)break;
+      if(fullhousePairRank(row.play)<bestPair){
+        best=row.play;
+        break;
+      }
     }
   }
   if(best)best.recommendScore=bestScore;
@@ -2771,6 +2789,10 @@ function chooseAiPlay(hand,game,diff){
     if(a.eval.count===5&&a.eval.kind!==b.eval.kind)return FIVE_KIND_POWER[b.eval.kind]-FIVE_KIND_POWER[a.eval.kind];
     return comparePower(a.eval.power,b.eval.power);
   };
+  const preferSmallFullhousePair=(a,b)=>{
+    if(a.eval.kind!=='fullhouse'||b.eval.kind!=='fullhouse')return 0;
+    return fullhousePairRank(a)-fullhousePairRank(b);
+  };
   const handLen=hand.length;
   const maxRank=(cards)=>Math.max(...cards.map((c)=>c.rank));
   const minRank=(cards)=>Math.min(...cards.map((c)=>c.rank));
@@ -2801,7 +2823,15 @@ function chooseAiPlay(hand,game,diff){
   };
 
   if(!game.lastPlay){
-    const scored=[...legal].sort((a,b)=>leadScore(b)-leadScore(a)||byMinPower(a,b));
+    const scored=[...legal].sort((a,b)=>{
+      const base=leadScore(b)-leadScore(a);
+      if(base!==0)return base;
+      if(diff==='hard'){
+        const pairPref=preferSmallFullhousePair(a,b);
+        if(pairPref!==0)return pairPref;
+      }
+      return byMinPower(a,b);
+    });
     if(diff==='hard')return scored[0];
     // normal: keep variability while staying combo-first.
     if(Math.random()<0.2)return scored[Math.floor(Math.random()*Math.min(3,scored.length))];
@@ -2809,7 +2839,15 @@ function chooseAiPlay(hand,game,diff){
   }
 
   // Responding: win with minimal needed strength to conserve resources.
-  const ordered=[...legal].sort((a,b)=>respondCost(a)-respondCost(b)||byMinPower(a,b));
+  const ordered=[...legal].sort((a,b)=>{
+    const base=respondCost(a)-respondCost(b);
+    if(base!==0)return base;
+    if(diff==='hard'){
+      const pairPref=preferSmallFullhousePair(a,b);
+      if(pairPref!==0)return pairPref;
+    }
+    return byMinPower(a,b);
+  });
   if(diff==='hard'){
     // Near endgame, spending stronger cards to keep tempo is acceptable.
     if(handLen<=4)return ordered.sort(byMaxPower)[0];
@@ -3286,11 +3324,20 @@ function seatLastActionHtml(action){
   if(!action)return'';
   if(action.type==='pass')return`<div class="seat-played seat-played-pass"><span class="seat-pass-label"><span class="seat-pass-icon" aria-hidden="true"></span><span class="seat-pass-text">${t('pass')}</span></span></div>`;
   const ts=Number(action.ts)||0;
-  const cards=(action.cards??[]).map((c,i)=>{
+  const list=action.cards??[];
+  const isFive=list.length===5;
+  const cards=list.map((c,i)=>{
+    if(isFive){
+      const mid=(list.length-1)/2;
+      const offset=i-mid;
+      const rot=offset*8;
+      const lift=Math.abs(offset)*3.2;
+      return renderStaticCard(c,true,'',`transform:rotate(${rot.toFixed(2)}deg) translateY(${lift.toFixed(2)}px);`);
+    }
     const rot=((fanNoise(`${action.seat}|${ts}|${cardId(c)}`,i,'played')*2)-1)*8.84;
     return renderStaticCard(c,true,'',`transform:rotate(${rot.toFixed(2)}deg)`);
   }).join('');
-  return`<div class="seat-played">${cards}</div>`;
+  return`<div class="seat-played${isFive?' seat-played-fan':''}">${cards}</div>`;
 }
 function centerLastMovesHtml(lastActions,selfSeat){
   const slots=['north','west','east','south'];

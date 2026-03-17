@@ -21,7 +21,7 @@
 - When a game ends normally, clear the start time cache.
 - Before starting any new game, if cached start time is within 1 hour, open Smart Link.
 - If cached start time is older than 1 hour, allow start with no ad (and clear stale cache).
-- Social Bar script is: <script src="https://pl28802960.effectivegatecpm.com/46/03/bd/4603bdb57a28ceb1d4305aeb32284928.js"></script>
+- Do not add the Social Bar script or any social ad.
 - Smart Link is: https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a
 
 ## Encoding Rule
