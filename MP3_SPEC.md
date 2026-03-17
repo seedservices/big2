@@ -75,11 +75,13 @@ $ErrorActionPreference='Stop'; $repo=(Resolve-Path .).Path; $out=Join-Path $repo
 - `line-pass-2`: `唔跟`
 - `line-pass-3`: `唔去`
 - `line-pass-4`: `過`
+- `line-pass-5`: `Pass!`
 - `line-last-1`: `最後一張`
 - `line-last-2`: `淨翻一張`
 - `line-last-3`: `埋門一腳`
 - `line-last-4`: `準備找素`
 - `line-last-5`: `最後一張罅喂` (preview/support file)
+- `line-last-6`: `Last Card!`
 - `line-play-tail-2`: `跟`
 - `line-play-tail-3`: `頂住`
 - `line-play-tail-4`: `大你少少`

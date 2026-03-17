@@ -1,9 +1,9 @@
 ﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
-  {symbol:'\u2666',red:true},
-  {symbol:'\u2663',red:false},
-  {symbol:'\u2665',red:true},
-  {symbol:'\u2660',red:false}
+  {symbol:'♦️',red:true},
+  {symbol:'♣️',red:false},
+  {symbol:'♥️',red:true},
+  {symbol:'♠️',red:false}
 ];
 const FIVE_KIND_POWER={straight:0,flush:1,fullhouse:2,fourofkind:3,straightflush:4};
 
@@ -35,6 +35,7 @@ const I18N={
     voicePackClassic:'經典',
     voicePackEnergetic:'活力',
     voicePackMinimal:'簡約',
+    adHint:'不好意思，新分頁廣告將彈出。\n關掉分頁以返回遊戲。⚠️',
     soundOn:'開',
     soundOff:'關',
     home:'返回主頁',
@@ -72,7 +73,7 @@ const I18N={
     reveal:'完局攤牌',
     revealSub:'有人勝出，所有玩家餘牌如下：',
     drag:'可拖曳手牌重新排序',
-    must3:'首圈第一手必須包含♦階磚3。',
+    must3:'首圈第一手必須包含♦️階磚3。',
     beat:'你所選牌未能大過上手。',
     cantPass:'話事中不可過牌。',
     retake:'重新話事。',
@@ -96,7 +97,7 @@ const I18N={
     scoreDeduct:'扣分',
     scoreGain:'加分',
     scoreAnyTwo:'有2',
-    scoreTopTwo:'有頂大♠黑桃2',
+    scoreTopTwo:'有頂大♠️黑桃2',
     scoreChao2:'雙炒',
     scoreChao3:'三炒',
     scoreChao4:'四炒',
@@ -151,7 +152,7 @@ const I18N={
       '所有玩家起始 5000 分。',
       '有人出清手牌即勝出該局。',
       '基本計分：輸家按剩餘張數扣分：1-9 張 x1、10-12 張 x2、13 張 x3。',
-      '加乘罰則：持有任意 2 再 x2；持有 ♠黑桃2（頂大）再 x2，可疊乘。',
+      '加乘罰則：持有任意 2 再 x2；持有 ♠️黑桃2（頂大）再 x2，可疊乘。',
       '最後一張規則：若上家冇頂大而令下家出清，上家需兼負其餘兩家輸分。',
       '所有輸家扣分總和加到贏家。'
     ]
@@ -183,6 +184,7 @@ const I18N={
     voicePackClassic:'Classic',
     voicePackEnergetic:'Energetic',
     voicePackMinimal:'Minimal',
+    adHint:'Sorry, an ad opens in a new tab.\nClose it to return.⚠️',
     soundOn:'On',
     soundOff:'Off',
     home:'Home',
@@ -203,14 +205,14 @@ const I18N={
       'All legal play combinations are listed below:',
       'Single card',
       'Pair',
-      'Pairs follow the single-card rule: must beat the previous pair. Example: ♥A♠A beats ♥K♠K. If ranks are the same, compare the higher suit.',
+      'Pairs follow the single-card rule: must beat the previous pair. Example: ♥️A♠️A beats ♥️K♠️K. If ranks are the same, compare the higher suit.',
       'Triple (three cards must be the same rank)',
       'Five-card hands',
       'Straight: five consecutive ranks. A-2-3-4-5 is the highest, 3-4-5-6-7 is the lowest. If two straights have the same ranks, compare the suit of the highest card. Straights cannot be J-Q-K-A-2, Q-K-A-2-3, or K-A-3-4-5.',
-      'Flush: any five cards of the same suit that are not consecutive. Compare by the highest rank, then the second highest, and so on; finally compare suit if still tied. Example: ♠2-4-5-6-8 beats ♥A-K-Q-10-8.',
+      'Flush: any five cards of the same suit that are not consecutive. Compare by the highest rank, then the second highest, and so on; finally compare suit if still tied. Example: ♠️2-4-5-6-8 beats ♥️A-K-Q-10-8.',
       'Full House: a pair plus three of a kind. Compare by the triple rank.',
       'Four of a Kind: four cards of the same rank plus any single. Compare by the four-card rank.',
-      'Straight Flush (Royal Flush): a straight in the same suit. The highest straight flush is ♠A-2-3-4-5.',
+      'Straight Flush (Royal Flush): a straight in the same suit. The highest straight flush is ♠️A-2-3-4-5.',
       'Hand order: Straight < Flush < Full House < Four of a Kind < Straight Flush.'
     ],
     wait:'Waiting...',
@@ -220,7 +222,7 @@ const I18N={
     reveal:'Showdown',
     revealSub:'Winner decided. Remaining cards are revealed:',
     drag:'Drag cards to resequence your hand',
-    must3:'First turn must include \u2666Diamond 3.',
+    must3:'First turn must include ♦️Diamond 3.',
     beat:'Your selection does not beat last play.',
     cantPass:'Cannot pass while holding lead.',
     retake:'regains lead.',
@@ -244,7 +246,7 @@ const I18N={
     scoreDeduct:'Deduction',
     scoreGain:'Gain',
     scoreAnyTwo:'Has 2',
-    scoreTopTwo:'Has top ♠Spade 2',
+    scoreTopTwo:'Has top ♠️Spade 2',
     scoreChao2:'Chao Two',
     scoreChao3:'Chao Three',
     scoreChao4:'Chao Four',
@@ -299,7 +301,7 @@ const I18N={
       'All players start at 5000 points.',
       'A round ends when one player empties their hand.',
       'Base scoring for losers by remaining cards: 1-9 cards x1, 10-12 cards x2, 13 cards x3.',
-      'Multiplier penalties: holding any 2 applies x2; holding ♠Spade 2 (top 2) applies another x2; multipliers stack.',
+      'Multiplier penalties: holding any 2 applies x2; holding ♠️Spade 2 (top 2) applies another x2; multipliers stack.',
       'Last-card rule: if you fail to top against a next player on 1 card and they win, you also absorb the other two losers\' deductions.',
       'Total deductions from all losers are added to the winner.'
     ]
@@ -311,12 +313,13 @@ const KIND={
 };
 const CALLOUT_RESPONSE_TEXT = {
   'zh-HK': {
-    pass: ['大', '唔跟', '唔去', '過'],
+    pass: ['大', '唔跟', '唔去', '過', 'Pass!'],
     last: [
       '最後一張！',
       '淨翻一張！',
       '埋門一腳！',
       '準備找數💰',
+      'Last Card!',
     ],
     play: [
       (kind) => `${kind}！`,
@@ -1075,12 +1078,12 @@ function mainPageLegalMiniHtml(){
     ?'本網站提供《鋤大D（Big Two）》網頁版遊戲體驗，目標是讓玩家在手機、平板與桌面裝置上，均可獲得一致、流暢且易上手的操作感受。平台設計重視對局節奏與資訊清晰度，透過直觀介面、即時狀態提示、玩法說明與計分展示，協助玩家快速理解牌局狀況並作出判斷。為提升整體可玩性，網站整合排行榜、個人設定、對戰紀錄與成績追蹤等功能，讓玩家可持續觀察自身表現，逐步優化出牌策略。系統亦會持續進行效能優化與介面調整，包括讀取速度、互動回饋、版面適配與穩定性改善，以維持長時間遊玩的舒適度。我們重視公平與品質，致力提供清晰、可靠且具持續更新能力的棋牌娛樂環境，讓新手與進階玩家都能在同一平台獲得良好體驗。'
     :'This website provides a browser-based Big Two experience, with the goal of delivering consistent, smooth, and easy-to-use gameplay across mobile phones, tablets, and desktop devices. The platform emphasizes match pacing and information clarity through intuitive UI, real-time status cues, gameplay guidance, and scoring display, helping players quickly understand table state and make decisions. To improve long-term playability, the site includes leaderboard, personal settings, match records, and performance tracking features, allowing players to monitor progress and refine strategy over time. The system is continuously optimized in areas such as loading performance, interaction feedback, responsive layout adaptation, and runtime stability to support comfortable extended play sessions. We prioritize fairness and quality, and remain committed to maintaining a clear, reliable, and continuously improving card-gaming environment for both new and experienced players.';
   const contact=zh
-    ?'如有查詢，請電郵至 4leafxbot@gmail.com。'
-    :'For enquiries, email 4leafxbot@gmail.com.';
+    ?'如有查詢，請電郵至 4LeafxCS@gmail.com。'
+    :'For enquiries, email 4LeafxCS@gmail.com.';
   const terms=zh
     ?'使用本網站即表示你同意並接受以下條款：1) 你將以合法及公平方式使用本服務，不進行作弊、濫用、騷擾、惡意干擾或任何破壞系統穩定性的行為；2) 你不得使用外掛、自動化程式、爬蟲、模擬器腳本或其他非正常手段影響對局結果、排行數據或服務運作；3) 帳戶與個人資料須由使用者自行妥善管理，因裝置共享、帳戶外洩或第三方登入風險所造成之影響，使用者須自行承擔；4) 排行榜、戰績與相關統計以系統最終記錄為準，系統有權在發現異常時進行修正、重算或移除可疑資料；5) 我們可按需要調整功能、介面、規則、活動安排或服務內容，並可在維護、安全或法規要求下暫停、限制或終止部分功能；6) 對於因網絡狀態、裝置效能、瀏覽器差異、第三方服務中斷或不可抗力造成之延遲、錯誤、資料遺失或服務中斷，本網站不作任何明示或默示保證；7) 使用者使用本服務即代表理解並同意上述條款，若不同意，請停止使用本網站。'
     :'By using this website, you agree to the following terms: (1) you will use the service lawfully and fairly, and will not engage in cheating, abuse, harassment, malicious interference, or any activity that harms system stability; (2) you must not use plugins, automation tools, crawlers, scripted emulators, or other non-standard methods to influence match outcomes, leaderboard data, or service operation; (3) you are responsible for safeguarding your account and personal access, and any impact caused by shared devices, account leakage, or third-party sign-in risk remains your responsibility; (4) leaderboard records, match history, and related statistics are subject to final system records, and we reserve the right to correct, recalculate, or remove suspicious data when anomalies are detected; (5) we may update features, interface, rules, event arrangements, or service content as needed, and may suspend, restrict, or terminate certain functions for maintenance, security, legal, or compliance reasons; (6) we make no express or implied guarantee of uninterrupted service, and are not liable for delays, errors, data loss, or interruption caused by network conditions, device limitations, browser differences, third-party service outages, or force majeure; and (7) continued use of this service constitutes your understanding and acceptance of these terms. If you do not agree, please discontinue use of this website.';
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:4leafxbot@gmail.com">4leafxbot@gmail.com</a>。`:`For enquiries, email <a href="mailto:4leafxbot@gmail.com">4leafxbot@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
+  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>。`:`For enquiries, email <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
 }
 const introText=()=>state.language==='en'
   ?{
@@ -1095,8 +1098,8 @@ const introText=()=>state.language==='en'
       'Opening lead of the first round must contain {{3D}}.',
       'Follow play must match card count: single, pair, triple, or 5-card hand.',
       'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
-      'For equal ranks, suit order is Spade ♠ > Heart ♥ > Club ♣ > Diamond ♦.',
-      'Single-card order: 2 > A > K > ... > 3 (highest: ♠Spade 2, lowest: ♦Diamond 3).',
+      'For equal ranks, suit order is Spade ♠️ > Heart ♥️ > Club ♣️ > Diamond ♦️.',
+      'Single-card order: 2 > A > K > ... > 3 (highest: ♠️Spade 2, lowest: ♦️Diamond 3).',
       'After three consecutive passes, initiative returns to the last successful player.',
       'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
     ],
@@ -1124,8 +1127,8 @@ const introText=()=>state.language==='en'
       '首圈開局第一手必須包含 {{3D}}。',
       '跟牌必須跟相同張數：單張／一對／三條／五張牌型。',
       '五張牌型大小：蛇 < 花 < 俘佬 < 四條 < 同花順。',
-      '同點數比較花色：黑桃♠ > 紅心♥ > 梅花♣ > 階磚♦。',
-      '單張大小：2 > A > K > ... > 3（最大單張：♠黑桃2；最小單張：♦階磚3）。',
+      '同點數比較花色：黑桃♠️ > 紅心♥️ > 梅花♣️ > 階磚♦️。',
+      '單張大小：2 > A > K > ... > 3（最大單張：♠️黑桃2；最小單張：♦️階磚3）。',
       '連續三家過牌後，由最後有效出牌者重新話事。',
       '當你話事時，應平衡節奏控制與大牌保留，避免被對手一手出清。'
     ],
@@ -1149,32 +1152,32 @@ function introHandSamples(){
   };
   if(state.language==='en'){
     return[
-      {name:'Single',desc:'1 card',cards:[card('A','\u2660')]},
-      {name:'Pair',desc:'2 same rank',cards:[card('9','\u2666'),card('9','\u2663')]},
-      {name:'Triple',desc:'3 same rank',cards:[card('7','\u2666'),card('7','\u2663'),card('7','\u2660')]},
-      {name:'Straight (Snake)',desc:'5 consecutive ranks',cards:[card('6','\u2666'),card('7','\u2663'),card('8','\u2665'),card('9','\u2660'),card('10','\u2663')]},
-      {name:'Flush (Flower)',desc:'5 same suit',cards:[card('3','\u2665'),card('7','\u2665'),card('9','\u2665'),card('J','\u2665'),card('A','\u2665')]},
-      {name:'Full House',desc:'Triple + Pair',cards:[card('Q','\u2663'),card('Q','\u2666'),card('Q','\u2660'),card('5','\u2665'),card('5','\u2663')]},
-      {name:'Four of a Kind',desc:'4 same rank + kicker',cards:[card('8','\u2666'),card('8','\u2663'),card('8','\u2665'),card('8','\u2660'),card('2','\u2663')]},
-      {name:'Straight Flush',desc:'Same suit + consecutive',cards:[card('5','\u2660'),card('6','\u2660'),card('7','\u2660'),card('8','\u2660'),card('9','\u2660')]}
+      {name:'Single',desc:'1 card',cards:[card('A','♠️')]},
+      {name:'Pair',desc:'2 same rank',cards:[card('9','♦️'),card('9','♣️')]},
+      {name:'Triple',desc:'3 same rank',cards:[card('7','♦️'),card('7','♣️'),card('7','♠️')]},
+      {name:'Straight (Snake)',desc:'5 consecutive ranks',cards:[card('6','♦️'),card('7','♣️'),card('8','♥️'),card('9','♠️'),card('10','♣️')]},
+      {name:'Flush (Flower)',desc:'5 same suit',cards:[card('3','♥️'),card('7','♥️'),card('9','♥️'),card('J','♥️'),card('A','♥️')]},
+      {name:'Full House',desc:'Triple + Pair',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
+      {name:'Four of a Kind',desc:'4 same rank + kicker',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
+      {name:'Straight Flush',desc:'Same suit + consecutive',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
     ];
   }
   return[
-    {name:'單張',desc:'1張牌',cards:[card('A','\u2660')]},
-    {name:'一對',desc:'2張同點數',cards:[card('9','\u2666'),card('9','\u2663')]},
-    {name:'三條',desc:'3張同點數',cards:[card('7','\u2666'),card('7','\u2663'),card('7','\u2660')]},
-    {name:'蛇',desc:'5張連續點數',cards:[card('6','\u2666'),card('7','\u2663'),card('8','\u2665'),card('9','\u2660'),card('10','\u2663')]},
-    {name:'花',desc:'5張同花色',cards:[card('3','\u2665'),card('7','\u2665'),card('9','\u2665'),card('J','\u2665'),card('A','\u2665')]},
-    {name:'俘佬',desc:'三條 + 一對',cards:[card('Q','\u2663'),card('Q','\u2666'),card('Q','\u2660'),card('5','\u2665'),card('5','\u2663')]},
-    {name:'四條',desc:'4張同點數 + 腳',cards:[card('8','\u2666'),card('8','\u2663'),card('8','\u2665'),card('8','\u2660'),card('2','\u2663')]},
-    {name:'同花順',desc:'同花色 + 連續點數',cards:[card('5','\u2660'),card('6','\u2660'),card('7','\u2660'),card('8','\u2660'),card('9','\u2660')]}
+    {name:'單張',desc:'1張牌',cards:[card('A','♠️')]},
+    {name:'一對',desc:'2張同點數',cards:[card('9','♦️'),card('9','♣️')]},
+    {name:'三條',desc:'3張同點數',cards:[card('7','♦️'),card('7','♣️'),card('7','♠️')]},
+    {name:'蛇',desc:'5張連續點數',cards:[card('6','♦️'),card('7','♣️'),card('8','♥️'),card('9','♠️'),card('10','♣️')]},
+    {name:'花',desc:'5張同花色',cards:[card('3','♥️'),card('7','♥️'),card('9','♥️'),card('J','♥️'),card('A','♥️')]},
+    {name:'俘佬',desc:'三條 + 一對',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
+    {name:'四條',desc:'4張同點數 + 腳',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
+    {name:'同花順',desc:'同花色 + 連續點數',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
   ];
 }
 function introPanelHtml(){
   const it=introText();
   const formatIntroLine=(text)=>{
     const token='{{3D}}';
-    const card3d=state.language==='en'?'♦Diamond 3':'♦階磚3';
+    const card3d=state.language==='en'?'♦️Diamond 3':'♦️階磚3';
     return colorizeSuitText(String(text??'').replaceAll(token,card3d));
   };
   const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
@@ -1675,8 +1678,8 @@ function scoreGuideText(){
         ['12','x4','Chao Four'],
         ['13','x5','Big Chao']
       ],
-      anyTwo:'Holding any 2 card (♦Diamond 2/♣Club 2/♥Heart 2/♠Spade 2) applies x2.',
-      topTwo:'Holding ♠Spade 2 (top 2) applies an additional x2.',
+      anyTwo:'Holding any 2 card (♦️Diamond 2/♣️Club 2/♥️Heart 2/♠️Spade 2) applies x2.',
+      topTwo:'Holding ♠️Spade 2 (top 2) applies an additional x2.',
       stack:'If multiple conditions apply, multipliers stack (multiply together).'
     }
       :{
@@ -1699,8 +1702,8 @@ function scoreGuideText(){
         ['12','x4','四炒'],
         ['13張','x5','大炒']
       ],
-      anyTwo:'持有任意 2（♦階磚2/♣梅花2/♥紅心2/♠黑桃2）會套用 x2。',
-      topTwo:'持有 ♠黑桃2（頂大）會額外再套用 x2。',
+      anyTwo:'持有任意 2（♦️階磚2/♣️梅花2/♥️紅心2/♠️黑桃2）會套用 x2。',
+      topTwo:'持有 ♠️黑桃2（頂大）會額外再套用 x2。',
       stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
     };
 }
@@ -1715,7 +1718,7 @@ function scoreGuideModalHtml(){
   const tableRows=sx.tableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const chaoTableRows=sx.chaoTableRows.map((row)=>`<tr><td>${esc(row[0])}</td><td>${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
   const anyTwoCards=twoCards.map((c)=>`<img src="${cardImagePath(c)}" alt="2" class="score-guide-card-art"/>`).join('');
-  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠Spade 2" class="score-guide-card-art"/>`;
+  const topTwoCard=`<img src="${cardImagePath({rank:12,suit:3})}" alt="♠️Spade 2" class="score-guide-card-art"/>`;
   const mulTableRows=`<tr><td><div class="score-guide-cards">${anyTwoCards}</div></td><td>x2</td><td>${colorizeSuitText(sx.anyTwo)}</td></tr><tr><td><div class="score-guide-cards">${topTwoCard}</div></td><td>x2</td><td>${colorizeSuitText(sx.topTwo)}</td></tr>`;
   return`<div class="intro-modal" id="score-guide-modal"><button class="intro-backdrop" id="score-guide-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-score" aria-hidden="true"></span><span>${t('scoreGuideTitle')}</span></h3><p class="score-guide-heading">${esc(sx.headingDesc)}</p></div><button id="score-guide-close" class="secondary">${sx.close}</button></header><div class="intro-grid"><article class="intro-block"><h4>${sx.baseTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.tableHeaders[0])}</th><th>${esc(sx.tableHeaders[1])}</th><th>${esc(sx.tableHeaders[2])}</th></tr></thead><tbody>${tableRows}</tbody></table></div></article><article class="intro-block"><h4>${sx.mulTitle}</h4><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.mulTableHeaders[0])}</th><th>${esc(sx.mulTableHeaders[1])}</th><th>${esc(sx.mulTableHeaders[2])}</th></tr></thead><tbody>${mulTableRows}</tbody></table></div><div class="score-guide-table-wrap"><table class="score-guide-table"><thead><tr><th>${esc(sx.chaoTableHeaders[0])}</th><th>${esc(sx.chaoTableHeaders[1])}</th><th>${esc(sx.chaoTableHeaders[2])}</th></tr></thead><tbody>${chaoTableRows}</tbody></table></div><p class="score-guide-stack">${esc(sx.stack)}</p></article><article class="intro-block"><p class="score-guide-summary">${esc(sx.summary)}</p></article></div></section></div>`;
 }
@@ -2234,10 +2237,10 @@ window.handleCredentialResponse=handleCredentialResponse;
 function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colorizeSuitText=(s)=>esc(s)
-  .replaceAll('♦','<span class="suit-red">♦</span>')
-  .replaceAll('♥','<span class="suit-red">♥</span>')
-  .replaceAll('♣','<span class="suit-black">♣</span>')
-  .replaceAll('♠','<span class="suit-black">♠</span>');
+  .replaceAll('♦️','<span class="suit-red">♦️</span>')
+  .replaceAll('♥️','<span class="suit-red">♥️</span>')
+  .replaceAll('♣️','<span class="suit-black">♣️</span>')
+  .replaceAll('♠️','<span class="suit-black">♠️</span>');
 function hashNameSeed(name){
   const s=String(name??'');
   let h=2166136261;
@@ -2512,8 +2515,8 @@ const avatarGenderClass=(gender)=>String(gender??'male')==='female'?'avatar-fema
 const cardId=(c)=>`${c.rank}-${c.suit}`;
 const compareSingleCardPower=(a,b)=>a.rank-b.rank||a.suit-b.suit;
 const cmpCard=compareSingleCardPower;
-const HIGHEST_SINGLE={rank:12,suit:3}; // ♠黑桃2
-const LOWEST_SINGLE={rank:0,suit:0}; // ♦階磚3
+const HIGHEST_SINGLE={rank:12,suit:3}; // ♠️黑桃2
+const LOWEST_SINGLE={rank:0,suit:0}; // ♦️階磚3
 const isHighestSingle=(c)=>compareSingleCardPower(c,HIGHEST_SINGLE)===0;
 const isLowestSingle=(c)=>compareSingleCardPower(c,LOWEST_SINGLE)===0;
 
@@ -3055,7 +3058,7 @@ function triggerMust3LeadCallout(game){
   const opponents=game.players.map((p,i)=>({player:p,seat:i})).filter((x)=>!x.player?.isHuman);
   if(!opponents.length)return;
   const pick=opponents[Math.floor(Math.random()*opponents.length)];
-  const text='♦階磚3先出';
+  const text='♦️階磚3先出';
   const now=Date.now();
   must3CallState.key=`must3-${now}-${pick.seat}`;
   must3CallState.seat=pick.seat;
@@ -3361,7 +3364,7 @@ function formatSystemLogDateTime(ts){
   }
 }
 function gameLogCardText(cards){
-  return(cards??[]).map((c)=>`${SUITS[c.suit]?.symbol??''}${RANKS[c.rank]??''}`).join(' ');
+  return(cards??[]).map((c)=>`${SUITS[c.suit]?.symbol??''}${RANKS[c.rank]??''}`).join('');
 }
 function gameLogDetailText(e){
   const zh=state.language==='zh-HK';
@@ -3369,7 +3372,7 @@ function gameLogDetailText(e){
   const cards=e.cards??[];
   const kind=kindLabel(e.kind);
   const cardText=gameLogCardText(cards);
-  if(zh)return`出牌：${kind}（${cards.length}張）${cardText?`（${cardText}）`:''}`;
+  if(zh)return`出牌：${kind}(${cards.length}張)${cardText?`(${cardText})`:''}`;
   return`Played: ${kind} (${cards.length} cards)${cardText?` (${cardText})`:''}`;
 }
 function historyHtml(h,self,systemLog=[]){
@@ -3705,7 +3708,12 @@ function currentPassCall(v){
   return{seat:passCallState.seat,text:passCallState.text};
 }
 function revealHtml(){return'';}
-function resultScreenHtml(v,arr){
+function adHintWrap(buttonHtml,align='center'){
+  const lines=String(t('adHint')).split('\n').map((line)=>esc(line.trim())).filter(Boolean);
+  const content=lines.map((line)=>`<span class="ad-hint-line">${line}</span>`).join('');
+  return`<span class="ad-hint-anchor ad-hint-${esc(align)}">${buttonHtml}<span class="ad-hint-pop" role="tooltip">${content}</span></span>`;
+}
+function resultScreenHtml(v,arr,showAdHint){
   const winner=arr.find((p)=>p.count===0)??arr[0];
   const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
   const winnerLastDiscardCards=winnerLastPlay?.cards??[];
@@ -3756,14 +3764,14 @@ function resultScreenHtml(v,arr){
       <div class="result-list">${rows}</div>
       <div class="control-row">
         <button id="result-home" class="secondary">${t('home')}</button>
-        <button id="result-again" class="primary">${t('again')}</button>
+        ${showAdHint?adHintWrap(`<button id="result-again" class="primary">${t('again')}</button>`,'center'):`<button id="result-again" class="primary">${t('again')}</button>`}
       </div>
     </div>
   </section>`;
 }
-function congratsOverlayHtml(v,youWin){
+function congratsOverlayHtml(v,youWin,showAdHint){
   if(!youWin)return'';
-  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button><button id="congrats-again" class="primary">${t('again')}</button></div></div></div>`;
+  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="congrats-again" class="primary">${t('again')}</button>`,'center'):`<button id="congrats-again" class="primary">${t('again')}</button>`}</div></div></div>`;
 }
 
 function markComboActive(comboId,value){
@@ -3791,6 +3799,7 @@ function handleGameTopbarClick(ev){
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 let lastStartGameAdAt=0;
+let lastGameStartTsMemory=null;
 function readGameStartTsCache(){
   try{
     const raw=localStorage.getItem(GAME_START_TS_CACHE_KEY);
@@ -3808,7 +3817,9 @@ function writeGameStartTsCache(ts){
   }catch{}
 }
 function markGameStartedInCache(){
-  writeGameStartTsCache(Date.now());
+  const ts=Date.now();
+  lastGameStartTsMemory=ts;
+  writeGameStartTsCache(ts);
 }
 function markGameEndedInCache(){
   try{
@@ -3821,6 +3832,15 @@ function shouldOpenAdBeforeStartingNewGame(){
   const age=Date.now()-ts;
   if(age>=0&&age<=GAME_START_TS_AD_WINDOW_MS)return true;
   markGameEndedInCache();
+  return false;
+}
+function shouldOpenAdForImmediateRestart(){
+  const ts=readGameStartTsCache()??lastGameStartTsMemory;
+  if(!ts)return false;
+  const age=Date.now()-ts;
+  if(age>=0&&age<=GAME_START_TS_AD_WINDOW_MS)return true;
+  lastGameStartTsMemory=null;
+  if(readGameStartTsCache())markGameEndedInCache();
   return false;
 }
 function triggerStartGameSmartLink(){
@@ -3880,12 +3900,13 @@ function renderHome(){
   const intro=introText();
   const signedIn=signedInForPlay();
   const diffIndex=difficultyIndex(state.home.aiDifficulty);
+  const showAdHint=shouldOpenAdBeforeStartingNewGame();
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
   const allowOpponents=location.hash==='#opponents';
   if(state.home.showLeaderboard)refreshLeaderboard();
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo gender-avatar-combo" id="gender-combo"><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-male.png')}" alt="${t('male')}" class="gender-avatar-img"/></span></button><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-female.png')}" alt="${t('female')}" class="gender-avatar-img"/></span></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><label class="field"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><div class="home-form-grid"><div class="home-form-col home-form-left"><label class="field"><span>${t('gender')}</span><div class="option-combo gender-avatar-combo" id="gender-combo"><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male" aria-label="${t('male')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-male.png')}" alt="${t('male')}" class="gender-avatar-img"/></span></button><button class="combo-btn gender-avatar-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female" aria-label="${t('female')}"><span class="gender-avatar-ring"><img src="${withBase('avatar-female.png')}" alt="${t('female')}" class="gender-avatar-img"/></span></button></div></label><label class="field"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label></div><div class="home-form-col home-form-right home-audio-voice-row"><label class="field"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label></div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -3927,6 +3948,7 @@ function renderHome(){
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
     unlockAudio();
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
     initFirebaseIfReady();
@@ -4222,7 +4244,9 @@ function renderGame(){
   const isRecEmpty=state.recommendHint===t('noSuggest');
   const showRecommendHint=Boolean(state.recommendHint)&&!isRecPass;
   const isRecPlay=state.recommendation?.action==='play';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'')).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  const showAdHint=shouldOpenAdBeforeStartingNewGame();
+  const showPostGameAdHint=shouldOpenAdForImmediateRestart();
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="restart-btn" class="primary">${t('restart')}</button>`,'bottom'):`<button id="restart-btn" class="primary">${t('restart')}</button>`}</div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v.history,v.selfSeat)}${centerLastMovesHtml(lastActions,v.selfSeat)}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="auto-seq-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoSeq'))}" aria-label="${esc(t('autoSeq'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h10M4 12h8M4 17h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M17 6l3-3 3 3M20 3v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="auto-pattern-btn" class="secondary game-icon-btn" ${canAutoSort?'':'disabled'} title="${esc(t('autoPattern'))}" aria-label="${esc(t('autoPattern'))}"><svg class="sort-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="5" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="6" rx="1.4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button></div><div class="hand">${v.hand.map((c)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'')).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin,showPostGameAdHint)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr,showPostGameAdHint):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   document.body.setAttribute('data-web-too-small','0');
   document.body.removeAttribute('data-web-too-small-msg');
   document.getElementById('web-too-small-overlay')?.remove();
@@ -4490,7 +4514,7 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('result-again'));
-    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
+    if(shouldOpenAdForImmediateRestart())triggerStartGameSmartLink();
     await waitMs(120);
     state.opponentProfileName='';
     state.recommendation=null;
@@ -4499,7 +4523,7 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('congrats-again'));
-    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
+    if(shouldOpenAdForImmediateRestart())triggerStartGameSmartLink();
     await waitMs(120);
     state.opponentProfileName='';
     state.recommendation=null;

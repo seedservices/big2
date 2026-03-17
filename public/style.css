@@ -317,6 +317,92 @@ button.click-banner::after {
 button.secondary { background: rgba(255, 255, 255, 0.17); color: var(--text); }
 button.accent { background: linear-gradient(120deg, #9ff2b5, var(--ok)); color: #092f16; }
 button.danger { background: var(--danger); color: #fff; }
+.ad-hint-anchor { position: relative; display: inline-flex; align-items: center; }
+.ad-hint-pop {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(20, 18, 14, 0.94);
+  color: #fff8e6;
+  font-size: 0.82rem;
+  line-height: 1.32;
+  padding: 8px 10px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28);
+  width: max-content;
+  max-width: min(220px, 70vw);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  z-index: 8;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.ad-hint-line { display: block; }
+.ad-hint-line + .ad-hint-line { margin-top: 2px; }
+.ad-hint-pop::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(20, 18, 14, 0.94);
+}
+.ad-hint-pop {
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ad-hint-anchor:hover .ad-hint-pop {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+@media (hover: none) {
+  .ad-hint-pop {
+    display: none;
+  }
+  .ad-hint-anchor > button:active + .ad-hint-pop {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .ad-hint-anchor.ad-hint-right > button:active + .ad-hint-pop {
+    transform: translateY(0);
+  }
+  .ad-hint-anchor.ad-hint-bottom > button:active + .ad-hint-pop {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+.ad-hint-anchor.ad-hint-right .ad-hint-pop {
+  left: auto;
+  right: 0;
+  transform: translateY(6px);
+}
+.ad-hint-anchor.ad-hint-right:hover .ad-hint-pop {
+  transform: translateY(0);
+}
+.ad-hint-anchor.ad-hint-bottom .ad-hint-pop {
+  top: calc(100% + 10px);
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+}
+.ad-hint-anchor.ad-hint-bottom:hover .ad-hint-pop {
+  transform: translateX(-50%) translateY(0);
+}
+.ad-hint-anchor.ad-hint-bottom .ad-hint-pop::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: rgba(20, 18, 14, 0.94);
+}
+@media (max-width: 720px) {
+  .ad-hint-pop { font-size: 0.78rem; }
+}
 .home-wrap { display: grid; gap: 8px; padding-top: 0; padding-bottom: 0; max-width: 860px; margin: 0 auto; min-height: calc(100dvh - 10px); }
 body[data-screen='home'] .home-wrap {
   margin-top: 0 !important;
@@ -4441,6 +4527,7 @@ body[data-screen='game'] .result-screen {
   gap: 6px;
   justify-items: start;
   align-content: start;
+  min-width: max-content;
 }
 .result-head {
   display: flex;
@@ -4509,13 +4596,14 @@ body[data-screen='game'] .result-screen {
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.035);
   width: fit-content;
-  max-width: 100%;
+  max-width: none;
 }
 .result-block-title {
   font-size: .75rem;
   font-weight: 800;
   color: #d9ebff;
   letter-spacing: .01em;
+  white-space: nowrap;
 }
 .result-score-chip {
   display: inline-flex;
@@ -6265,6 +6353,11 @@ body[data-screen='game'][data-web-too-small='1'][data-webview='1'] .game-shell {
   pointer-events: auto !important;
   user-select: auto !important;
   filter: none;
+}
+/* Prevent topbar control scrollbars; wrap instead. */
+body[data-screen='game'] .topbar-right .control-row {
+  flex-wrap: wrap !important;
+  overflow: visible !important;
 }
 body[data-screen='game'][data-web-too-small='1'] #app::after {
   content: '';
