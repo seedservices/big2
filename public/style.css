@@ -5465,6 +5465,24 @@ body[data-screen='game'] .action-strip .control-row .game-icon-btn .sort-icon {
   display: block;
   flex: 0 0 auto;
 }
+body[data-screen='game'] .action-strip .control-row #auto-sort-btn {
+  margin-left: auto;
+}
+body[data-screen='game'] .action-strip .control-row #auto-sort-btn .sort-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+body[data-screen='game'] .action-strip .control-row #auto-sort-btn.game-cta-btn {
+  gap: 0;
+  min-width: 36px;
+  padding: 4px 8px;
+}
+body[data-screen='game'] .action-strip .control-row #auto-sort-btn.game-cta-btn .sort-icon {
+  margin: 0;
+  color: #fff;
+  fill: currentColor;
+}
 /* iOS-safe sort icons: use SVG instead of font glyphs. */
 body[data-screen='game'] #auto-seq-btn,
 body[data-screen='game'] #auto-pattern-btn {
