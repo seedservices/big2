@@ -4546,10 +4546,17 @@ body[data-screen='game'] .result-screen {
 }
 @media (max-width: 760px) {
   .result-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, .65fr);
   }
   .result-side {
-    width: 100%;
+    width: auto;
+    justify-items: end;
+  }
+  .result-card-block {
+    max-width: 100%;
+  }
+  .result-cards {
+    max-width: 180px;
   }
 }
 

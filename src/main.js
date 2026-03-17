@@ -947,6 +947,15 @@ function deriveWinnerVariantClipKey(msg=''){
   return'';
 }
 
+async function playWinnerCallout(wc,gender='male',seat=0){
+  if(!wc||!wc.text)return;
+  if(calloutVoiceMode==='off')return;
+  const clipKey=wc.repeat?'winner-repeat':'winner';
+  const speakSeq=++calloutSpeakSeq;
+  const ok=await playRecordedCalloutClip(clipKey,gender,speakSeq);
+  if(!ok)speakCallout(wc.text,gender,{clipKey,seat});
+}
+
 function deriveZhHkVariantClipKey(msg='',meta={}){
   if(state.language!=='zh-HK')return'';
   const norm=normalizeCalloutText(msg);
@@ -3090,7 +3099,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     void recordLeaderboardRound(identity,deltas[i],i===seat);
   });
   playSound('win');
-  {const wc=buildWinnerCalloutForSeat(g,seat);playWinSfxThen(()=>{if(wc.text)speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});},2200);}
+  {const wc=buildWinnerCalloutForSeat(g,seat);playWinSfxThen(()=>{void playWinnerCallout(wc,g.players[seat]?.gender??'male',seat);},2200);}
   return true;
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
