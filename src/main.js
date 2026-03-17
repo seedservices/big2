@@ -539,6 +539,7 @@ let leaderboardCloudRefreshInFlight=false;
 let leaderboardCloudLoaded=false;
 const sound={ctx:null,enabled:true};
 let winSfxAudio=null;
+let winSfxSeq=0;
 let speechPrimed=false;
 let lastSpokenCalloutKey='';
 let lastSpokenCalloutAt=0;
@@ -3019,7 +3020,7 @@ function triggerMust3LeadCallout(game){
   must3CallState.key=`must3-${now}-${pick.seat}`;
   must3CallState.seat=pick.seat;
   must3CallState.text=text;
-  must3CallState.until=now+1600;
+  must3CallState.until=now+2400;
   must3CallState.startedAt=now;
   must3CallState.nonce=newCalloutNonce();
   scheduleCalloutExpiry(must3CallState.until);
@@ -3059,8 +3060,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     void recordLeaderboardRound(identity,deltas[i],i===seat);
   });
   playSound('win');
-  playSound('win-sfx');
-  {const wc=buildWinnerCalloutForSeat(g,seat);if(wc.text)window.setTimeout(()=>{speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});},900);}
+  {const wc=buildWinnerCalloutForSeat(g,seat);playWinSfxThen(()=>{if(wc.text)speakCallout(wc.text,g.players[seat]?.gender??'male',{clipKey:wc.repeat?'winner-repeat':'winner',seat});},2200);}
   return true;
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
@@ -3220,8 +3220,21 @@ function playSound(kind){
         winSfxAudio.playsInline=true;
         winSfxAudio.setAttribute?.('playsinline','');
       }
-      winSfxAudio.currentTime=0;
-      void winSfxAudio.play();
+      const base=winSfxAudio;
+      const useClone=base && !base.paused && !base.ended;
+      const a=useClone ? base.cloneNode(true) : base;
+      if(a!==base){
+        a.src=base.src;
+        a.preload='auto';
+        a.playsInline=true;
+        a.setAttribute?.('playsinline','');
+      }
+      a.volume=0.4;
+      a.currentTime=0;
+      void a.play();
+      if(a!==base){
+        a.addEventListener?.('ended',()=>{try{a.src='';}catch{}},{once:true});
+      }
     }catch{}
     return;
   }
@@ -3244,6 +3257,22 @@ function playSound(kind){
     playTone(1175,0.28,'triangle',0.044,0.46);
   }
   if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}
+}
+function playWinSfxThen(fn,delayFallback=2000){
+  const seq=++winSfxSeq;
+  let done=false;
+  const fire=()=>{
+    if(done||seq!==winSfxSeq)return;
+    done=true;
+    fn?.();
+  };
+  playSound('win-sfx');
+  if(winSfxAudio){
+    try{
+      winSfxAudio.onended=fire;
+    }catch{}
+  }
+  window.setTimeout(fire,delayFallback);
 }
 function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const root=document.documentElement;for(const[k,v]of Object.entries(theme))root.style.setProperty(k,v);}
 

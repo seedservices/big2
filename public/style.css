@@ -5424,8 +5424,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini,
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.48) !important;
-    height: calc(var(--card-h) * 1.48) !important;
+    width: calc(var(--card-w) * 1.6) !important;
+    height: calc(var(--card-h) * 1.6) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
