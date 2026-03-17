@@ -4486,6 +4486,7 @@ function render(){
   document.title=EFFECTIVE_ENV==='PROD'?`${t('title')}`:`${t('title')} - ${EFFECTIVE_ENV}`;
   document.body.setAttribute('data-screen',state.screen);
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
+  document.body.setAttribute('data-is-mobile',isMobilePointer()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
   syncWebViewportGuardAttrs();
   if(shouldBlockLandscapeMobile()){

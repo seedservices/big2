@@ -5171,6 +5171,13 @@ body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.m
   margin-left: calc(var(--card-w) * -0.94) !important;
 }
 
+/* Final override: keep all played cards same size as south on mobile. */
+body[data-screen='game'][data-is-mobile='1'] .seat-played .card.mini,
+body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * 1.24) !important;
+  height: calc(var(--card-h) * 1.24) !important;
+}
+
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */
 body[data-screen='game'] .action-strip.active {
   border: 2px solid color-mix(in srgb, var(--player-color, #ffd166) 30%, transparent) !important;
@@ -5367,6 +5374,16 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .action-strip .player-tag {
     min-height: 32px;
     padding: 2px 7px !important;
+  }
+  body[data-screen='game'] .north .seat-played .card.mini,
+  body[data-screen='game'] .west .seat-played .card.mini,
+  body[data-screen='game'] .east .seat-played .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played .card.mini,
+  body[data-screen='game'] .center-last-south .seat-played .card.mini {
+    width: calc(var(--card-w) * 1.24) !important;
+    height: calc(var(--card-h) * 1.24) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
