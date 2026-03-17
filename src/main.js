@@ -3993,7 +3993,12 @@ function profileParagraphsHtml(profileText){
   return clean.map((p)=>`<p>${esc(p)}</p>`).join('');
 }
 function renderOpponents(){
-  const bots=[...BOT_PROFILES.zh,...BOT_PROFILES.en];
+  const seen=new Set();
+  const bots=BOT_PROFILE_POOL.filter((b)=>{
+    if(seen.has(b.name))return false;
+    seen.add(b.name);
+    return true;
+  });
   const cards=bots.map((b)=>{
     const accent=pick(NPC_COLOR_POOL,hashNameSeed(b.name));
     const link=avatarDataUri(b.name,'#7aaed8',b.gender,true);
