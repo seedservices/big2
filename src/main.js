@@ -4490,6 +4490,7 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('result-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('result-again'));
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.opponentProfileName='';
     state.recommendation=null;
@@ -4498,6 +4499,7 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('congrats-again'));
+    if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     await waitMs(120);
     state.opponentProfileName='';
     state.recommendation=null;
