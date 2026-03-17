@@ -3114,9 +3114,9 @@ function maybeRunSoloAi(){
   const remaining=Math.max(0,calloutSpeechUntil-Date.now());
   const afterCallout=calloutResumePending;
   if(afterCallout)calloutResumePending=false;
-  const DEFAULT_AI_DELAY_MS=1000;
-  const POST_CALLOUT_DELAY_MS=220;
-  const MIN_AI_DELAY_MS=220;
+  const DEFAULT_AI_DELAY_MS=350;
+  const POST_CALLOUT_DELAY_MS=320;
+  const MIN_AI_DELAY_MS=250;
   const wait=(calloutSpeechActive||remaining>0||turnLockRemaining>0)
     ?Math.max(MIN_AI_DELAY_MS,remaining,turnLockRemaining)
     :afterCallout?POST_CALLOUT_DELAY_MS:DEFAULT_AI_DELAY_MS;
@@ -3235,7 +3235,24 @@ function runtimeDiagnosticsText(){
   const speech=isSpeechReady()?(zh?'可用':'Ready'):(zh?'不可用':'Unavailable');
   return zh?`診斷: 音效 ${audio} | 報牌語音 ${speech}`:`Diag: Audio ${audio} | Callout Speech ${speech}`;
 }
-function playTone(freq,d,type='sine',g=0.03,delay=0){if(!sound.ctx)return;const c=sound.ctx,o=c.createOscillator(),a=c.createGain();o.type=type;o.frequency.value=freq;a.gain.value=g;o.connect(a);a.connect(c.destination);const now=c.currentTime+delay;o.start(now);a.gain.exponentialRampToValueAtTime(0.0001,now+d);o.stop(now+d);}
+function currentSfxDuckFactor(){
+  const now=Date.now();
+  return (calloutSpeechActive||now<calloutSpeechUntil+250)?0.45:1;
+}
+function playTone(freq,d,type='sine',g=0.03,delay=0){
+  if(!sound.ctx)return;
+  const c=sound.ctx,o=c.createOscillator(),a=c.createGain();
+  const duck=currentSfxDuckFactor();
+  o.type=type;
+  o.frequency.value=freq;
+  a.gain.value=g*duck;
+  o.connect(a);
+  a.connect(c.destination);
+  const now=c.currentTime+delay;
+  o.start(now);
+  a.gain.exponentialRampToValueAtTime(0.0001,now+d);
+  o.stop(now+d);
+}
 function playSound(kind){
   if(!sound.enabled)return;
   unlockAudio();
@@ -3260,7 +3277,7 @@ function playSound(kind){
         a.playsInline=true;
         a.setAttribute?.('playsinline','');
       }
-      a.volume=0.4;
+      a.volume=0.4*currentSfxDuckFactor();
       a.currentTime=0;
       void a.play();
       if(a!==base){

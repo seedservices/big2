@@ -1434,6 +1434,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   display: grid;
   place-items: center;
   padding: 12px;
+  animation: modalFade .16s ease-out;
 }
 .intro-backdrop {
   position: absolute;
@@ -1465,10 +1466,15 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   transform-origin: center;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 @keyframes modalPop {
   0% { transform: translateY(10px) scale(.98); opacity: .7; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes modalFade {
+  0% { opacity: .6; }
+  100% { opacity: 1; }
 }
 .intro-sheet,
 .intro-sheet *,
@@ -5239,6 +5245,17 @@ body[data-screen='game'] .seat.east.active::before {
   content: none !important;
 }
 
+/* Final override: center discard size follows shared scale. */
+body[data-screen='game'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
+  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
+}
+/* Final final override: force center discard scale at end of file. */
+body[data-screen='game'] .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
+  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
+}
+
 /* Hard override: ultra-tight overlap for 5-card fan in all game views. */
 body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
 body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
@@ -5250,16 +5267,18 @@ body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.m
 }
 
 /* Final override: keep all played cards same size as south on mobile. */
-body[data-screen='game'][data-is-mobile='1'] .seat-played .card.mini,
-body[data-screen='game'][data-is-mobile='1'] .center-last .seat-played .card.mini {
+body[data-screen='game'][data-is-mobile='1'] .seat-played .card.mini {
   width: calc(var(--card-w) * 1.24) !important;
   height: calc(var(--card-h) * 1.24) !important;
 }
 body[data-screen='game'] {
   --center-discard-scale: 1.48;
 }
+body[data-screen='game'][data-is-mobile='1'] {
+  --center-discard-scale: 1.48;
+}
 body[data-screen='game'][data-ios='1'] {
-  --center-discard-scale: 3;
+  --center-discard-scale: 1.48;
 }
 body[data-screen='game'] .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
@@ -5473,15 +5492,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini,
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.24) !important;
-    height: calc(var(--card-h) * 1.24) !important;
-  }
-  body[data-screen='game'] .center-last-north .seat-played .card.mini,
-  body[data-screen='game'] .center-last-west .seat-played .card.mini,
-  body[data-screen='game'] .center-last-east .seat-played .card.mini,
-  body[data-screen='game'] .center-last-south .seat-played .card.mini {
-    width: calc(var(--card-w) * 2) !important;
-    height: calc(var(--card-h) * 2) !important;
+    width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
+    height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
@@ -6360,5 +6372,12 @@ body[data-screen='game'] .seat.east.active .seat-section {
 body[data-screen='game'] .seat.west.active::before,
 body[data-screen='game'] .seat.east.active::before {
   content: none !important;
+}
+
+
+/* Absolute final override: center discard size */
+body[data-screen='game'] .table .center-last .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
+  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
 }
 
