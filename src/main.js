@@ -2657,6 +2657,7 @@ function recommendPlayScore(play,ctx){
   for(const c of hand??[])beforeRankCount.set(c.rank,(beforeRankCount.get(c.rank)??0)+1);
   const oppMin=minOpponentCardCount(game,seat);
   const threat=oppMin<=2;
+  const blitz=hasControlCheck(hand)||threat;
 
   let score=0;
   score+=(startLen-endLen)*48;
@@ -2689,7 +2690,12 @@ function recommendPlayScore(play,ctx){
     score+=usedLen===1?-5:(usedLen===2?5:(usedLen===3?8:11));
     if(maxRank>=11&&startLen>5)score-=10;
     if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
-    if(hasControlCheck(hand)&&play.cards.some((c)=>c.rank===12))score+=12;
+    if(play.cards.some((c)=>c.rank===12))score+=blitz?12:-18;
+    if(threat){
+      if(maxRank>=11)score+=8;
+      else if(maxRank>=9)score+=4;
+      if(play.eval.count===1&&isHighestSingle(play.cards[0]))score+=6;
+    }
   }
 
   if(shouldForceMaxAgainstLastCard(game,seat)){
@@ -2779,6 +2785,18 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
     if(nearBest[0]){
       best=nearBest[0].play;
       bestScore=nearBest[0].score;
+    }
+  }
+  if(!lastPlay){
+    const fivePlays=scored.filter((row)=>row.play.eval.count===5);
+    if(fivePlays.length){
+      fivePlays.sort((a,b)=>comparePower(b.play.eval.power,a.play.eval.power));
+      const strongestFive=fivePlays[0];
+      const scoreMargin=18;
+      if(best?.eval?.count!==5&&strongestFive.score>=bestScore-scoreMargin){
+        best=strongestFive.play;
+        bestScore=Number(strongestFive.score??bestScore);
+      }
     }
   }
   if(best&&best.eval.kind==='fullhouse'){
