@@ -558,36 +558,36 @@ const calloutAudioCache=new Map();
 let iosSharedCalloutAudio=null;
 let mobileTapAt=0;
 let orientationBlockActive=false;
-const BOT_PROFILES={
-  zh:[
-    {name:'志明',gender:'male'},
-    {name:'俊傑',gender:'male'},
-    {name:'家樂',gender:'male'},
-    {name:'子朗',gender:'male'},
-    {name:'少龍',gender:'male'},
-    {name:'天樂',gender:'male'},
-    {name:'嘉欣',gender:'female'},
-    {name:'芷晴',gender:'female'},
-    {name:'穎欣',gender:'female'},
-    {name:'佩儀',gender:'female'},
-    {name:'詠琪',gender:'female'},
-    {name:'秀文',gender:'female'},
-    {name:'澄希',gender:'female'}
-  ],
-  en:[
-    {name:'Nova',gender:'female'},
-    {name:'Milo',gender:'male'},
-    {name:'Jade',gender:'female'},
-    {name:'Axel',gender:'male'},
-    {name:'Iris',gender:'female'},
-    {name:'Luna',gender:'female'},
-    {name:'Rex',gender:'male'},
-    {name:'Nora',gender:'female'},
-    {name:'Kane',gender:'male'},
-    {name:'Skye',gender:'female'},
-    {name:'Orion',gender:'male'}
-  ]
-};
+const BOT_PROFILE_POOL=[
+  {name:'志明',gender:'male'},
+  {name:'俊傑',gender:'male'},
+  {name:'家樂',gender:'male'},
+  {name:'子朗',gender:'male'},
+  {name:'少龍',gender:'male'},
+  {name:'天樂',gender:'male'},
+  {name:'嘉欣',gender:'female'},
+  {name:'芷晴',gender:'female'},
+  {name:'穎欣',gender:'female'},
+  {name:'佩儀',gender:'female'},
+  {name:'詠琪',gender:'female'},
+  {name:'秀文',gender:'female'},
+  {name:'澄希',gender:'female'},
+  {name:'葵芳',gender:'female'},
+  {name:'Nova',gender:'female'},
+  {name:'Milo',gender:'male'},
+  {name:'Jade',gender:'female'},
+  {name:'Axel',gender:'male'},
+  {name:'Iris',gender:'female'},
+  {name:'Luna',gender:'female'},
+  {name:'ReXX',gender:'male'},
+  {name:'Nora',gender:'female'},
+  {name:'Kane',gender:'male'},
+  {name:'Skye',gender:'female'},
+  {name:'Orion',gender:'male'},
+  {name:'葵兄',gender:'male'},
+  {name:'Jax',gender:'male'}
+];
+const BOT_PROFILES={zh:BOT_PROFILE_POOL,en:BOT_PROFILE_POOL};
 const OPPONENT_PROFILE_BY_NAME={
   '志明':{
     dob:'1992-05-18',
@@ -680,6 +680,27 @@ const OPPONENT_PROFILE_BY_NAME={
     zodiac:{'zh-HK':'處女座',en:'Virgo'},
     motto:{'zh-HK':'風向對，就唔洗出力。',en:'With the right wind, you barely push.'}
   },
+  '葵芳':{
+    dob:'1995-08-18',
+    hobbies:{'zh-HK':['夜間活動','飲酒'],en:['night activities','drinks']},
+    profile:{'zh-HK':['夜越深越清醒，出牌節奏像霓虹一樣閃爍。她習慣在你最放鬆時加速收尾。','她愛夜場的節拍，也愛用節拍把你拖入她的節奏裡。'],en:['More awake as night deepens, her tempo flashes like neon. She speeds up when you relax.','She loves the night’s rhythm and pulls you into it with every hand.']},
+    zodiac:{'zh-HK':'獅子座',en:'Leo'},
+    motto:{'zh-HK':'夜深先係主場。',en:'Night is the home court.'}
+  },
+  '葵兄':{
+    dob:'1992-10-04',
+    hobbies:{'zh-HK':['夜生活','深夜食堂','夜跑'],en:['nightlife','late-night eats','night runs']},
+    profile:{'zh-HK':['喜歡夜生活，越夜越精神。節奏快狠準，出手唔拖泥帶水。','夜晚先係佢嘅主場，出牌像霓虹閃過，快得你未反應佢已經收尾。'],en:['Lives for the night. Faster tempo, sharper strikes, no hesitation.','Night is his arena—neon-fast plays and clean finishes before you can react.']},
+    zodiac:{'zh-HK':'天蠍座',en:'Scorpio'},
+    motto:{'zh-HK':'夜晚先係舞台。',en:'Night is the stage.'}
+  },
+  'Jax':{
+    dob:'1990-07-02',
+    hobbies:{'zh-HK':['3D 繪圖','打機','童軍','游泳'],en:['3D drawing','gaming','cadet','swimming']},
+    profile:{'zh-HK':['做事有條理，習慣先畫模型再落手。節奏穩定，出牌像在校準。','鍾意訓練同耐力運動，牌局一拖長就變成佢嘅節奏。'],en:['Methodical and precise, he models first then executes. Steady tempo, calibrated plays.','He likes drills and endurance—long games turn into his rhythm.']},
+    zodiac:{'zh-HK':'巨蟹座',en:'Cancer'},
+    motto:{'zh-HK':'先量再落。',en:'Measure, then move.'}
+  },
   'Nova':{
     dob:'1998-03-08',
     hobbies:{'zh-HK':['觀星','合成器音樂','魔方'],en:['stargazing','synth music','speed cubing']},
@@ -722,7 +743,7 @@ const OPPONENT_PROFILE_BY_NAME={
     zodiac:{'zh-HK':'天蠍座',en:'Scorpio'},
     motto:{'zh-HK':'變速先係武器。',en:'Tempo is the weapon.'}
   },
-  'Rex':{
+  'ReXX':{
     dob:'1989-12-07',
     hobbies:{'zh-HK':['羽毛球','策略遊戲','播客'],en:['badminton','strategy games','podcasts']},
     profile:{'zh-HK':['穩定器型選手，犯錯率極低。你要贏他得靠冒險，但冒險就是他的陷阱。','他會逼你做選擇，然後把兩條路都堵住。你越想贏，越掉進他的節奏。'],en:['Low error rate, high discipline. You beat him by taking risks, but risk is his trap.','He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.']},
@@ -779,6 +800,12 @@ const normalizeCalloutStylePack=(v)=>{
 const winnerCalloutWinsByName=new Map();
 
 const t=(k)=>I18N[state.language][k]??k;
+function formatHobbyList(hobbies){
+  const list=Array.isArray(hobbies)?hobbies.map((x)=>String(x??'').trim()).filter(Boolean):[];
+  if(!list.length)return'-';
+  const joiner=state.language==='zh-HK'?'、':', ';
+  return list.join(joiner);
+}
 function zodiacSymbol(name=''){
   const key=String(name??'').toLowerCase();
   if(!key)return'';
@@ -2246,7 +2273,7 @@ const AVATAR_IMAGE_BY_BOT_NAME={
   '家樂':'https://avataaars.io/?topType=ShortHairDreads02&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=BeardLight&facialHairColor=BrownDark&clotheType=Hoodie&clotheColor=PastelRed&eyeType=Wink&eyebrowType=Default&mouthType=Grimace&skinColor=Pale',
   '嘉欣':'https://avataaars.io/?topType=LongHairCurvy&accessoriesType=Round&hairColor=Black&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Pink&graphicType=Diamond&eyeType=Default&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Light',
   '芷晴':'https://avataaars.io/?topType=LongHairStraightStrand&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Blue03&graphicType=Selena&eyeType=Happy&eyebrowType=Default&mouthType=Smile&skinColor=Light',
-  'Rex':'https://avataaars.io/?topType=ShortHairShortFlat&accessoriesType=Prescription02&hairColor=Black&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Wink&eyebrowType=DefaultNatural&mouthType=Smile&skinColor=Light',
+  'ReXX':'https://avataaars.io/?topType=ShortHairShortFlat&accessoriesType=Prescription02&hairColor=Black&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Wink&eyebrowType=DefaultNatural&mouthType=Smile&skinColor=Light',
   'Axel':'https://avataaars.io/?topType=ShortHairDreads02&accessoriesType=Round&hairColor=Red&facialHairType=BeardMajestic&facialHairColor=Red&clotheType=Hoodie&clotheColor=Red&eyeType=Default&eyebrowType=UnibrowNatural&mouthType=Eating&skinColor=Pale',
   '穎欣':'https://avataaars.io/?topType=LongHairFroBand&accessoriesType=Kurt&hairColor=Blonde&facialHairType=Blank&clotheType=ShirtVNeck&clotheColor=Red&eyeType=Squint&eyebrowType=RaisedExcitedNatural&mouthType=Twinkle&skinColor=Light',
   '佩儀':'https://avataaars.io/?topType=LongHairFrida&accessoriesType=Round&hairColor=Blonde&facialHairType=Blank&clotheType=CollarSweater&clotheColor=Pink&eyeType=WinkWacky&eyebrowType=Default&mouthType=Grimace&skinColor=Pale&backgroundColor=b6e3f4,c0aede,d1d4f9',
@@ -2258,7 +2285,10 @@ const AVATAR_IMAGE_BY_BOT_NAME={
   ,
   'Nova':'https://avataaars.io/?topType=LongHairDreads&accessoriesType=Blank&hairColor=Black&facialHairType=Blank&clotheType=ShirtScoopNeck&clotheColor=Pink&eyeType=Default&eyebrowType=RaisedExcited&mouthType=Smile&skinColor=Brown',
   'Skye':'https://avataaars.io/?topType=LongHairStraight&accessoriesType=Prescription01&hairColor=Black&facialHairType=Blank&clotheType=GraphicShirt&clotheColor=Blue03&graphicType=Cumbia&eyeType=Close&eyebrowType=RaisedExcitedNatural&mouthType=Smile&skinColor=Light',
-  'Iris':'https://avataaars.io/?topType=LongHairBun&accessoriesType=Kurt&hairColor=Red&facialHairType=Blank&clotheType=ShirtVNeck&clotheColor=Pink&eyeType=Close&eyebrowType=UpDown&mouthType=Disbelief&skinColor=Light'
+  'Iris':'https://avataaars.io/?topType=LongHairBun&accessoriesType=Kurt&hairColor=Red&facialHairType=Blank&clotheType=ShirtVNeck&clotheColor=Pink&eyeType=Close&eyebrowType=UpDown&mouthType=Disbelief&skinColor=Light',
+  '葵芳':'https://avataaars.io/?topType=LongHairCurvy&accessoriesType=Blank&hairColor=Black&facialHairType=Blank&clotheType=Overall&clotheColor=Red&eyeType=Side&eyebrowType=Default&mouthType=Concerned&skinColor=Light',
+  '葵兄':'https://avataaars.io/?topType=ShortHairShaggyMullet&accessoriesType=Sunglasses&hairColor=Black&facialHairType=Blank&clotheType=BlazerShirt&eyeType=WinkWacky&eyebrowType=Default&mouthType=Serious&skinColor=Light',
+  'Jax':'https://avataaars.io/?topType=ShortHairShortRound&accessoriesType=Round&hairColor=BrownDark&facialHairType=Blank&clotheType=Hoodie&clotheColor=Heather&eyeType=Happy&eyebrowType=RaisedExcitedNatural&mouthType=Grimace&skinColor=Light'
 };
 const AVATAR_OVERRIDE_BY_NAME={
   '少龍':{
@@ -3942,9 +3972,7 @@ function renderOpponents(){
     const profile=OPPONENT_PROFILE_BY_NAME[b.name]??{dob:'-',hobbies:{},profile:{}};
     const langKey=state.language==='zh-HK'?'zh-HK':'en';
     const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
-    const hobbyText=Array.isArray(hobbies)&&hobbies.length
-      ?hobbies.join(state.language==='zh-HK'?'、':', ')
-      :'-';
+    const hobbyText=formatHobbyList(hobbies);
     const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
     const profileHtml=profileParagraphsHtml(profileText);
     const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
@@ -3981,9 +4009,7 @@ function opponentProfileModalHtml(name){
   const langKey=state.language==='zh-HK'?'zh-HK':'en';
   const profile=OPPONENT_PROFILE_BY_NAME[name]??{dob:'-',hobbies:{},profile:{},zodiac:{},motto:{}};
   const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
-  const hobbyText=Array.isArray(hobbies)&&hobbies.length
-    ?hobbies.join(state.language==='zh-HK'?'、':', ')
-    :'-';
+  const hobbyText=formatHobbyList(hobbies);
   const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
   const profileHtml=profileParagraphsHtml(profileText);
   const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
