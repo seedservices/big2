@@ -2596,7 +2596,7 @@ function cmpStrongPlayDesc(a,b){
 }
 function shouldForceMaxAgainstLastCard(game,seat){
   const next=(seat+1)%4;
-  return !game.gameOver&&(game.players?.[next]?.hand?.length===1);
+  return !game.gameOver&&(minOpponentCardCount(game,seat)===1);
 }
 function removeCardsFromHand(hand,cards){
   const drop=new Set((cards??[]).map(cardId));
@@ -2636,6 +2636,16 @@ function minOpponentCardCount(game,seat){
   }
   return Number.isFinite(min)?min:99;
 }
+function hasControlCheck(hand){
+  const counts=new Map();
+  for(const c of hand??[])counts.set(c.rank,(counts.get(c.rank)??0)+1);
+  const twos=counts.get(12)??0;
+  let highPairCount=0;
+  for(const [rank,n] of counts.entries()){
+    if(n>=2&&rank>=9)highPairCount+=1; // Q/K/A/2
+  }
+  return twos>=2||highPairCount>=2;
+}
 function recommendPlayScore(play,ctx){
   const {hand,lastPlay,game,seat,orderedByWeak,canPass}=ctx;
   const rem=removeCardsFromHand(hand,play.cards);
@@ -2650,7 +2660,7 @@ function recommendPlayScore(play,ctx){
 
   let score=0;
   score+=(startLen-endLen)*48;
-  score+=m.pairs*8+m.triples*10+m.fives*3;
+  score+=m.pairs*8+m.triples*10+m.fives*25;
   score-=m.highSingles*7;
   score-=m.twos*12;
   score-=m.topTwo*10;
@@ -2672,13 +2682,14 @@ function recommendPlayScore(play,ctx){
     if(play.eval.count===1){
       const single=play.cards[0];
       const cnt=beforeRankCount.get(single.rank)??0;
-      if(cnt>1&&startLen>5)score-=14;
+      if(cnt>1&&startLen>3)score-=14;
       if(isHighestSingle(single)&&startLen>3)score-=16;
     }
   }else{
     score+=usedLen===1?-5:(usedLen===2?5:(usedLen===3?8:11));
     if(maxRank>=11&&startLen>5)score-=10;
     if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
+    if(hasControlCheck(hand)&&play.cards.some((c)=>c.rank===12))score+=12;
   }
 
   if(shouldForceMaxAgainstLastCard(game,seat)){
@@ -2725,8 +2736,10 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
   if(isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));
   if(lastPlay)legal=legal.filter((e)=>canBeat(e.eval,lastPlay.eval));
   if(isFirstTrick&&!lastPlay){
-    const noTwos=legal.filter((e)=>!e.cards.some((c)=>c.rank===12));
-    if(noTwos.length)legal=noTwos;
+    if(!hasControlCheck(hand)){
+      const noTwos=legal.filter((e)=>!e.cards.some((c)=>c.rank===12));
+      if(noTwos.length)legal=noTwos;
+    }
   }
   if(!legal.length)return null;
   const seat=Number.isInteger(game?.currentSeat)?game.currentSeat:0;
@@ -2779,6 +2792,22 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
       }
     }
   }
+  if(best&&!lastPlay&&!hasControlCheck(hand)){
+    const usesTwo=best.cards.some((c)=>c.rank===12);
+    if(usesTwo){
+      const scoreMargin=10;
+      const alt=scored.find((row)=>{
+        if(row.score<bestScore-scoreMargin)return false;
+        if(row.play.eval.count!==best.eval.count)return false;
+        if(row.play.eval.kind!==best.eval.kind)return false;
+        return !row.play.cards.some((c)=>c.rank===12);
+      });
+      if(alt){
+        best=alt.play;
+        bestScore=Number(alt.score??bestScore);
+      }
+    }
+  }
   if(best)best.recommendScore=bestScore;
   return best;
 }
@@ -2801,7 +2830,7 @@ function shouldRecommendPass(hand,lastPlay,isFirstTrick,canPass,game){
   const passScore=recommendPassScore(passCtx,playScore);
   if(minOpponentCardCount(sim,seat)<=2)return false;
   // Be conservative with pass hints when a legal play exists.
-  return passScore>playScore+35;
+  return passScore>playScore+15;
 }
 function chooseAiPlay(hand,game,diff){
   let legal=legalTurnPlays(hand,game);
@@ -3750,7 +3779,7 @@ function resultScreenHtml(v,arr,showAdHint){
     const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
       <div class="result-main">
-        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/></span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🥇</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap" style="--avatar-seat-color:${color};"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/></span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🥇</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
         <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
         ${detailLine}
       </div>

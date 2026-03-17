@@ -4557,13 +4557,16 @@ body[data-screen='game'] .result-screen {
 }
 .result-winner-tag {
   margin-left: auto;
-  padding: 2px 7px;
+  padding: 2px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--winner-color, #ffd166) 24%, transparent);
   border: 1px solid color-mix(in srgb, var(--winner-color, #ffd166) 65%, white 35%);
   color: color-mix(in srgb, var(--winner-color, #ffd166) 85%, white 15%);
   font-size: .76rem;
   font-weight: 800;
+  white-space: nowrap;
+  min-width: max-content;
+  flex: 0 0 auto;
 }
 .result-meta {
   color: var(--muted);
@@ -5046,6 +5049,7 @@ body[data-screen='game'] .seat-name-fixed:focus-within .seat-motto-callout {
 body[data-screen='game'] .result-avatar-wrap {
   width: 30px;
   height: 30px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   overflow: visible;
   border: 2px solid rgba(255,255,255,.9);
@@ -5053,7 +5057,7 @@ body[data-screen='game'] .result-avatar-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(12, 18, 20, .5);
+  background: color-mix(in srgb, var(--avatar-seat-color, #0b1623) 65%, rgba(12, 18, 20, .5));
   position: relative;
 }
 body[data-screen='game'] .result-avatar-wrap::before {
@@ -5061,13 +5065,14 @@ body[data-screen='game'] .result-avatar-wrap::before {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(12, 18, 20, .5);
+  background: color-mix(in srgb, var(--avatar-seat-color, #0b1623) 65%, rgba(12, 18, 20, .5));
   z-index: 0;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.2);
 }
 body[data-screen='game'] .result-avatar {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   object-position: center center;
   border-radius: 50%;
@@ -6358,6 +6363,17 @@ body[data-screen='game'][data-web-too-small='1'][data-webview='1'] .game-shell {
 body[data-screen='game'] .topbar-right .control-row {
   flex-wrap: wrap !important;
   overflow: visible !important;
+}
+@media (min-width: 700px) and (max-width: 1200px) {
+  body[data-screen='game'] .topbar-right .control-row {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: none;
+  }
+  body[data-screen='game'] .topbar-right .control-row::-webkit-scrollbar {
+    height: 0;
+  }
 }
 body[data-screen='game'][data-web-too-small='1'] #app::after {
   content: '';
