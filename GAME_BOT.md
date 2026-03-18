@@ -22,6 +22,17 @@ This document describes exactly how the Big Two bots and the in-game recommendat
 - 5-card type ordering uses `FIVE_KIND_POWER`:
   - `straight < flush < fullhouse < fourofkind < straightflush`
 
+## Hong Kong Style Rules (Assumed)
+- Highest single: `2` (with `â™ 2` as the top single).
+- Opening lead must include `â™¦3`.
+- Straight rules:
+  - Valid: `3-4-5-6-7` up to `A-2-3-4-5`.
+  - Highest straight is `A-2-3-4-5`, lowest is `3-4-5-6-7`.
+  - If straights tie by ranks, compare the highest cardâ€™s suit.
+  - Invalid wraps like `J-Q-K-A-2`, `Q-K-A-2-3`, `K-A-2-3-4`.
+- Flush rules:
+  - Compare suit first, then ranks (Hong Kong priority).
+
 ## Difficulty Levels
 
 ### Easy

@@ -20,6 +20,13 @@
 - After three passes, the last successful player leads again.
 - The round ends when one player empties their hand.
 
+## Hong Kong Style Rules
+- `2` is the highest single (with `â™ 2` as the top single).
+- Straights rank from `3-4-5-6-7` (lowest) up to `A-2-3-4-5` (highest).
+- If two straights tie by ranks, compare the highest cardâ€™s suit.
+- Flushes compare suit first, then ranks (Hong Kong priority).
+- Invalid wrap straights: `J-Q-K-A-2`, `Q-K-A-2-3`, `K-A-2-3-4`.
+
 ## Callouts and Audio
 - Callout speech uses recorded clips only (no TTS).
 - Callouts begin after the first play in a new round.
