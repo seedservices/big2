@@ -409,7 +409,7 @@ const CALLOUT_RESPONSE_TEXT = {
   },
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -1510,7 +1510,7 @@ function signedInForPlay(){
 }
 function signedInWithEmail(){return Boolean(state.home.google.signedIn&&state.home.google.email);}
 function currentAuthUid(){return String(firebaseAuth?.currentUser?.uid??'').trim();}
-function currentRoomPlayerId(){
+function baseRoomPlayerId(){
   const uid=currentAuthUid();
   if(uid)return `uid:${uid}`;
   if(!state.sessionId){
@@ -1518,6 +1518,11 @@ function currentRoomPlayerId(){
     state.sessionId=`guest:${rand}`;
   }
   return state.sessionId;
+}
+function currentRoomPlayerId(){
+  const pinned=String(state.room?.playerId??'').trim();
+  if(pinned)return pinned;
+  return baseRoomPlayerId();
 }
 function isValidDifficulty(value){
   return value==='easy'||value==='normal'||value==='hard';
@@ -1527,6 +1532,7 @@ function resetRoomState(){
   if(roomPresenceTimer){clearInterval(roomPresenceTimer);roomPresenceTimer=null;}
   void updateActiveRoomPointer('');
   state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''};
+  state.room.playerId='';
   if(state.home.mode==='room')state.home.mode='solo';
 }
 function setRoomError(msg){
@@ -1562,7 +1568,8 @@ async function createRoom(){
       if(!exists){code=candidate;break;}
     }
     if(!code){setRoomError(t('roomCreateFail'));return;}
-    const uid=currentRoomPlayerId();
+    const uid=baseRoomPlayerId();
+    state.room.playerId=uid;
     const name=String(state.home.name||'Player').slice(0,32);
     const now=Date.now();
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc();
@@ -1599,7 +1606,8 @@ async function joinRoomByCode(codeRaw){
   try{
     const doc=await findRoomByCode(code);
     if(!doc){setRoomError(t('roomNotFound'));return;}
-    const uid=currentRoomPlayerId();
+    const uid=baseRoomPlayerId();
+    state.room.playerId=uid;
     await firebaseDb.runTransaction(async(tx)=>{
       const snap=await tx.get(doc.ref);
       if(!snap.exists)throw new Error('room missing');
@@ -1636,6 +1644,7 @@ function subscribeRoom(roomId,code){
   const unsub=ref.onSnapshot((snap)=>{
     if(!snap.exists){resetRoomState();render();return;}
     const data=snap.data()??{};
+    if(!state.room.playerId)state.room.playerId=baseRoomPlayerId();
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     startRoomPresencePing();
     syncRoomSelfProfile();
@@ -1734,16 +1743,24 @@ async function startRoom(){
       const snap=await tx.get(ref);
       if(!snap.exists)return;
       const data=snap.data()??{};
+      const players=Array.isArray(data.players)?data.players:[];
+      let hostId=String(data.hostId??'').trim();
+      let hostName=String(data.hostName??'').trim();
+      if(!hostId){
+        const fallback=players[0];
+        hostId=String(fallback?.uid??'');
+        hostName=String(fallback?.name??'');
+      }
       if(uid){
-        if(String(data.hostId)!==uid)throw new Error('not host');
-      }else if(String(data.hostId??'').trim()){
+        if(String(hostId)!==uid)throw new Error('not host');
+      }else if(hostId){
         throw new Error('not host');
       }
-      const players=Array.isArray(data.players)?data.players:[];
       const allReady=players.every((p)=>p.ready||String(p.uid)===uid);
       if(players.length>1&&!allReady)throw new Error('not ready');
       const now=Date.now();
-      tx.update(ref,{status:'starting',updatedAt:now});
+      const hostUpdate=(hostId&&String(data.hostId??'').trim()!==hostId)?{hostId,hostName}:{};
+      tx.update(ref,{status:'starting',updatedAt:now,...hostUpdate});
     });
     window.setTimeout(async()=>{
       try{
@@ -5041,7 +5058,8 @@ function renderHome(){
   const roomPlayers=Array.isArray(roomData?.players)?roomData.players:[];
   const roomUid=currentRoomPlayerId();
   const roomSelf=roomPlayers.find((p)=>String(p.uid)===roomUid);
-  const roomIsHost=String(roomData?.hostId)===roomUid;
+  const derivedHostId=String(roomData?.hostId||roomPlayers[0]?.uid||'');
+  const roomIsHost=derivedHostId&&String(derivedHostId)===roomUid;
   const roomReady=Boolean(roomSelf?.ready);
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
@@ -5059,7 +5077,7 @@ function renderHome(){
   const roomButtonsHtml=inRoom?'':`<div class="home-room-panel"><h3 class="home-section-title">🧩 ${t('roomSettings')}</h3><div class="action-row home-room-row"><button id="room-create" class="secondary">${t('roomCreate')}</button><button id="room-join" class="secondary">${t('roomJoin')}</button></div>${roomErrorHtml}</div>`;
   const roomListHtml=roomPlayers.map((p)=>{
     const avatarSrc=p.picture?authPictureUrlFrom(p.picture):avatarDataUri(p.name,'#7aaed8',p.gender??'male',false);
-    const isHost=String(p.uid)===String(roomData?.hostId??'');
+    const isHost=String(p.uid)===String(derivedHostId);
     const hostTag=isHost?`<span class="room-host-tag">HOST</span>`:'';
     const lastSeen=Number(p.lastSeen)||0;
     const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
