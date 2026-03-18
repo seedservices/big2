@@ -2550,16 +2550,92 @@ function evaluatePlay(cards){
   if(count===3){if(cnt.size!==1)return{valid:false,reason:t('triple')};return{valid:true,count,kind:'triple',power:[sorted[0].rank],sorted};}
   if(count!==5)return{valid:false,reason:t('count')};
   const ranks=sorted.map((c)=>c.rank).sort((a,b)=>a-b);const suits=sorted.map((c)=>c.suit);const flush=suits.every((s)=>s===suits[0]);const straight=straightMeta(ranks);const g=[...cnt.entries()].sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
-  if(straight&&flush)return{valid:true,count,kind:'straightflush',power:[FIVE_KIND_POWER.straightflush,straight.high,sorted[4].suit],sorted};
+  const straightHighSuit=straight?sorted.filter((c)=>c.rank===straight.high).reduce((best,c)=>c.suit>best?c.suit:best,-1):-1;
+  if(straight&&flush)return{valid:true,count,kind:'straightflush',power:[FIVE_KIND_POWER.straightflush,straight.high,straightHighSuit],sorted};
   if(g[0][1]===4)return{valid:true,count,kind:'fourofkind',power:[FIVE_KIND_POWER.fourofkind,g[0][0]],sorted};
   if(g[0][1]===3&&g[1][1]===2)return{valid:true,count,kind:'fullhouse',power:[FIVE_KIND_POWER.fullhouse,g[0][0]],sorted};
-  if(flush){const d=[...ranks].sort((a,b)=>b-a);return{valid:true,count,kind:'flush',power:[FIVE_KIND_POWER.flush,...d,sorted[4].suit],sorted};}
-  if(straight)return{valid:true,count,kind:'straight',power:[FIVE_KIND_POWER.straight,straight.high,sorted[4].suit],sorted};
+  if(flush){const d=[...ranks].sort((a,b)=>b-a);const flushSuit=sorted[0].suit;return{valid:true,count,kind:'flush',power:[FIVE_KIND_POWER.flush,flushSuit,...d],sorted};}
+  if(straight)return{valid:true,count,kind:'straight',power:[FIVE_KIND_POWER.straight,straight.high,straightHighSuit],sorted};
   return{valid:false,reason:t('five')};
 }
 
 function combos(cards,size){const out=[];const dfs=(i,path)=>{if(path.length===size){out.push([...path]);return;}for(let x=i;x<cards.length;x++){path.push(cards[x]);dfs(x+1,path);path.pop();}};dfs(0,[]);return out;}
-function allValidPlays(hand){const plays=[];for(const c of hand)plays.push({cards:[c],eval:evaluatePlay([c])});const byRank=new Map();for(const c of hand){const a=byRank.get(c.rank)??[];a.push(c);byRank.set(c.rank,a);}for(const [,cs]of byRank){if(cs.length>=2)for(const p of combos(cs,2))plays.push({cards:p,eval:evaluatePlay(p)});if(cs.length>=3)for(const p of combos(cs,3))plays.push({cards:p,eval:evaluatePlay(p)});}for(const p of combos(hand,5)){const ev=evaluatePlay(p);if(ev.valid)plays.push({cards:p,eval:ev});}return plays.filter((p)=>p.eval.valid);}
+function allValidPlays(hand){
+  const plays=[];
+  for(const c of hand)plays.push({cards:[c],eval:evaluatePlay([c])});
+  const byRank=new Map();
+  for(const c of hand){
+    const a=byRank.get(c.rank)??[];
+    a.push(c);
+    byRank.set(c.rank,a);
+  }
+  for(const [,cs]of byRank){
+    if(cs.length>=2)for(const p of combos(cs,2))plays.push({cards:p,eval:evaluatePlay(p)});
+    if(cs.length>=3)for(const p of combos(cs,3))plays.push({cards:p,eval:evaluatePlay(p)});
+  }
+  for(const p of combos(hand,5)){
+    const ev=evaluatePlay(p);
+    if(ev.valid)plays.push({cards:p,eval:ev});
+  }
+  const valid=plays.filter((p)=>p.eval.valid);
+  const pickPreferred=(a,b,preferNonTwo)=>{
+    if(!a)return b;
+    if(!b)return a;
+    const aIsTwo=a.rank===12;
+    const bIsTwo=b.rank===12;
+    if(preferNonTwo&&aIsTwo!==bIsTwo)return aIsTwo?b:a;
+    if(a.rank!==b.rank)return a.rank<b.rank?a:b;
+    return a.suit<b.suit?a:b;
+  };
+  const fourByRank=new Map();
+  const fullByRank=new Map();
+  const out=[];
+  for(const p of valid){
+    if(p.eval.kind!=='fourofkind'&&p.eval.kind!=='fullhouse'){
+      out.push(p);
+      continue;
+    }
+    const counts=new Map();
+    for(const c of p.cards)counts.set(c.rank,(counts.get(c.rank)??0)+1);
+    if(p.eval.kind==='fourofkind'){
+      let fourRank=0;
+      let kicker=null;
+      for(const [rank,n] of counts.entries()){
+        if(n===4)fourRank=rank;
+        else if(n===1)kicker=p.cards.find((c)=>c.rank===rank)??kicker;
+      }
+      const entry=fourByRank.get(fourRank);
+      if(!entry){
+        fourByRank.set(fourRank,{play:p,kicker});
+      }else{
+        const preferred=pickPreferred(entry.kicker,kicker,true);
+        if(preferred&&kicker&&cardId(preferred)===cardId(kicker)){
+          fourByRank.set(fourRank,{play:p,kicker});
+        }
+      }
+      continue;
+    }
+    let tripleRank=0;
+    let pairRank=0;
+    for(const [rank,n] of counts.entries()){
+      if(n===3)tripleRank=rank;
+      if(n===2)pairRank=rank;
+    }
+    const entry=fullByRank.get(tripleRank);
+    if(!entry){
+      fullByRank.set(tripleRank,{play:p,pairRank});
+    }else{
+      const preferNonTwo=entry.pairRank===12||pairRank!==12;
+      const preferred=pickPreferred({rank:entry.pairRank,suit:0},{rank:pairRank,suit:0},preferNonTwo);
+      if(preferred.rank===pairRank){
+        fullByRank.set(tripleRank,{play:p,pairRank});
+      }
+    }
+  }
+  for(const row of fourByRank.values())out.push(row.play);
+  for(const row of fullByRank.values())out.push(row.play);
+  return out;
+}
 function legalTurnPlays(hand,game){
   let legal=allValidPlays(hand);
   if(game.isFirstTrick)legal=legal.filter((e)=>has3d(e.cards));
@@ -2648,7 +2724,7 @@ function hasControlCheck(hand){
   return twos>=2||highPairCount>=2;
 }
 function recommendPlayScore(play,ctx){
-  const {hand,lastPlay,game,seat,orderedByWeak,canPass}=ctx;
+  const {hand,lastPlay,game,seat,orderedByWeak,canPass,prePlayTriples}=ctx;
   const rem=removeCardsFromHand(hand,play.cards);
   const m=handShapeMetrics(rem);
   const startLen=(hand??[]).length;
@@ -2692,10 +2768,18 @@ function recommendPlayScore(play,ctx){
     if(maxRank>=11&&startLen>5)score-=10;
     if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
     if(play.cards.some((c)=>c.rank===12))score+=blitz?12:-18;
+    if(play.eval.kind==='flush'&&(play.eval.power?.[1]??-1)===3)score+=12;
     if(threat){
       if(maxRank>=11)score+=8;
       else if(maxRank>=9)score+=4;
       if(play.eval.count===1&&isHighestSingle(play.cards[0]))score+=6;
+    }
+    if(play.eval.count===2){
+      const twoCount=(hand??[]).filter((c)=>c.rank===12).length;
+      const hasTopTwo=(hand??[]).some((c)=>c.rank===12&&c.suit===3);
+      if(twoCount>=2&&hasTopTwo&&!play.cards.some((c)=>c.rank===12)){
+        score+=10;
+      }
     }
   }
 
@@ -2713,6 +2797,19 @@ function recommendPlayScore(play,ctx){
   if(threat&&play.eval.count===5)score+=12;
   if(threat&&play.eval.count===1)score+=6;
   if(!canPass&&lastPlay)score+=4;
+  if(play.eval.kind==='fullhouse'&&Array.isArray(prePlayTriples)){
+    const counts=new Map();
+    for(const c of play.cards)counts.set(c.rank,(counts.get(c.rank)??0)+1);
+    let tripleRank=-1;
+    let pairRank=-1;
+    for(const [rank,n] of counts.entries()){
+      if(n===3)tripleRank=rank;
+      if(n===2)pairRank=rank;
+    }
+    if(pairRank>=0&&tripleRank>=0&&pairRank!==tripleRank&&prePlayTriples.includes(pairRank)){
+      score-=30;
+    }
+  }
   return score;
 }
 function recommendPassScore(ctx,bestPlayScore){
@@ -2765,7 +2862,11 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
     return comparePower(a.eval.power,b.eval.power);
   };
   const byWeak=[...legal].sort(weakCmp);
-  const ctx={hand:[...hand],lastPlay,isFirstTrick,game:sim,seat,orderedByWeak:byWeak,canPass:Boolean(lastPlay)};
+  const prePlayTriples=[];
+  const rankCount=new Map();
+  for(const c of hand??[])rankCount.set(c.rank,(rankCount.get(c.rank)??0)+1);
+  for(const [rank,n] of rankCount.entries())if(n>=3)prePlayTriples.push(rank);
+  const ctx={hand:[...hand],lastPlay,isFirstTrick,game:sim,seat,orderedByWeak:byWeak,canPass:Boolean(lastPlay),prePlayTriples};
   const moveKey=(p)=>`${(p?.cards??[]).map(cardId).sort().join(',')}|${String(p?.eval?.kind??'')}|${Number(p?.eval?.count??0)}`;
   const scoreByKey=new Map();
   const scored=[];
@@ -2795,6 +2896,10 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
       const strongestFive=fivePlays[0];
       const scoreMargin=18;
       if(best?.eval?.count!==5&&strongestFive.score>=bestScore-scoreMargin){
+        best=strongestFive.play;
+        bestScore=Number(strongestFive.score??bestScore);
+      }
+      if(strongestFive?.play?.eval?.kind==='straightflush'&&minOpponentCardCount(sim,seat)>1){
         best=strongestFive.play;
         bestScore=Number(strongestFive.score??bestScore);
       }
@@ -2862,7 +2967,15 @@ function chooseAiPlay(hand,game,diff){
     }
   }
   if(diff==='hard'&&shouldForceMaxAgainstLastCard(game,game.currentSeat)){
-    return [...legal].sort(cmpStrongPlayDesc)[0];
+    const strongest=[...legal].sort(cmpStrongPlayDesc)[0];
+    if(strongest?.eval?.count===1&&strongest.cards?.[0]?.rank===12&&hand.length>1){
+      const altSingles=legal.filter((p)=>p.eval.count===1&&p.cards?.[0]?.rank!==12);
+      if(altSingles.length){
+        altSingles.sort(cmpStrongPlayDesc);
+        return altSingles[0];
+      }
+    }
+    return strongest;
   }
   if(diff==='normal'&&shouldForceMaxAgainstLastCard(game,game.currentSeat)&&Math.random()<0.6){
     return [...legal].sort(cmpStrongPlayDesc)[0];
