@@ -3223,7 +3223,7 @@ function triggerMust3LeadCallout(game){
   const opponents=game.players.map((p,i)=>({player:p,seat:i})).filter((x)=>!x.player?.isHuman);
   if(!opponents.length)return;
   const pick=opponents[Math.floor(Math.random()*opponents.length)];
-  const text='♦️3先出';
+  const text='階磚3出先';
   const now=Date.now();
   must3CallState.key=`must3-${now}-${pick.seat}`;
   must3CallState.seat=pick.seat;
@@ -4868,6 +4868,18 @@ function bindGameEvents(v,arr){
         }
         state.mottoPeekName='';
       }
+      state.opponentProfileName=name;
+      render();
+    });
+  });
+  app.querySelectorAll('.seat-motto-callout').forEach((el)=>{
+    el.addEventListener('click',(ev)=>{
+      const host=el.closest?.('[data-opponent-name]');
+      const name=host?.getAttribute('data-opponent-name');
+      if(!name)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      state.mottoPeekName='';
       state.opponentProfileName=name;
       render();
     });

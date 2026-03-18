@@ -360,6 +360,14 @@ button.danger { background: var(--danger); color: #fff; }
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+  .ad-hint-anchor:focus-within .ad-hint-pop {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .ad-hint-anchor > button:hover + .ad-hint-pop {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 @media (hover: none) {
   .ad-hint-pop {
