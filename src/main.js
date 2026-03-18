@@ -1624,6 +1624,7 @@ function subscribeRoom(roomId,code){
     const data=snap.data()??{};
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     startRoomPresencePing();
+    syncRoomSelfProfile();
     if(String(data.status)==='playing'){
       state.room.started=true;
       if(data.game){
@@ -1731,6 +1732,25 @@ async function startRoom(){
     setRoomError(t('roomReadyHint'));
   }
 }
+async function restartRoomGame(){
+  if(!state.room.id||!firebaseDb)return;
+  const uid=currentRoomPlayerId();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)return;
+      const data=snap.data()??{};
+      if(String(data.hostId)!==uid)throw new Error('not host');
+      const now=Date.now();
+      const game=buildRoomGameState(data);
+      tx.update(ref,{status:'playing',game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1});
+    });
+  }catch(err){
+    console.error('restart room failed',err);
+    setSoloStatus(t('roomReadyHint'));
+  }
+}
 
 function cloneRoomGame(game){
   if(!game||typeof game!=='object')return null;
@@ -1785,6 +1805,35 @@ function startRoomPresencePing(){
       });
     }catch{}
   },ROOM_PRESENCE_PING_MS);
+}
+async function syncRoomSelfProfile(){
+  if(!state.room.id||!firebaseDb)return;
+  const uid=currentRoomPlayerId();
+  if(!uid)return;
+  const desiredName=String(state.home.name||'Player').slice(0,32);
+  const desiredGender=state.home.gender==='female'?'female':'male';
+  const desiredPic=authPictureUrl();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)return;
+      const data=snap.data()??{};
+      const players=Array.isArray(data.players)?[...data.players]:[];
+      let touched=false;
+      const now=Date.now();
+      const next=players.map((p)=>{
+        if(String(p.uid)!==uid)return p;
+        const patch={...p};
+        if(desiredName&&String(p.name??'')!==desiredName){patch.name=desiredName;touched=true;}
+        if(desiredGender&&String(p.gender??'')!==desiredGender){patch.gender=desiredGender;touched=true;}
+        if(desiredPic&&String(p.picture??'')!==desiredPic){patch.picture=desiredPic;touched=true;}
+        if(now-Number(p.lastSeen||0)>3000){patch.lastSeen=now;touched=true;}
+        return patch;
+      });
+      if(touched)tx.update(ref,{players:next,updatedAt:now});
+    });
+  }catch{}
 }
 function botProfileForSeat(seat){
   const list=Array.isArray(BOT_PROFILE_POOL)&&BOT_PROFILE_POOL.length?BOT_PROFILE_POOL:[{name:'Bot',gender:'male'}];
@@ -5508,8 +5557,8 @@ function bindGameEvents(v,arr){
     setRecommendHint('');
     render();
   });
-  document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
-  document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
+  document.getElementById('result-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';if(state.home.mode==='room'&&state.room.id){void leaveRoom();return;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
+  document.getElementById('congrats-home')?.addEventListener('click',()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}state.opponentProfileName='';if(state.home.mode==='room'&&state.room.id){void leaveRoom();return;}state.screen='home';state.selected.clear();state.recommendation=null;setRecommendHint('');render();});
   document.getElementById('log-toggle')?.addEventListener('click',(ev)=>{
     ev.preventDefault();
     const lockOpen=window.matchMedia('(min-width: 1081px)').matches||window.matchMedia('(min-width: 861px) and (max-width: 1080px) and (orientation: landscape)').matches||window.matchMedia('(max-width: 860px) and (orientation: landscape)').matches;
@@ -5559,6 +5608,10 @@ function bindGameEvents(v,arr){
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
+    if(state.home.mode==='room'){
+      await restartRoomGame();
+      return;
+    }
     startSoloGame();
   });
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
@@ -5568,6 +5621,10 @@ function bindGameEvents(v,arr){
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
+    if(state.home.mode==='room'){
+      await restartRoomGame();
+      return;
+    }
     startSoloGame();
   });
   document.getElementById('auto-sort-btn')?.addEventListener('click',()=>{
