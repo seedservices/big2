@@ -9,8 +9,8 @@ service cloud.firestore {
     }
     match /big2Rooms/{roomId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && isValidRoomCreate();
-      allow update: if request.auth != null && isValidRoomUpdate();
+      allow create: if request.auth != null && (isValidRoomCreate() || request.resource.data.hostId == request.auth.uid);
+      allow update: if request.auth != null && (isValidRoomUpdate() || isRoomMember(request.auth.uid, request.resource.data) || isRoomMember(request.auth.uid, resource.data));
       allow delete: if request.auth != null && resource.data.hostId == request.auth.uid;
     }
   }
@@ -126,6 +126,13 @@ service cloud.firestore {
 
   function isValidRoomStatus(v) {
     return v == 'lobby' || v == 'playing' || v == 'finished';
+  }
+
+  function isRoomMember(uid, data) {
+    return
+      data is map &&
+      data.players is list &&
+      data.players.hasAny([{'uid': uid}]);
   }
 
   function isValidRoomData(d) {
