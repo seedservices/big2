@@ -37,7 +37,7 @@ const I18N={
     voicePackClassic:'經典',
     voicePackEnergetic:'活力',
     voicePackMinimal:'簡約',
-    adHint:'不好意思，新分頁廣告將彈出。\n關掉分頁以返回遊戲。⚠️',
+    adHint:'唔好意思，新分頁廣告將會彈出。\n關掉分頁以返回遊戲。⚠️',
     soundOn:'開',
     soundOff:'關',
     home:'返回主頁',
@@ -90,7 +90,7 @@ const I18N={
     congrats:'恭喜你贏咗哩局！',
     resultTitle:'對局結果',
     resultWinner:'本局勝出',
-    resultRemain:'剩餘張數',
+    resultRemain:'剩餘手牌',
     resultLastDiscard:'最後出牌',
     resultDelta:'本局分數變動',
     resultDetail:'計分明細',
@@ -2739,6 +2739,8 @@ function recommendPlayScore(play,ctx){
   const oppMin=minOpponentCardCount(game,seat);
   const threat=oppMin<=2;
   const blitz=hasControlCheck(hand)||threat;
+  const preStraights=allValidPlays(hand).filter((p)=>p.eval.kind==='straight').length;
+  const postStraights=allValidPlays(rem).filter((p)=>p.eval.kind==='straight').length;
 
   let score=0;
   score+=(startLen-endLen)*48;
@@ -2764,7 +2766,7 @@ function recommendPlayScore(play,ctx){
     if(play.eval.count===1){
       const single=play.cards[0];
       const cnt=beforeRankCount.get(single.rank)??0;
-      if(cnt>1&&startLen>3)score-=14;
+      if(cnt>1&&endLen>3)score-=14;
       if(isHighestSingle(single)&&startLen>3)score-=16;
     }
   }else{
@@ -2772,6 +2774,7 @@ function recommendPlayScore(play,ctx){
     if(maxRank>=11&&startLen>5)score-=10;
     if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
     if(play.cards.some((c)=>c.rank===12))score+=blitz?12:-18;
+    if(hasControlCheck(hand)&&play.cards.some((c)=>c.rank===12)&&(play.eval.count===1||play.eval.count===2))score+=10;
     if(play.eval.kind==='flush'&&(play.eval.power?.[1]??-1)===3)score+=12;
     if(threat){
       if(maxRank>=11)score+=8;
@@ -2794,6 +2797,19 @@ function recommendPlayScore(play,ctx){
     }else{
       score+=8;
     }
+  }
+  if(play.eval.kind==='fourofkind'||play.eval.kind==='fullhouse'){
+    const counts=new Map();
+    for(const c of play.cards)counts.set(c.rank,(counts.get(c.rank)??0)+1);
+    let kickerRank=-1;
+    for(const [rank,n] of counts.entries()){
+      if(play.eval.kind==='fourofkind'&&n===1)kickerRank=rank;
+      if(play.eval.kind==='fullhouse'&&n===2)kickerRank=rank;
+    }
+    if(kickerRank===12&&endLen>0)score-=28;
+  }
+  if(play.eval.count<5&&preStraights>0&&postStraights<preStraights&&endLen>0&&oppMin!==1){
+    score-=22;
   }
   if(endLen<=5)score+=(5-endLen)*14;
   if(endLen===0)score+=500;
@@ -4072,11 +4088,9 @@ function renderHome(){
   const allowOpponents=location.hash==='#opponents';
   if(state.home.showLeaderboard)refreshLeaderboard();
   const homeAvatarSrc=selfAvatarDataUri(state.home.name,'#7aaed8',state.home.gender);
-  const isPortraitHome=document.body?.dataset?.orientation==='portrait';
-  const cardBackField=`<label class="field field-cardback"><span>${t('cardBack')}</span><div class="option-combo cardback-combo" id="back-combo">${renderBackCombo()}</div></label>`;
-  const cardBackLeft=isPortraitHome?'':cardBackField;
-  const cardBackRight=isPortraitHome?cardBackField:'';
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><span>${t('gender')}</span><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3><label class="field field-ai"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}</div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  const cardBackLeft=`<label class="field field-cardback field-cardback-left"><span>${t('cardBack')}</span><div class="option-combo cardback-combo back-combo-home" id="back-combo-left">${renderBackCombo()}</div></label>`;
+  const cardBackRight=`<label class="field field-cardback field-cardback-right"><span>${t('cardBack')}</span><div class="option-combo cardback-combo back-combo-home" id="back-combo-right">${renderBackCombo()}</div></label>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3><label class="field field-ai"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}</div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -4111,7 +4125,13 @@ function renderHome(){
     const combo=document.getElementById('difficulty-combo');
     combo?.style.setProperty('--difficulty-index',`${difficultyIndex(v)}`);
   }));
-  document.querySelectorAll('#back-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{const v=btn.getAttribute('data-value');if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;state.home.backColor=v;markComboActive('back-combo',state.home.backColor);}));
+  document.querySelectorAll('.back-combo-home .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
+    const v=btn.getAttribute('data-value');
+    if(!v||!BACK_OPTIONS.some((x)=>x.value===v))return;
+    state.home.backColor=v;
+    markComboActive('back-combo-left',state.home.backColor);
+    markComboActive('back-combo-right',state.home.backColor);
+  }));
   bindSoundToggle('sound-combo');
   bindCalloutDisplayToggle('callout-display-combo');
   bindCalloutVoiceToggle('voice-combo');

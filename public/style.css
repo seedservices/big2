@@ -556,6 +556,12 @@ body[data-screen='home'] .home-wrap {
   display: grid;
   gap: 12px;
 }
+.royal-home-body .field-cardback-left {
+  display: grid;
+}
+.royal-home-body .field-cardback-right {
+  display: none;
+}
 .royal-home-body .home-section-title {
   margin: 0;
   font-size: .9rem;
@@ -4484,9 +4490,15 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-right .field-voice {
     grid-column: 2;
   }
-  .royal-home-body .home-form-right .field-cardback {
-    order: -2;
-    grid-column: 1 / -1;
+.royal-home-body .home-form-right .field-cardback {
+  order: -2;
+  grid-column: 1 / -1;
+}
+  .royal-home-body .field-cardback-left {
+    display: none;
+  }
+  .royal-home-body .field-cardback-right {
+    display: grid;
   }
   .royal-home-body .home-form-left {
     border-right: 0;
