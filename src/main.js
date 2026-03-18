@@ -403,7 +403,7 @@ const CALLOUT_RESPONSE_TEXT = {
   },
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -552,6 +552,7 @@ const isIOSDevice=()=>{
 };
 const runtimeProfileStore={players:{}};
 let aiTimer=null;
+let roomPresenceTimer=null;
 let playTypeCallTimer=null;
 const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:'',historyLen:0};
 let passCallTimer=null;
@@ -1514,7 +1515,8 @@ function isValidDifficulty(value){
 }
 function resetRoomState(){
   if(state.room.unsub){try{state.room.unsub();}catch{}}
-  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1};
+  if(roomPresenceTimer){clearInterval(roomPresenceTimer);roomPresenceTimer=null;}
+  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''};
   if(state.home.mode==='room')state.home.mode='solo';
 }
 function setRoomError(msg){
@@ -1621,6 +1623,7 @@ function subscribeRoom(roomId,code){
     if(!snap.exists){resetRoomState();render();return;}
     const data=snap.data()??{};
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
+    startRoomPresencePing();
     if(String(data.status)==='playing'){
       state.room.started=true;
       if(data.game){
@@ -1631,7 +1634,14 @@ function subscribeRoom(roomId,code){
             if(!fresh.exists)return;
             const latest=fresh.data()??{};
             if(String(latest.status)!=='playing'||!latest.game)return;
-            tx.update(ref,{game:updated,updatedAt:Date.now(),gameVersion:Number(latest.gameVersion||0)+1});
+            const now=Date.now();
+            const roster=Array.isArray(latest.players)?[...latest.players]:[];
+            const active=roster.filter((p)=>{
+              const lastSeen=Number(p?.lastSeen)||0;
+              if(!lastSeen)return true;
+              return now-lastSeen<=ROOM_PRESENCE_STALE_MS;
+            });
+            tx.update(ref,{game:updated,players:active,updatedAt:now,gameVersion:Number(latest.gameVersion||0)+1});
           });
         }
       }
@@ -1747,6 +1757,35 @@ function roomSeatForPlayer(roomData,playerId){
 function roomSelfSeat(roomData){
   return roomSeatForPlayer(roomData,currentRoomPlayerId());
 }
+const ROOM_PRESENCE_PING_MS=15000;
+const ROOM_PRESENCE_STALE_MS=15000;
+function startRoomPresencePing(){
+  if(roomPresenceTimer||!state.room.id||!firebaseDb)return;
+  roomPresenceTimer=window.setInterval(async()=>{
+    if(!state.room.id||!firebaseDb){clearInterval(roomPresenceTimer);roomPresenceTimer=null;return;}
+    const uid=currentRoomPlayerId();
+    if(!uid)return;
+    try{
+      const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+      await firebaseDb.runTransaction(async(tx)=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists)return;
+        const data=snap.data()??{};
+        const players=Array.isArray(data.players)?[...data.players]:[];
+        let touched=false;
+        const now=Date.now();
+        const next=players.map((p)=>{
+          if(String(p.uid)!==uid)return p;
+          const prev=Number(p.lastSeen)||0;
+          if(now-prev<3000)return p;
+          touched=true;
+          return{...p,lastSeen:now};
+        });
+        if(touched)tx.update(ref,{players:next,updatedAt:now});
+      });
+    }catch{}
+  },ROOM_PRESENCE_PING_MS);
+}
 function botProfileForSeat(seat){
   const list=Array.isArray(BOT_PROFILE_POOL)&&BOT_PROFILE_POOL.length?BOT_PROFILE_POOL:[{name:'Bot',gender:'male'}];
   const idx=Math.abs(Number(seat)||0)%list.length;
@@ -1758,8 +1797,15 @@ function syncRoomGameRoster(roomData){
   if(!base||!Array.isArray(base.players))return null;
   const game=cloneRoomGame(base);
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
+  const now=Date.now();
+  const activeRoster=roster.filter((p)=>{
+    const lastSeen=Number(p?.lastSeen)||0;
+    if(String(roomData?.status)!=='playing')return true;
+    if(!lastSeen)return true;
+    return now-lastSeen<=ROOM_PRESENCE_STALE_MS;
+  });
   const seatMap=new Map();
-  roster.forEach((p)=>{
+  activeRoster.forEach((p)=>{
     const seat=Number(p?.seat);
     if(Number.isFinite(seat)&&seat>=0&&seat<4)seatMap.set(seat,p);
   });
@@ -1920,6 +1966,26 @@ function applyRoomGameSnapshot(roomData){
   const selfHand=state.solo.players?.[selfSeat]?.hand??[];
   const validIds=new Set(selfHand.map(cardId));
   state.selected=new Set([...state.selected].filter((id)=>validIds.has(id)));
+  if(game.gameOver){
+    const key=`${state.room.id}:${String(roomData?.gameVersion??'')}`;
+    if(state.room.recordedGameKey!==key){
+      state.room.recordedGameKey=key;
+      const summary=game.roundSummary;
+      const deductions=Array.isArray(summary?.deductions)?summary.deductions:[];
+      const winnerSeat=Number(summary?.winnerSeat);
+      const winnerGain=Number(summary?.winnerGain)||0;
+      const deltas=deductions.map((d,i)=>i===winnerSeat?winnerGain:-Number(d||0));
+      const seatValid=Number.isInteger(selfSeat)&&selfSeat>=0;
+      const selfPlayer=seatValid?game.players?.[selfSeat]:null;
+      const isSelf=String(selfPlayer?.uid??'')===currentRoomPlayerId();
+      if(isSelf&&selfPlayer?.isHuman){
+        const delta=Number(deltas[selfSeat]??0);
+        void recordLeaderboardRound(currentLeaderboardIdentity(),delta,selfSeat===winnerSeat);
+      }
+    }
+  }else{
+    state.room.recordedGameKey='';
+  }
   render();
   maybeRunRoomAi();
 }
@@ -5215,6 +5281,9 @@ function renderGame(){
     retargetCalloutTails();
     setTimeout(retargetCalloutTails,80);
   });
+  if(v.mode==='room'&&!v.gameOver){
+    maybeRunRoomAi();
+  }
 }
 function retargetCalloutTails(){
   const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call')];
@@ -5429,6 +5498,10 @@ function bindGameEvents(v,arr){
   document.getElementById('home-btn')?.addEventListener('click',()=>{
     if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
     state.opponentProfileName='';
+    if(state.home.mode==='room'&&state.room.id){
+      void leaveRoom();
+      return;
+    }
     state.screen='home';
     state.selected.clear();
     state.recommendation=null;
