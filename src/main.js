@@ -2902,6 +2902,8 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
       players:game.players.map((p,i)=>({...p,hand:i===seat?[...hand]:[...(p?.hand??[])]}))
     }
     :{players:[{hand:[...hand]}],currentSeat:0,lastPlay:lastPlay?{...lastPlay}:null,isFirstTrick:Boolean(isFirstTrick),gameOver:false};
+  const moveKey=(p)=>`${(p?.cards??[]).map(cardId).sort().join(',')}|${String(p?.eval?.kind??'')}|${Number(p?.eval?.count??0)}`;
+  const hardPick=chooseAiPlay([...hand],sim,'hard');
   const weakCmp=(a,b)=>{
     if(a.eval.count!==b.eval.count)return a.eval.count-b.eval.count;
     if(a.eval.count===5&&a.eval.kind!==b.eval.kind)return FIVE_KIND_POWER[a.eval.kind]-FIVE_KIND_POWER[b.eval.kind];
@@ -2913,7 +2915,10 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
   for(const c of hand??[])rankCount.set(c.rank,(rankCount.get(c.rank)??0)+1);
   for(const [rank,n] of rankCount.entries())if(n>=3)prePlayTriples.push(rank);
   const ctx={hand:[...hand],lastPlay,isFirstTrick,game:sim,seat,orderedByWeak:byWeak,canPass:Boolean(lastPlay),prePlayTriples};
-  const moveKey=(p)=>`${(p?.cards??[]).map(cardId).sort().join(',')}|${String(p?.eval?.kind??'')}|${Number(p?.eval?.count??0)}`;
+  if(hardPick&&legal.some((p)=>moveKey(p)===moveKey(hardPick))){
+    hardPick.recommendScore=recommendPlayScore(hardPick,ctx);
+    return hardPick;
+  }
   const scoreByKey=new Map();
   const scored=[];
   for(const p of legal){

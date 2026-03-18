@@ -119,9 +119,9 @@ Design intent:
 ## Recommendation System (Player Assist)
 
 ### Current Level
-Recommendation is tuned to highest level available:
-- `suggestPlay(..., game)` now runs the hard bot logic (`chooseAiPlay(..., 'hard')`) using current game state.
-- If no valid hard recommendation emerges, it falls back to a deterministic legal-power heuristic.
+ Recommendation is tuned to highest level available:
+  - `suggestPlay(..., game)` always tries the hard bot logic (`chooseAiPlay(..., 'hard')`) first using current game state.
+  - If no valid hard recommendation emerges, it falls back to the scored recommendation model.
 
 ### Recommendation Filters (Before Scoring)
 - Generate all valid plays from current hand.
