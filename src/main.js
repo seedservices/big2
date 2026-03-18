@@ -159,6 +159,7 @@ const I18N={
       '所有輸家扣分總和加到贏家。'
     ],
     roomLobby:'房間大堂',
+    roomSettings:'房間設定',
     roomCreate:'建立房間',
     roomJoin:'加入房間',
     roomCode:'房間代碼',
@@ -325,6 +326,7 @@ const I18N={
       'Total deductions from all losers are added to the winner.'
     ],
     roomLobby:'Room Lobby',
+    roomSettings:'Room Settings',
     roomCreate:'Create Room',
     roomJoin:'Join Room',
     roomCode:'Room Code',
@@ -1520,24 +1522,8 @@ async function findRoomByCode(code){
   return doc;
 }
 async function createRoom(){
-  if(!signedInForPlay()||!initFirebaseIfReady()){
-    setRoomError(t('roomLoginRequired'));
-    return;
-  }
-  if(!currentAuthUid()){
-    const okCred=await ensureFirebaseAuth();
-    if(okCred&&currentAuthUid()){
-      // signed in via credential
-    }else{
-      const ok=await signInWithProvider('google');
-      if(!ok||!currentAuthUid()){
-        setRoomError(t('roomLoginRequired'));
-        return;
-      }
-    }
-  }
-  if(!currentAuthUid()){
-    setRoomError(t('roomLoginRequired'));
+  if(!initFirebaseIfReady()){
+    setRoomError(t('roomCreateFail'));
     return;
   }
   setRoomError('');
@@ -1561,7 +1547,7 @@ async function createRoom(){
       createdAt:now,
       updatedAt:now,
       maxPlayers:4,
-      players:[{uid,name,ready:false,isHost:true,seat:0}],
+      players:[{uid,name,ready:true,isHost:true,seat:0}],
       settings:collectMainSettings()
     };
     await ref.set(data);
@@ -1572,21 +1558,9 @@ async function createRoom(){
   }
 }
 async function joinRoomByCode(codeRaw){
-  if(!signedInForPlay()||!initFirebaseIfReady()){
-    setRoomError(t('roomLoginRequired'));
+  if(!initFirebaseIfReady()){
+    setRoomError(t('roomJoinFail'));
     return;
-  }
-  if(!currentAuthUid()){
-    const okCred=await ensureFirebaseAuth();
-    if(okCred&&currentAuthUid()){
-      // signed in via credential
-    }else{
-      const ok=await signInWithProvider('google');
-      if(!ok||!currentAuthUid()){
-        setRoomError(t('roomLoginRequired'));
-        return;
-      }
-    }
   }
   const code=String(codeRaw??'').trim().toUpperCase();
   if(!code)return;
@@ -1682,17 +1656,20 @@ async function setRoomReady(ready){
 async function startRoom(){
   if(!state.room.id||!firebaseDb)return;
   const uid=currentAuthUid();
-  if(!uid)return;
   try{
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
     await firebaseDb.runTransaction(async(tx)=>{
       const snap=await tx.get(ref);
       if(!snap.exists)return;
       const data=snap.data()??{};
-      if(String(data.hostId)!==uid)throw new Error('not host');
+      if(uid){
+        if(String(data.hostId)!==uid)throw new Error('not host');
+      }else if(String(data.hostId??'').trim()){
+        throw new Error('not host');
+      }
       const players=Array.isArray(data.players)?data.players:[];
       const allReady=players.every((p)=>p.ready||String(p.uid)===uid);
-      if(!allReady)throw new Error('not ready');
+      if(players.length>1&&!allReady)throw new Error('not ready');
       tx.update(ref,{status:'playing',updatedAt:Date.now()});
     });
   }catch(err){
@@ -2299,6 +2276,20 @@ async function handleCredentialResponse(response){
   if(!token)return;
   const p=parseJwtPayload(token)??{};
   initFirebaseIfReady();
+  try{
+    const fb=window.firebase;
+    if(fb?.auth&&firebaseAuth){
+      const cred=fb.auth.GoogleAuthProvider.credential(token);
+      const res=await firebaseAuth.signInWithCredential(cred);
+      const user=res?.user;
+      if(user?.uid){
+        state.home.google.uid=String(user.uid).slice(0,128);
+        state.home.google.sub=String(user.uid).slice(0,64);
+      }
+    }
+  }catch(err){
+    console.warn('firebase auth credential sign-in failed',err);
+  }
   const email=String(p.email??'').trim().toLowerCase().slice(0,120);
   const pic=String(p.picture??'').trim();
   const gRaw=String(p.gender??p.sex??'').trim().toLowerCase();
@@ -4423,11 +4414,13 @@ function renderHome(){
   const homeAvatarSrc=selfAvatarDataUri(state.home.name,'#7aaed8',state.home.gender);
   const cardBackLeft=`<label class="field field-cardback field-cardback-left"><span>${t('cardBack')}</span><div class="option-combo cardback-combo back-combo-home" id="back-combo-left">${renderBackCombo()}</div></label>`;
   const cardBackRight=`<label class="field field-cardback field-cardback-right"><span>${t('cardBack')}</span><div class="option-combo cardback-combo back-combo-home" id="back-combo-right">${renderBackCombo()}</div></label>`;
+  const aiFieldLeft=`<label class="field field-ai field-ai-left"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-left" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
+  const aiFieldRight=`<label class="field field-ai field-ai-right"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-right" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
   const roomErrorHtml=state.room.error?`<div class="hint room-error">${esc(state.room.error)}</div>`:'';
-  const roomButtonsHtml=inRoom?'':`<div class="action-row home-room-row"><button id="room-create" class="secondary">${t('roomCreate')}</button><button id="room-join" class="secondary">${t('roomJoin')}</button></div>${roomErrorHtml}`;
-  const roomLobbyHtml=inRoom?`<div class="room-overlay"><div class="room-card"><div class="room-head"><h3>${t('roomLobby')}</h3><div class="room-code"><span>${t('roomCode')}:</span><strong>${esc(state.room.code)}</strong><button id="room-copy" class="secondary">${t('roomCopy')}</button></div></div><div class="room-list">${roomPlayers.map((p)=>`<div class="room-player ${p.ready?'ready':''}"><span>${esc(p.name)}</span><span class="room-status">${p.ready?t('roomReady'):t('roomNotReady')}</span></div>`).join('')}</div>${roomErrorHtml}<div class="room-actions"><button id="room-ready" class="secondary">${roomReady?t('roomNotReady'):t('roomReady')}</button>${roomIsHost?`<button id="room-start" class="primary">${t('roomStart')}</button>`:`<span class="hint">${t('roomReadyHint')}</span>`}<button id="room-leave" class="danger">${t('roomLeave')}</button></div></div></div>`:'';
+  const roomButtonsHtml=inRoom?'':`<div class="home-room-panel"><h3 class="home-section-title">🧩 ${t('roomSettings')}</h3><div class="action-row home-room-row"><button id="room-create" class="secondary">${t('roomCreate')}</button><button id="room-join" class="secondary">${t('roomJoin')}</button></div>${roomErrorHtml}</div>`;
+  const roomLobbyHtml=inRoom?`<div class="room-overlay"><div class="room-card"><div class="room-head"><h3>${t('roomLobby')}</h3><div class="room-code"><span>${t('roomCode')}:</span><strong>${esc(state.room.code)}</strong><button id="room-copy" class="secondary">${t('roomCopy')}</button></div></div><div class="room-id-center">${esc(state.room.code)}</div><div class="room-list">${roomPlayers.map((p)=>`<div class="room-player ${p.ready?'ready':''}"><span>${esc(p.name)}</span><span class="room-status">${p.ready?t('roomReady'):t('roomNotReady')}</span></div>`).join('')}</div>${roomErrorHtml}<div class="room-actions"><button id="room-ready" class="secondary">${roomReady?t('roomNotReady'):t('roomReady')}</button>${roomIsHost?`<button id="room-start" class="primary">${t('roomStart')}</button>`:`<span class="hint">${t('roomReadyHint')}</span>`}<button id="room-leave" class="danger">${t('roomLeave')}</button></div></div></div>`:'';
   const roomJoinModal=(!inRoom&&state.room.joinOpen)?`<div class="room-overlay"><div class="room-card room-join-card"><div class="room-head"><h3>${t('roomJoin')}</h3></div><label class="field"><span>${t('roomCode')}</span><input id="room-code-input" class="room-input" maxlength="8" placeholder="ABC123"/></label>${roomErrorHtml}<div class="room-actions"><button id="room-join-confirm" class="primary">${t('roomJoin')}</button><button id="room-join-cancel" class="secondary">${t('home')}</button></div></div></div>`:'';
-  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><div class="home-logo-block"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3><label class="field field-ai"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label><label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}</div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div>${roomButtonsHtml}</section></section>${mainPageLegalMiniHtml()}${roomLobbyHtml}${roomJoinModal}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
+  app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><div class="home-logo-block"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${aiFieldLeft}${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3>${aiFieldRight}<label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}${roomButtonsHtml}</div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${roomLobbyHtml}${roomJoinModal}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
   document.getElementById('home-intro-toggle')?.addEventListener('click',()=>{state.home.showIntro=!state.home.showIntro;render();});
   document.getElementById('home-score-guide-toggle')?.addEventListener('click',()=>{state.showScoreGuide=true;render();});
@@ -4454,13 +4447,14 @@ function renderHome(){
     saveGoogleSession();
     if(signedInWithEmail()){void syncLeaderboardProfile(currentLeaderboardIdentity());}
   }));
-  document.querySelectorAll('#difficulty-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('#difficulty-combo-left .combo-btn, #difficulty-combo-right .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
     const v=btn.getAttribute('data-value');
     if(!v)return;
     state.home.aiDifficulty=v;
-    markComboActive('difficulty-combo',v);
-    const combo=document.getElementById('difficulty-combo');
-    combo?.style.setProperty('--difficulty-index',`${difficultyIndex(v)}`);
+    markComboActive('difficulty-combo-left',v);
+    markComboActive('difficulty-combo-right',v);
+    document.getElementById('difficulty-combo-left')?.style.setProperty('--difficulty-index',`${difficultyIndex(v)}`);
+    document.getElementById('difficulty-combo-right')?.style.setProperty('--difficulty-index',`${difficultyIndex(v)}`);
   }));
   document.querySelectorAll('.back-combo-home .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
     const v=btn.getAttribute('data-value');
