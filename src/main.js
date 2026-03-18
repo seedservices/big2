@@ -1623,6 +1623,18 @@ function subscribeRoom(roomId,code){
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     if(String(data.status)==='playing'){
       state.room.started=true;
+      if(roomIsHost()&&data.game){
+        const updated=syncRoomGameRoster(data);
+        if(updated){
+          void firebaseDb.runTransaction(async(tx)=>{
+            const fresh=await tx.get(ref);
+            if(!fresh.exists)return;
+            const latest=fresh.data()??{};
+            if(String(latest.status)!=='playing'||!latest.game)return;
+            tx.update(ref,{game:updated,updatedAt:Date.now(),gameVersion:Number(latest.gameVersion||0)+1});
+          });
+        }
+      }
       applyRoomGameSnapshot(data);
       return;
     }
@@ -1642,8 +1654,19 @@ async function leaveRoom(){
       const data=snap.data()??{};
       const players=Array.isArray(data.players)?[...data.players]:[];
       const remaining=players.filter((p)=>String(p.uid)!==uid);
-      if(String(data.hostId)===uid){
+      const hostLeaving=String(data.hostId)===uid;
+      const status=String(data.status??'lobby');
+      if(!remaining.length){
         tx.delete(ref);
+        return;
+      }
+      if(hostLeaving&&status==='lobby'){
+        tx.delete(ref);
+        return;
+      }
+      if(hostLeaving){
+        const nextHost=remaining[0];
+        tx.update(ref,{players:remaining,hostId:String(nextHost.uid??''),hostName:String(nextHost.name??''),updatedAt:Date.now()});
         return;
       }
       tx.update(ref,{players:remaining,updatedAt:Date.now()});
@@ -1723,6 +1746,54 @@ function roomSeatForPlayer(roomData,playerId){
 }
 function roomSelfSeat(roomData){
   return roomSeatForPlayer(roomData,currentRoomPlayerId());
+}
+function botProfileForSeat(seat){
+  const list=Array.isArray(BOT_PROFILE_POOL)&&BOT_PROFILE_POOL.length?BOT_PROFILE_POOL:[{name:'Bot',gender:'male'}];
+  const idx=Math.abs(Number(seat)||0)%list.length;
+  const pick=list[idx]??list[0];
+  return{name:String(pick.name??'Bot'),gender:String(pick.gender??'male')==='female'?'female':'male'};
+}
+function syncRoomGameRoster(roomData){
+  const base=roomData?.game;
+  if(!base||!Array.isArray(base.players))return null;
+  const game=cloneRoomGame(base);
+  const roster=Array.isArray(roomData?.players)?roomData.players:[];
+  const seatMap=new Map();
+  roster.forEach((p)=>{
+    const seat=Number(p?.seat);
+    if(Number.isFinite(seat)&&seat>=0&&seat<4)seatMap.set(seat,p);
+  });
+  let changed=false;
+  for(let seat=0;seat<game.players.length;seat++){
+    const player=game.players[seat];
+    if(!player)continue;
+    const entry=seatMap.get(seat);
+    if(entry){
+      const entryUid=String(entry.uid??'').trim();
+      const entryName=String(entry.name??`Player ${seat+1}`);
+      const entryGender=String(entry.gender??'male')==='female'?'female':'male';
+      const entryPic=String(entry.picture??'').trim();
+      if(!player.isHuman||String(player.uid??'')!==entryUid||player.name!==entryName||player.gender!==entryGender||String(player.picture??'')!==entryPic){
+        player.isHuman=true;
+        player.uid=entryUid;
+        player.name=entryName;
+        player.gender=entryGender;
+        player.picture=entryPic;
+        changed=true;
+      }
+      continue;
+    }
+    if(player.isHuman){
+      const bp=botProfileForSeat(seat);
+      player.isHuman=false;
+      player.uid=`bot:${seat}:${bp.name}`;
+      player.name=bp.name;
+      player.gender=bp.gender;
+      player.picture='';
+      changed=true;
+    }
+  }
+  return changed?game:null;
 }
 function buildRoomGameState(roomData){
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
