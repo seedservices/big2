@@ -120,7 +120,9 @@ service cloud.firestore {
       'updatedAt',
       'maxPlayers',
       'players',
-      'settings'
+      'settings',
+      'game',
+      'gameVersion'
     ];
   }
 
@@ -144,7 +146,9 @@ service cloud.firestore {
       d.players is list &&
       d.players.size() >= 1 &&
       d.players.size() <= 4 &&
-      (!('settings' in d) || isValidSettings(d.settings));
+      (!('settings' in d) || isValidSettings(d.settings)) &&
+      (!('game' in d) || d.game is map) &&
+      (!('gameVersion' in d) || d.gameVersion is int);
   }
 
 

@@ -84,6 +84,7 @@ const I18N={
     triple:'三條必須同點數。',
     count:'只可出1、2、3或5張。',
     five:'五張牌只接受蛇、花、俘佬、四條、同花順。',
+    illegal:'出牌不合法。',
     penalty:'輸家記牌',
     aiTag:'(AI)',
     wins:'勝出！',
@@ -251,6 +252,7 @@ const I18N={
     triple:'Triple must match rank.',
     count:'Only 1,2,3,5 cards allowed.',
     five:'Invalid five-card hand.',
+    illegal:'Invalid play.',
     penalty:'Penalty',
     aiTag:'(AI)',
     wins:'wins!',
@@ -401,7 +403,7 @@ const CALLOUT_RESPONSE_TEXT = {
   },
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null},solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -1498,9 +1500,22 @@ function signedInForPlay(){
 }
 function signedInWithEmail(){return Boolean(state.home.google.signedIn&&state.home.google.email);}
 function currentAuthUid(){return String(firebaseAuth?.currentUser?.uid??'').trim();}
+function currentRoomPlayerId(){
+  const uid=currentAuthUid();
+  if(uid)return `uid:${uid}`;
+  if(!state.sessionId){
+    const rand=(()=>{try{return crypto.randomUUID();}catch{return Math.random().toString(36).slice(2,10);}})();
+    state.sessionId=`guest:${rand}`;
+  }
+  return state.sessionId;
+}
+function isValidDifficulty(value){
+  return value==='easy'||value==='normal'||value==='hard';
+}
 function resetRoomState(){
   if(state.room.unsub){try{state.room.unsub();}catch{}}
-  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null};
+  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1};
+  if(state.home.mode==='room')state.home.mode='solo';
 }
 function setRoomError(msg){
   state.room.error=msg||'';
@@ -1535,7 +1550,7 @@ async function createRoom(){
       if(!exists){code=candidate;break;}
     }
     if(!code){setRoomError(t('roomCreateFail'));return;}
-    const uid=currentAuthUid();
+    const uid=currentRoomPlayerId();
     const name=String(state.home.name||'Player').slice(0,32);
     const now=Date.now();
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc();
@@ -1547,8 +1562,9 @@ async function createRoom(){
       createdAt:now,
       updatedAt:now,
       maxPlayers:4,
-      players:[{uid,name,ready:true,isHost:true,seat:0}],
-      settings:collectMainSettings()
+      players:[{uid,name,gender:state.home.gender==='female'?'female':'male',ready:true,isHost:true,seat:0}],
+      settings:collectMainSettings(),
+      gameVersion:0
     };
     await ref.set(data);
     subscribeRoom(ref.id,code);
@@ -1568,7 +1584,7 @@ async function joinRoomByCode(codeRaw){
   try{
     const doc=await findRoomByCode(code);
     if(!doc){setRoomError(t('roomNotFound'));return;}
-    const uid=currentAuthUid();
+    const uid=currentRoomPlayerId();
     await firebaseDb.runTransaction(async(tx)=>{
       const snap=await tx.get(doc.ref);
       if(!snap.exists)throw new Error('room missing');
@@ -1583,7 +1599,8 @@ async function joinRoomByCode(codeRaw){
         while(usedSeats.has(seat)&&seat<4)seat+=1;
         if(seat>=4)throw new Error('room full');
         const name=String(state.home.name||'Player').slice(0,32);
-        players.push({uid,name,ready:false,isHost:false,seat});
+        const gender=state.home.gender==='female'?'female':'male';
+        players.push({uid,name,gender,ready:false,isHost:false,seat});
       }
       tx.update(doc.ref,{players,updatedAt:Date.now()});
     });
@@ -1602,10 +1619,11 @@ function subscribeRoom(roomId,code){
   const unsub=ref.onSnapshot((snap)=>{
     if(!snap.exists){resetRoomState();render();return;}
     const data=snap.data()??{};
-    state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false};
-    if(String(data.status)==='playing'&&!state.room.started){
+    state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
+    if(String(data.status)==='playing'){
       state.room.started=true;
-      startRoomLocalGame(data);
+      applyRoomGameSnapshot(data);
+      return;
     }
     render();
   });
@@ -1614,7 +1632,7 @@ function subscribeRoom(roomId,code){
 async function leaveRoom(){
   if(!state.room.id||!firebaseDb)return;
   try{
-    const uid=currentAuthUid();
+    const uid=currentRoomPlayerId();
     if(!uid){resetRoomState();render();return;}
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
     await firebaseDb.runTransaction(async(tx)=>{
@@ -1638,7 +1656,7 @@ async function leaveRoom(){
 async function setRoomReady(ready){
   if(!state.room.id||!firebaseDb)return;
   try{
-    const uid=currentAuthUid();
+    const uid=currentRoomPlayerId();
     if(!uid)return;
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
     await firebaseDb.runTransaction(async(tx)=>{
@@ -1655,7 +1673,7 @@ async function setRoomReady(ready){
 }
 async function startRoom(){
   if(!state.room.id||!firebaseDb)return;
-  const uid=currentAuthUid();
+  const uid=currentRoomPlayerId();
   try{
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
     await firebaseDb.runTransaction(async(tx)=>{
@@ -1670,12 +1688,262 @@ async function startRoom(){
       const players=Array.isArray(data.players)?data.players:[];
       const allReady=players.every((p)=>p.ready||String(p.uid)===uid);
       if(players.length>1&&!allReady)throw new Error('not ready');
-      tx.update(ref,{status:'playing',updatedAt:Date.now()});
+      const now=Date.now();
+      const game=buildRoomGameState(data);
+      tx.update(ref,{status:'playing',game,gameVersion:Number(data.gameVersion||0)+1,updatedAt:now});
     });
   }catch(err){
     console.error('start room failed',err);
     setRoomError(t('roomReadyHint'));
   }
+}
+
+function cloneRoomGame(game){
+  if(!game||typeof game!=='object')return null;
+  try{return structuredClone(game);}catch{return JSON.parse(JSON.stringify(game));}
+}
+function setGameStatus(game,message,{appendLog=true,now=Date.now()}={}){
+  if(!game)return;
+  const text=String(message??'').trim();
+  game.status=text;
+  if(!appendLog||!text)return;
+  if(!Array.isArray(game.systemLog))game.systemLog=[];
+  const last=game.systemLog[game.systemLog.length-1];
+  if(last&&last.text===text)return;
+  game.systemLog.push({text,ts:now});
+  if(game.systemLog.length>200)game.systemLog=game.systemLog.slice(-200);
+}
+function roomSeatForPlayer(roomData,playerId){
+  const pid=String(playerId??'').trim();
+  if(!pid)return-1;
+  const roster=Array.isArray(roomData?.players)?roomData.players:[];
+  const entry=roster.find((p)=>String(p.uid)===pid);
+  return Number.isFinite(Number(entry?.seat))?Number(entry.seat):-1;
+}
+function roomSelfSeat(roomData){
+  return roomSeatForPlayer(roomData,currentRoomPlayerId());
+}
+function buildRoomGameState(roomData){
+  const roster=Array.isArray(roomData?.players)?roomData.players:[];
+  const seatMap=new Map();
+  roster.forEach((p)=>{
+    const seat=Number(p?.seat);
+    if(Number.isFinite(seat)&&seat>=0&&seat<4)seatMap.set(seat,p);
+  });
+  const botProfiles=randomBotProfiles();
+  const players=[];
+  for(let seat=0;seat<4;seat++){
+    const entry=seatMap.get(seat);
+    if(entry){
+      players.push({
+        uid:String(entry.uid??''),
+        name:String(entry.name??`Player ${seat+1}`),
+        gender:String(entry.gender??'male')==='female'?'female':'male',
+        hand:[],
+        isHuman:true,
+        seat
+      });
+    }else{
+      const bp=botProfiles[seat%botProfiles.length];
+      players.push({
+        uid:`bot:${seat}:${bp.name}`,
+        name:String(bp.name),
+        gender:String(bp.gender??'male')==='female'?'female':'male',
+        hand:[],
+        isHuman:false,
+        seat
+      });
+    }
+  }
+  const deck=shuffle(createDeck());
+  players.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});
+  const start=players.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));
+  const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];
+  const difficulty=(roomData?.settings?.aiDifficulty&&isValidDifficulty(roomData.settings.aiDifficulty))?roomData.settings.aiDifficulty:state.home.aiDifficulty;
+  const game={players,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now()};
+  setGameStatus(game,`${players[start].name} ${t('start')}`);
+  return game;
+}
+function applyPlayToGame(game,seat,cards,now=Date.now()){
+  const g=cloneRoomGame(game);
+  if(!g||!Array.isArray(g.players)||!g.players[seat])return{ok:false,reason:'invalid'};
+  const handIds=new Set((g.players[seat].hand??[]).map(cardId));
+  const cardIds=cards.map(cardId);
+  if(!cardIds.length||cardIds.some((id)=>!handIds.has(id)))return{ok:false,reason:t('illegal')};
+  const ev=evaluatePlay(cards);
+  if(!ev.valid)return{ok:false,reason:ev.reason||t('illegal')};
+  if(g.isFirstTrick&&!has3d(cards))return{ok:false,reason:t('must3')};
+  if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval))return{ok:false,reason:t('beat')};
+  if(shouldForceMaxAgainstLastCard(g,seat)){
+    const legal=legalTurnPlays(g.players[seat].hand,g).sort(cmpStrongPlayDesc);
+    const strongest=legal[0];
+    const chosen=legal.find((x)=>x.eval.count===ev.count&&x.eval.kind===ev.kind&&comparePower(x.eval.power,ev.power)===0);
+    if(chosen&&strongest&&comparePower(chosen.eval.power,strongest.eval.power)!==0){
+      g.lastCardBreach={seat,threatenedSeat:(seat+1)%4};
+    }
+  }
+  const ids=new Set(cards.map(cardId));
+  g.players[seat].hand=g.players[seat].hand.filter((c)=>!ids.has(cardId(c)));
+  g.lastPlay={seat,eval:ev,cards:ev.sorted};
+  g.passStreak=0;
+  g.isFirstTrick=false;
+  g.history.push({action:'play',seat,name:g.players[seat].name,cards:ev.sorted,kind:ev.kind,ts:now});
+  if(g.players[seat].hand.length===0){
+    g.gameOver=true;
+    const details=g.players.map((p,i)=>i===seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(p.hand));
+    let deductions=details.map((d)=>d.deduction);
+    if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat){
+      const violator=g.lastCardBreach.seat;
+      const transferred=deductions.reduce((sum,v)=>sum+v,0);
+      deductions=deductions.map((v,i)=>i===violator?transferred:0);
+    }
+    const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
+    g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
+    g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
+    const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
+    setGameStatus(g,`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`,{now});
+    return{ok:true,game:g,finished:true};
+  }
+  if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
+  g.currentSeat=(seat+1)%4;
+  setGameStatus(g,`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false,now});
+  return{ok:true,game:g};
+}
+function applyPassToGame(game,seat,now=Date.now()){
+  const g=cloneRoomGame(game);
+  if(!g||!Array.isArray(g.players)||!g.players[seat])return{ok:false,reason:'invalid'};
+  if(!g.lastPlay)return{ok:false,reason:t('cantPass')};
+  g.passStreak+=1;
+  g.history.push({action:'pass',seat,name:g.players[seat].name,ts:now});
+  if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
+  if(g.passStreak>=3){
+    const lead=g.lastPlay.seat;
+    g.currentSeat=lead;
+    g.lastPlay=null;
+    g.passStreak=0;
+    setGameStatus(g,`${g.players[lead].name} ${t('retake')}`,{now});
+    return{ok:true,game:g};
+  }
+  g.currentSeat=(seat+1)%4;
+  setGameStatus(g,`${g.players[seat].name} ${t('pass')}.`,{appendLog:false,now});
+  return{ok:true,game:g};
+}
+function applyRoomGameSnapshot(roomData){
+  const game=roomData?.game;
+  if(!game||!Array.isArray(game.players)||!game.players.length)return;
+  state.solo=cloneRoomGame(game)||state.solo;
+  state.room.selfSeat=roomSelfSeat(roomData);
+  state.screen='game';
+  state.home.mode='room';
+  state.home.showIntro=false;
+  state.home.showLeaderboard=false;
+  state.showScoreGuide=false;
+  state.opponentProfileName='';
+  state.logTouched=false;
+  state.showLog=false;
+  state.recommendation=null;
+  setRecommendHint('');
+  const selfSeat=Number.isInteger(state.room.selfSeat)?state.room.selfSeat:0;
+  const selfHand=state.solo.players?.[selfSeat]?.hand??[];
+  const validIds=new Set(selfHand.map(cardId));
+  state.selected=new Set([...state.selected].filter((id)=>validIds.has(id)));
+  render();
+  maybeRunRoomAi();
+}
+async function roomSubmitPlay(cards,seatOverride=null){
+  if(!state.room.id||!firebaseDb)return;
+  const roomId=state.room.id;
+  const seat=Number.isInteger(seatOverride)?seatOverride:roomSelfSeat(state.room.data);
+  if(seat<0)return;
+  const now=Date.now();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)throw new Error('room missing');
+      const data=snap.data()??{};
+      if(data.status!=='playing'||!data.game)throw new Error('room not playing');
+      const game=data.game;
+      if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
+      const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
+      const isHost=String(data.hostId??'')===currentRoomPlayerId();
+      const target=game.players?.[seat];
+      const canAct=(selfSeat===seat)||(isHost&&target&&!target.isHuman);
+      if(!canAct)throw new Error('not allowed');
+      const result=applyPlayToGame(game,seat,cards,now);
+      if(!result.ok)throw new Error(result.reason||'invalid');
+      tx.update(ref,{game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1});
+    });
+    playSound('play');
+  }catch(err){
+    const msg=String(err?.message??'');
+    if(msg)setSoloStatus(msg);
+  }
+}
+async function roomSubmitPass(seatOverride=null){
+  if(!state.room.id||!firebaseDb)return;
+  const roomId=state.room.id;
+  const seat=Number.isInteger(seatOverride)?seatOverride:roomSelfSeat(state.room.data);
+  if(seat<0)return;
+  const now=Date.now();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)throw new Error('room missing');
+      const data=snap.data()??{};
+      if(data.status!=='playing'||!data.game)throw new Error('room not playing');
+      const game=data.game;
+      if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
+      const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
+      const isHost=String(data.hostId??'')===currentRoomPlayerId();
+      const target=game.players?.[seat];
+      const canAct=(selfSeat===seat)||(isHost&&target&&!target.isHuman);
+      if(!canAct)throw new Error('not allowed');
+      const result=applyPassToGame(game,seat,now);
+      if(!result.ok)throw new Error(result.reason||'invalid');
+      tx.update(ref,{game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1});
+    });
+    playSound('pass');
+  }catch(err){
+    const msg=String(err?.message??'');
+    if(msg)setSoloStatus(msg);
+  }
+}
+function roomIsHost(){
+  const data=state.room.data;
+  if(!data)return false;
+  const pid=currentRoomPlayerId();
+  return String(data.hostId??'')===String(pid);
+}
+function maybeRunRoomAi(){
+  if(state.home.mode!=='room')return;
+  if(!state.room.id||!state.room.data||!state.room.data.game)return;
+  if(!roomIsHost())return;
+  if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+  const g=state.room.data.game;
+  const current=g?.players?.[g?.currentSeat];
+  if(!g||g.gameOver||!current||current.isHuman)return;
+  const now=Date.now();
+  const turnLockRemaining=Math.max(0,turnLockUntil-now);
+  const remaining=Math.max(0,calloutSpeechUntil-Date.now());
+  const afterCallout=calloutResumePending;
+  if(afterCallout)calloutResumePending=false;
+  const DEFAULT_AI_DELAY_MS=360;
+  const POST_CALLOUT_DELAY_MS=320;
+  const MIN_AI_DELAY_MS=250;
+  const wait=(calloutSpeechActive||remaining>0||turnLockRemaining>0)
+    ?Math.max(MIN_AI_DELAY_MS,remaining,turnLockRemaining)
+    :afterCallout?POST_CALLOUT_DELAY_MS:DEFAULT_AI_DELAY_MS;
+  aiTimer=window.setTimeout(async()=>{
+    const live=state.room.data?.game;
+    if(!live||live.gameOver)return;
+    const actor=live.players?.[live.currentSeat];
+    if(!actor||actor.isHuman)return;
+    const ch=chooseAiPlay(actor.hand,live,live.aiDifficulty);
+    if(!ch)await roomSubmitPass(live.currentSeat);
+    else await roomSubmitPlay(ch.cards,live.currentSeat);
+  },wait);
 }
 function currentLeaderboardIdentity(){
   const g=state.home.google;
@@ -3504,16 +3772,17 @@ function lockTurnProgress(ms=0){
 function reorderById(arr,fromId,toId,idFn){if(!fromId||!toId||fromId===toId)return arr;const copy=[...arr];const fi=copy.findIndex((x)=>idFn(x)===fromId),ti=copy.findIndex((x)=>idFn(x)===toId);if(fi<0||ti<0)return arr;const[m]=copy.splice(fi,1);copy.splice(ti,0,m);return copy;}
 function patternSortCards(hand){return[...hand].sort((a,b)=>b.suit-a.suit||a.rank-b.rank);}
 
-function triggerMust3LeadCallout(game){
+function triggerMust3LeadCallout(game,selfSeat=0){
   must3CallState.key='';
   must3CallState.text='';
   must3CallState.until=0;
   must3CallState.startedAt=0;
   must3CallState.nonce='';
   if(!game||!Array.isArray(game.players)||!game.players.length)return;
-  const human=game.players[0];
+  const seatIndex=Number.isInteger(selfSeat)&&selfSeat>=0?selfSeat:0;
+  const human=game.players[seatIndex];
   if(!human||!Array.isArray(human.hand)||!has3d(human.hand))return;
-  const opponents=game.players.map((p,i)=>({player:p,seat:i})).filter((x)=>!x.player?.isHuman);
+  const opponents=game.players.map((p,i)=>({player:p,seat:i})).filter((x)=>!x.player?.isHuman&&x.seat!==seatIndex);
   if(!opponents.length)return;
   const pick=opponents[Math.floor(Math.random()*opponents.length)];
   const text='階磚3出先';
@@ -3527,10 +3796,10 @@ function triggerMust3LeadCallout(game){
   scheduleCalloutExpiry(must3CallState.until);
   speakCallout(text,pick.player?.gender??'male',{seat:pick.seat,force:true,clipKey:'line-must3'});
 }
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;markGameStartedInCache();playSound('start');triggerMust3LeadCallout(state.solo);render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;markGameStartedInCache();playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
 function startRoomLocalGame(roomData){
   randomizeNpcColors();
-  const uid=currentAuthUid();
+  const uid=currentRoomPlayerId();
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
   const selfEntry=roster.find((p)=>String(p.uid)===uid);
   const others=roster.filter((p)=>String(p.uid)!==uid).sort((a,b)=>Number(a.seat)-Number(b.seat));
@@ -3564,9 +3833,9 @@ function startRoomLocalGame(roomData){
   calloutGateUntilPlay=true;
   markGameStartedInCache();
   playSound('start');
-  triggerMust3LeadCallout(state.solo);
+  triggerMust3LeadCallout(state.solo,state.room.selfSeat);
   render();
-  maybeRunSoloAi();
+  maybeRunRoomAi();
 }
 
 function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(cards);if(!ev.valid){if(seat===0)setSoloStatus(ev.reason);return false;}if(g.isFirstTrick&&!has3d(cards)){if(seat===0)setSoloStatus(t('must3'));return false;}if(g.lastPlay&&!canBeat(ev,g.lastPlay.eval)){if(seat===0)setSoloStatus(t('beat'));return false;}
@@ -3610,6 +3879,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
 function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)setSoloStatus(t('cantPass'));return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;lockTurnProgress(850);if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;setSoloStatus(`${g.players[lead].name} ${t('retake')}`);playSound('pass');return true;}g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('pass')}.`,{appendLog:false});playSound('pass');return true;}
 function maybeRunSoloAi(){
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+  if(state.home.mode!=='solo')return;
   const g=state.solo;
   const current=g?.players?.[g?.currentSeat];
   if(!g||g.gameOver||!current||current.isHuman)return;
@@ -3835,7 +4105,31 @@ function playWinSfxThen(fn,delayFallback=2000){
 }
 function applyTheme(){const theme=THEMES[state.home.theme]??THEMES.ocean;const root=document.documentElement;for(const[k,v]of Object.entries(theme))root.style.setProperty(k,v);}
 
-function buildView(){const g=state.solo;return{mode:'solo',currentSeat:g.currentSeat,lastPlay:g.lastPlay,gameOver:g.gameOver,isFirstTrick:g.isFirstTrick,status:g.status,systemLog:g.systemLog??[],participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),hand:g.players[0].hand,history:g.history,selfSeat:0,canControl:!g.gameOver&&g.currentSeat===0,canPass:!g.gameOver&&g.currentSeat===0&&Boolean(g.lastPlay),revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,roundSummary:g.roundSummary??null};}
+function buildView(){
+  const g=state.solo;
+  if(!g||!Array.isArray(g.players)||!g.players.length)return null;
+  const mode=state.home.mode==='room'?'room':'solo';
+  const selfSeat=mode==='room'&&(Number.isInteger(state.room.selfSeat))?state.room.selfSeat:0;
+  const seatIndex=Number.isInteger(selfSeat)&&selfSeat>=0?selfSeat:0;
+  const selfPlayer=g.players[seatIndex]??g.players[0];
+  return{
+    mode,
+    currentSeat:g.currentSeat,
+    lastPlay:g.lastPlay,
+    gameOver:g.gameOver,
+    isFirstTrick:g.isFirstTrick,
+    status:g.status,
+    systemLog:g.systemLog??[],
+    participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),
+    hand:selfPlayer?.hand??[],
+    history:g.history,
+    selfSeat:seatIndex,
+    canControl:!g.gameOver&&g.currentSeat===seatIndex,
+    canPass:!g.gameOver&&g.currentSeat===seatIndex&&Boolean(g.lastPlay),
+    revealedHands:g.gameOver?g.players.map((p)=>[...p.hand]):null,
+    roundSummary:g.roundSummary??null
+  };
+}
 
 function formatGameLogDateTime(ts){
   const n=Number(ts)||0;
@@ -4402,7 +4696,7 @@ function renderHome(){
   const inRoom=Boolean(state.room.id);
   const roomData=state.room.data;
   const roomPlayers=Array.isArray(roomData?.players)?roomData.players:[];
-  const roomUid=currentAuthUid();
+  const roomUid=currentRoomPlayerId();
   const roomSelf=roomPlayers.find((p)=>String(p.uid)===roomUid);
   const roomIsHost=String(roomData?.hostId)===roomUid;
   const roomReady=Boolean(roomSelf?.ready);
@@ -4719,7 +5013,9 @@ function renderGame(){
   const canPlay=v.canControl&&selEv&&selEv.valid&&(!v.lastPlay||canBeat(selEv,v.lastPlay.eval))&&(!v.isFirstTrick||has3d(selected));
   const canReorder=!isMobilePointer()&&!v.gameOver&&v.hand.length>0;
   const canAutoSort=!v.gameOver&&v.hand.length>0;
-  const selfScoreValue=v.mode==='solo'?(state.solo.totals?.[0]??state.score):state.score;
+  const selfScoreValue=v.mode==='solo'
+    ?(state.solo.totals?.[0]??state.score)
+    :(state.solo.totals?.[v.selfSeat]??state.score);
   const canSuggest=v.canControl;
   const showMust3Highlight=Boolean(v.canControl&&v.isFirstTrick&&!v.lastPlay&&has3d(v.hand)&&!has3d(selected));
   const self=arr.find((p)=>p.viewIndex===0);
@@ -4952,8 +5248,16 @@ function syncHandStackMode(){
     hand.style.setProperty('--hand-overlap-px',`${overlap.toFixed(2)}px`);
   }
 }
-function reorderCurrent(v,fromId,toId){state.solo.players[0].hand=reorderById(state.solo.players[0].hand,fromId,toId,cardId);}
-function autoArrangeCurrent(v,mode='seq'){state.solo.players[0].hand=mode==='pattern'?patternSortCards(state.solo.players[0].hand):[...state.solo.players[0].hand].sort(cmpCard);}
+function reorderCurrent(v,fromId,toId){
+  const seat=Number.isInteger(v?.selfSeat)?v.selfSeat:0;
+  if(!state.solo.players?.[seat])return;
+  state.solo.players[seat].hand=reorderById(state.solo.players[seat].hand,fromId,toId,cardId);
+}
+function autoArrangeCurrent(v,mode='seq'){
+  const seat=Number.isInteger(v?.selfSeat)?v.selfSeat:0;
+  if(!state.solo.players?.[seat])return;
+  state.solo.players[seat].hand=mode==='pattern'?patternSortCards(state.solo.players[seat].hand):[...state.solo.players[seat].hand].sort(cmpCard);
+}
 
 function bindGameEvents(v,arr){
   const canReorder=!isMobilePointer()&&!v.gameOver&&v.hand.length>0;
@@ -4991,10 +5295,16 @@ function bindGameEvents(v,arr){
     if(!v.canPass)return;
     state.recommendation=null;
     setRecommendHint('');
-    soloPass(0);
-    state.selected.clear();
-    render();
-    maybeRunSoloAi();
+    if(v.mode==='room'){
+      state.selected.clear();
+      render();
+      void roomSubmitPass();
+    }else{
+      soloPass(0);
+      state.selected.clear();
+      render();
+      maybeRunSoloAi();
+    }
   };
   const runPlay=(cards)=>{
     if(!v.canControl)return;
@@ -5004,12 +5314,18 @@ function bindGameEvents(v,arr){
       return;
     }
     state.recommendation=null;
-    const ok=soloApplyPlay(0,cards);
-    if(ok){
+    if(v.mode==='room'){
       state.selected.clear();
       render();
-      maybeRunSoloAi();
-    }else render();
+      void roomSubmitPlay(cards);
+    }else{
+      const ok=soloApplyPlay(0,cards);
+      if(ok){
+        state.selected.clear();
+        render();
+        maybeRunSoloAi();
+      }else render();
+    }
   };
   const triggerClickBanner=(el)=>{
     if(!(el instanceof HTMLElement))return;
