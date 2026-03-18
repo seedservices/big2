@@ -146,6 +146,7 @@ service cloud.firestore {
       'maxPlayers',
       'players',
       'settings',
+      'totals',
       'game',
       'gameVersion'
     ];
@@ -176,8 +177,18 @@ service cloud.firestore {
       d.players.size() >= 1 &&
       d.players.size() <= 4 &&
       (!('settings' in d) || isValidSettings(d.settings)) &&
+      (!('totals' in d) || isValidRoomTotals(d.totals)) &&
       (!('game' in d) || d.game is map) &&
       (!('gameVersion' in d) || d.gameVersion is int);
+  }
+
+  function isValidRoomTotals(v) {
+    return
+      v is list &&
+      v.size() == 4 &&
+      v[0] is int && v[1] is int && v[2] is int && v[3] is int &&
+      v[0] >= 0 && v[1] >= 0 && v[2] >= 0 && v[3] >= 0 &&
+      v[0] <= 100000000 && v[1] <= 100000000 && v[2] <= 100000000 && v[3] <= 100000000;
   }
 
 

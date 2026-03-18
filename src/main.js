@@ -1588,6 +1588,7 @@ async function createRoom(){
       maxPlayers:4,
       players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
       settings:collectMainSettings(),
+      totals:[5000,5000,5000,5000],
       gameVersion:0
     };
     await ref.set(data);
@@ -1688,7 +1689,8 @@ function subscribeRoom(roomId,code){
     startRoomPresencePing();
     syncRoomSelfProfile();
     void updateActiveRoomPointer(roomId);
-    if(String(data.status)==='playing'){
+    const roomStatus=String(data.status);
+    if(roomStatus==='playing'||roomStatus==='finished'){
       state.room.started=true;
       if(data.game){
         const updated=syncRoomGameRoster(data);
@@ -1735,18 +1737,31 @@ async function leaveRoom(){
       const data=snap.data()??{};
       const players=Array.isArray(data.players)?[...data.players]:[];
       const remaining=players.filter((p)=>String(p.uid)!==uid);
+      const leaving=players.find((p)=>String(p.uid)===uid);
       const hostLeaving=String(data.hostId)===uid;
       const status=String(data.status??'lobby');
       if(!remaining.length){
         tx.delete(ref);
         return;
       }
-      if(hostLeaving){
-        const nextHost=remaining[0];
-        tx.update(ref,{players:remaining,hostId:String(nextHost.uid??''),hostName:String(nextHost.name??''),updatedAt:Date.now()});
+      const hostUpdate=hostLeaving?{hostId:String(remaining[0]?.uid??''),hostName:String(remaining[0]?.name??'')}:{};
+      const now=Date.now();
+      if(status==='playing'&&data.game&&leaving&&Number.isFinite(Number(leaving.seat))){
+        const game=cloneRoomGame(data.game);
+        const seat=Number(leaving.seat);
+        if(game&&game.players&&game.players[seat]){
+          const bp=botProfileForSeat(seat);
+          const target=game.players[seat];
+          target.isHuman=false;
+          target.uid=`bot:${seat}:${bp.name}`;
+          target.name=bp.name;
+          target.gender=bp.gender;
+          target.picture='';
+        }
+        tx.update(ref,{players:remaining,game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1,...hostUpdate});
         return;
       }
-      tx.update(ref,{players:remaining,updatedAt:Date.now()});
+      tx.update(ref,{players:remaining,updatedAt:now,...hostUpdate});
     });
   }catch(err){
     console.error('leave room failed',err);
@@ -1988,9 +2003,10 @@ function syncRoomGameRoster(roomData){
   const game=cloneRoomGame(base);
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
   const now=Date.now();
+  const isPlaying=String(roomData?.status??'')==='playing';
   const activeRoster=roster.filter((p)=>{
     const lastSeen=Number(p?.lastSeen)||0;
-    if(String(roomData?.status)!=='playing')return true;
+    if(!isPlaying)return true;
     if(!lastSeen)return true;
     return now-lastSeen<=ROOM_PRUNE_MS;
   });
@@ -2067,7 +2083,9 @@ function buildRoomGameState(roomData){
   const deck=shuffle(createDeck());
   players.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});
   const start=players.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));
-  const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];
+  const storedTotals=Array.isArray(roomData?.totals)&&roomData.totals.length===4?roomData.totals
+    :(Array.isArray(roomData?.game?.totals)&&roomData.game.totals.length===4?roomData.game.totals:null);
+  const totals=storedTotals?[...storedTotals]:[5000,5000,5000,5000];
   const difficulty=(roomData?.settings?.aiDifficulty&&isValidDifficulty(roomData.settings.aiDifficulty))?roomData.settings.aiDifficulty:state.home.aiDifficulty;
   const game={players,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now(),turnStartedAt:Date.now(),lastMove:null,playerActionLog:[null,null,null,null],handCount:players.map((p)=>p.hand.length)};
   setGameStatus(game,`${players[start].name} ${t('start')}`);
@@ -2168,6 +2186,11 @@ function applyRoomGameSnapshot(roomData){
   }
   state.solo=nextGame;
   state.room.selfSeat=roomSelfSeat(roomData);
+  if(state.room.selfSeat<0){
+    const pid=currentRoomPlayerId();
+    const idx=game.players.findIndex((p)=>String(p?.uid??'')===String(pid));
+    if(idx>=0)state.room.selfSeat=idx;
+  }
   state.screen='game';
   state.home.mode='room';
   state.home.showIntro=false;
@@ -2256,14 +2279,17 @@ async function roomSubmitPlay(cards,seatOverride=null){
       if(result.finished){
         updates.status='finished';
         updates.expiresAt=now+(10*60*1000);
+        updates.totals=result.game.totals||[];
       }
       tx.update(ref,updates);
     });
     playSound('play');
+    return true;
   }catch(err){
     const msg=String(err?.message??'');
     if(msg)setSoloStatus(msg);
   }
+  return false;
 }
 async function roomSubmitPass(seatOverride=null){
   if(!state.room.id||!firebaseDb)return;
@@ -5722,7 +5748,7 @@ function bindGameEvents(v,arr){
       maybeRunSoloAi();
     }
   };
-  const runPlay=(cards)=>{
+  const runPlay=async(cards)=>{
     if(!v.canControl)return;
     setRecommendHint('');
     if(!cards.length){
@@ -5731,9 +5757,27 @@ function bindGameEvents(v,arr){
     }
     state.recommendation=null;
     if(v.mode==='room'){
-      state.selected.clear();
-      render();
-      void roomSubmitPlay(cards);
+      const ev=evaluatePlay(cards);
+      if(!ev.valid){
+        setSoloStatus(ev.reason||t('illegal'));
+        render();
+        return;
+      }
+      if(v.isFirstTrick&&!has3d(cards)){
+        setSoloStatus(t('must3'));
+        render();
+        return;
+      }
+      if(v.lastPlay&&!canBeat(ev,v.lastPlay.eval)){
+        setSoloStatus(t('beat'));
+        render();
+        return;
+      }
+      const ok=await roomSubmitPlay(cards);
+      if(ok){
+        state.selected.clear();
+        render();
+      }
     }else{
       const ok=soloApplyPlay(0,cards);
       if(ok){
@@ -6021,7 +6065,7 @@ function bindGameEvents(v,arr){
   });
 
   document.getElementById('pass-btn')?.addEventListener('click',()=>{unlockAudio();runPass();});
-  document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));runPlay(cards);});
+  document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));void runPlay(cards);});
 }
 
 function render(){
