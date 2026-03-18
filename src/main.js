@@ -1577,7 +1577,6 @@ async function createRoom(){
     const name=String(state.home.name||'Player').slice(0,32);
     const now=Date.now();
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc();
-    const now=Date.now();
     const data={
       hostId:uid,
       hostName:name,
