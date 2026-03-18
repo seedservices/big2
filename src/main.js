@@ -3915,7 +3915,7 @@ function resultScreenHtml(v,arr,showAdHint){
     const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
       <div class="result-main">
-        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap" style="--avatar-seat-color:${color};"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/></span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🎖</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap" style="--avatar-seat-color:${color};"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/></span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🏅</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
         <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
         ${detailLine}
       </div>
