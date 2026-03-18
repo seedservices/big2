@@ -17,8 +17,8 @@ service cloud.firestore {
     }
     match /big2Users/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid && isValidUserDoc(uid, request.resource.data);
-      allow update: if request.auth != null && request.auth.uid == uid && isValidUserDoc(uid, request.resource.data);
+      allow create: if request.auth != null && request.auth.uid == uid && isValidUserDoc(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == uid && isValidUserDoc(request.resource.data);
       allow delete: if false;
     }
     match /big2GameLogs/{logId} {
@@ -214,7 +214,7 @@ service cloud.firestore {
       isValidBody(docId, d);
   }
 
-  function isValidUserDoc(uid, d) {
+  function isValidUserDoc(d) {
     return
       d.keys().hasOnly(['currentRoomId','updatedAt']) &&
       (!('currentRoomId' in d) || d.currentRoomId is string) &&
