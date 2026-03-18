@@ -2776,6 +2776,10 @@ function recommendPlayScore(play,ctx){
     }
   }else{
     score+=usedLen===1?-5:(usedLen===2?5:(usedLen===3?8:11));
+    if(play.eval.count<5&&(hand??[]).some((c)=>c.rank===12&&c.suit===3)){
+      const hasAnyFive=allValidPlays(hand).some((p)=>p.eval.count===5);
+      if(hasAnyFive)score-=14;
+    }
     if(maxRank>=11&&startLen>5)score-=10;
     if(play.eval.count===1&&isLowestSingle(play.cards[0]))score+=2;
     if(play.cards.some((c)=>c.rank===12))score+=blitz?12:-18;
@@ -2795,12 +2799,11 @@ function recommendPlayScore(play,ctx){
     }
     if(isFirstTrick&&hasMust3){
       const isSingle=play.eval.count===1;
-      const isPair=play.eval.count===2;
+      const isTriple=play.eval.count===3;
       const isFive=play.eval.count===5;
       if(isSingle&&(beforeRankCount.get(0)??0)===1&&startLen>10)score+=25;
       if(afterSingles<beforeSingles)score+=15;
-      if(isPair)score+=10;
-      if(isPair&&afterRankCount.size===endLen)score-=20;
+      if(isTriple&&play.cards.every((c)=>c.rank===0))score+=30;
       if(isFive){
         if(play.cards.some((c)=>c.rank===12||c.rank===11))score-=30;
         if(play.eval.kind==='straightflush')score-=50;
@@ -2826,6 +2829,11 @@ function recommendPlayScore(play,ctx){
     }
     if(kickerRank===12&&endLen>0)score-=28;
   }
+  if(play.eval.kind==='straight'&&startLen>5){
+    const hasWheelCard=play.cards.some((c)=>c.rank===12||c.rank===11);
+    if(hasWheelCard)score-=25;
+  }
+  if(play.eval.kind==='flush'&&(play.eval.power?.[1]??-1)===3)score+=15;
   if(play.eval.count<5&&preStraights>0&&postStraights<preStraights&&endLen>0&&oppMin!==1){
     score-=22;
   }

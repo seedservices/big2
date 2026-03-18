@@ -156,8 +156,7 @@ Leading (no `lastPlay`):
   First trick (must include 3â™¦):
   - If 3â™¦ is a true singleton and hand size > 10, add `+25` to shed it early.
   - If playing the 3â™¦ reduces overall singletons, add `+15`.
-  - If leading with a 3â™¦ pair, add `+10`.
-  - If leading with a 3â™¦ pair leaves only singletons, apply `-20`.
+  - If leading with triple 3s, add `+30`.
   - If leading with a five-card that includes 3â™¦ and it contains A or 2, apply `-30`.
   - If leading with a straight flush that includes 3â™¦, apply `-50`.
 
@@ -165,6 +164,9 @@ Leading (no `lastPlay`):
   - If `shouldForceMaxAgainstLastCard` is true and not the strongest legal play: `-28`
   - If `shouldForceMaxAgainstLastCard` is true and strongest: `+8`
   - If a full house or four of a kind uses a 2 as the kicker (four of a kind) or the pair (full house) and the hand does not finish, apply `-28`.
+  - If leading while holding â™ 2 and any five-card play exists, penalize non-five-card leads by `-14` to avoid feeding control.
+  - If a straight includes A or 2 and hand size > 5, apply `-25` (except straight flush).
+  - If the play is a spade flush, add `+15`.
   - If a non-five-card play reduces available straight options while you still have cards and `oppMin !== 1`, apply `-22`.
   - Endgame: if `endLen <= 5`, `+(5 - endLen) * 14`
 - If `endLen == 0`: `+500`
