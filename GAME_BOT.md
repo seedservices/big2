@@ -219,3 +219,5 @@ Pass score (`recommendPassScore`) details:
 - Bots use full internal game state available in the runtime.
 - Recommendation now also uses game-state context for hard-level suggestions.
 - Because recommendation is re-runnable, repeated clicks can return different outputs when game state or selected cards changed between renders/events.
+- Mid-game 2 usage: In hard mode, if opponents still hold many cards, the AI can be overly conservative with 2s; the blitz logic helps but still needs field observation.
+- Triple-3 opener: A +30 lead bonus is intentional to secure control, even though it may reduce five-card options later.
