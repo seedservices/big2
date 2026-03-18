@@ -12,12 +12,12 @@ service cloud.firestore {
       allow create: if isValidRoomData(request.resource.data);
       allow update: if isValidRoomData(request.resource.data) &&
         (
-          (resource.data.status == 'playing' &&
+          ((request.resource.data.status == 'playing' || request.resource.data.status == 'finished') &&
             request.resource.data.players.size() <= resource.data.players.size() &&
             request.resource.data.gameVersion is int &&
             request.resource.data.gameVersion == currentGameVersion(resource.data) + 1)
           ||
-          (resource.data.status != 'playing' &&
+          (request.resource.data.status != 'playing' && request.resource.data.status != 'finished' &&
             request.resource.data.gameVersion is int &&
             request.resource.data.gameVersion == currentGameVersion(resource.data))
         );
