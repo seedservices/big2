@@ -15,11 +15,11 @@ service cloud.firestore {
           (resource.data.status == 'playing' &&
             request.resource.data.players.size() <= resource.data.players.size() &&
             request.resource.data.gameVersion is int &&
-            request.resource.data.gameVersion == resource.data.gameVersion + 1)
+            request.resource.data.gameVersion == currentGameVersion(resource.data) + 1)
           ||
           (resource.data.status != 'playing' &&
             request.resource.data.gameVersion is int &&
-            request.resource.data.gameVersion == resource.data.gameVersion)
+            request.resource.data.gameVersion == currentGameVersion(resource.data))
         );
       allow delete: if false;
     }
@@ -153,6 +153,9 @@ service cloud.firestore {
 
   function isValidRoomStatus(v) {
     return v == 'lobby' || v == 'starting' || v == 'playing' || v == 'finished';
+  }
+  function currentGameVersion(d) {
+    return (d.gameVersion is int) ? d.gameVersion : 0;
   }
 
 

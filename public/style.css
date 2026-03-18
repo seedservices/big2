@@ -887,6 +887,17 @@ body[data-screen='home'] .home-wrap {
   letter-spacing: .2em;
   color: #f6e0a5;
 }
+.room-host-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.room-host-line strong {
+  color: #f6e0a5;
+  font-weight: 700;
+}
 .room-id-center {
   display: grid;
   place-items: center;
