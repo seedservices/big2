@@ -930,6 +930,25 @@ body[data-screen='home'] .home-wrap {
   border-color: rgba(82, 210, 115, .5);
   background: rgba(82, 210, 115, .12);
 }
+.room-player.offline {
+  opacity: .65;
+  filter: grayscale(.35);
+}
+.room-player.host {
+  border-color: rgba(246, 224, 165, .6);
+  box-shadow: 0 0 0 1px rgba(246, 224, 165, .22) inset;
+}
+.room-host-tag {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  font-weight: 700;
+  color: #2a1d00;
+  background: linear-gradient(180deg, rgba(246, 224, 165, .95), rgba(214, 167, 73, .95));
+  border: 1px solid rgba(214, 167, 73, .7);
+}
 .room-status {
   font-size: .82rem;
   color: var(--muted);

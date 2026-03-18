@@ -5,6 +5,10 @@ const SUITS=[
   {symbol:'♥️',red:true},
   {symbol:'♠️',red:false}
 ];
+const DEFAULT_TURN_TIMEOUT_MS=20000;
+const ROOM_OFFLINE_MS=15000;
+const ROOM_PRUNE_MS=60000;
+const ROOM_TIMEOUT_GRACE_MS=2000;
 const FIVE_KIND_POWER={straight:0,flush:1,fullhouse:2,fourofkind:3,straightflush:4};
 
 const I18N={
@@ -174,7 +178,8 @@ const I18N={
     roomNotFound:'找不到房間。',
     roomJoinFail:'加入房間失敗。',
     roomCreateFail:'建立房間失敗。',
-    roomReadyHint:'等待房主開始。'
+    roomReadyHint:'等待房主開始。',
+    roomStarting:'房間準備中...'
   },
   en:{
     title:'Big Two',
@@ -342,7 +347,8 @@ const I18N={
     roomNotFound:'Room not found.',
     roomJoinFail:'Failed to join room.',
     roomCreateFail:'Failed to create room.',
-    roomReadyHint:'Waiting for host to start.'
+    roomReadyHint:'Waiting for host to start.',
+    roomStarting:'Room is starting...'
   }
 };
 const KIND={
@@ -403,7 +409,7 @@ const CALLOUT_RESPONSE_TEXT = {
   },
 };
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -476,6 +482,8 @@ const FIRESTORE_LB_COLLECTION=decodeEnvSecret(
   FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV[EFFECTIVE_ENV]??FIRESTORE_LB_COLLECTION_ENCODED_BY_ENV.DEV
 );
 const FIRESTORE_ROOMS_COLLECTION='big2Rooms';
+const FIRESTORE_USERS_COLLECTION='big2Users';
+const FIRESTORE_GAMELOGS_COLLECTION='big2GameLogs';
 const START_GAME_SMART_LINK='https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a';
 const GAME_START_TS_CACHE_KEY='big2.game.start_ts.v1';
 const GAME_START_TS_AD_WINDOW_MS=60*60*1000;
@@ -1262,7 +1270,8 @@ function collectMainSettings(){
     calloutVoiceMode:normalizeCalloutVoiceMode(calloutVoiceMode),
     calloutStylePack:normalizeCalloutStylePack(calloutStylePack),
     gender:state.home.gender==='female'?'female':'male',
-    avatarChoice:['male','female','google'].includes(state.home.avatarChoice)?state.home.avatarChoice:'male'
+    avatarChoice:['male','female','google'].includes(state.home.avatarChoice)?state.home.avatarChoice:'male',
+    turnTimeout:DEFAULT_TURN_TIMEOUT_MS
   };
 }
 function applyMainSettings(settings){
@@ -1516,6 +1525,7 @@ function isValidDifficulty(value){
 function resetRoomState(){
   if(state.room.unsub){try{state.room.unsub();}catch{}}
   if(roomPresenceTimer){clearInterval(roomPresenceTimer);roomPresenceTimer=null;}
+  void updateActiveRoomPointer('');
   state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''};
   if(state.home.mode==='room')state.home.mode='solo';
 }
@@ -1556,6 +1566,7 @@ async function createRoom(){
     const name=String(state.home.name||'Player').slice(0,32);
     const now=Date.now();
     const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc();
+    const now=Date.now();
     const data={
       hostId:uid,
       hostName:name,
@@ -1563,13 +1574,15 @@ async function createRoom(){
       status:'lobby',
       createdAt:now,
       updatedAt:now,
+      expiresAt:now+(2*60*60*1000),
       maxPlayers:4,
-      players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0}],
+      players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
       settings:collectMainSettings(),
       gameVersion:0
     };
     await ref.set(data);
     subscribeRoom(ref.id,code);
+    void updateActiveRoomPointer(ref.id);
   }catch(err){
     console.error('create room failed',err);
     setRoomError(t('roomCreateFail'));
@@ -1603,11 +1616,12 @@ async function joinRoomByCode(codeRaw){
         const name=String(state.home.name||'Player').slice(0,32);
         const gender=state.home.gender==='female'?'female':'male';
         const picture=authPictureUrl();
-        players.push({uid,name,gender,picture,ready:false,isHost:false,seat});
+        players.push({uid,name,gender,picture,ready:false,isHost:false,seat,lastSeen:Date.now()});
       }
       tx.update(doc.ref,{players,updatedAt:Date.now()});
     });
     subscribeRoom(doc.id,code);
+    void updateActiveRoomPointer(doc.id);
     state.room.joinOpen=false;
     render();
   }catch(err){
@@ -1625,6 +1639,7 @@ function subscribeRoom(roomId,code){
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     startRoomPresencePing();
     syncRoomSelfProfile();
+    void updateActiveRoomPointer(roomId);
     if(String(data.status)==='playing'){
       state.room.started=true;
       if(data.game){
@@ -1640,9 +1655,16 @@ function subscribeRoom(roomId,code){
             const active=roster.filter((p)=>{
               const lastSeen=Number(p?.lastSeen)||0;
               if(!lastSeen)return true;
-              return now-lastSeen<=ROOM_PRESENCE_STALE_MS;
+              return now-lastSeen<=ROOM_PRUNE_MS;
             });
-            tx.update(ref,{game:updated,players:active,updatedAt:now,gameVersion:Number(latest.gameVersion||0)+1});
+            let hostId=String(latest.hostId??'');
+            let hostName=String(latest.hostName??'');
+            if(hostId&&!active.some((p)=>String(p.uid)===hostId)){
+              const nextHost=active[0];
+              hostId=String(nextHost?.uid??'');
+              hostName=String(nextHost?.name??'');
+            }
+            tx.update(ref,{game:updated,players:active,hostId,hostName,updatedAt:now,gameVersion:Number(latest.gameVersion||0)+1});
           });
         }
       }
@@ -1671,10 +1693,6 @@ async function leaveRoom(){
         tx.delete(ref);
         return;
       }
-      if(hostLeaving&&status==='lobby'){
-        tx.delete(ref);
-        return;
-      }
       if(hostLeaving){
         const nextHost=remaining[0];
         tx.update(ref,{players:remaining,hostId:String(nextHost.uid??''),hostName:String(nextHost.name??''),updatedAt:Date.now()});
@@ -1698,6 +1716,7 @@ async function setRoomReady(ready){
       const snap=await tx.get(ref);
       if(!snap.exists)return;
       const data=snap.data()??{};
+      if(String(data.status)==='starting')return;
       const players=Array.isArray(data.players)?[...data.players]:[];
       const next=players.map((p)=>String(p.uid)===uid?{...p,ready:Boolean(ready)}:p);
       tx.update(ref,{players:next,updatedAt:Date.now()});
@@ -1724,12 +1743,45 @@ async function startRoom(){
       const allReady=players.every((p)=>p.ready||String(p.uid)===uid);
       if(players.length>1&&!allReady)throw new Error('not ready');
       const now=Date.now();
-      const game=buildRoomGameState(data);
-      tx.update(ref,{status:'playing',game,gameVersion:Number(data.gameVersion||0)+1,updatedAt:now});
+      tx.update(ref,{status:'starting',updatedAt:now});
     });
+    window.setTimeout(async()=>{
+      try{
+        await firebaseDb.runTransaction(async(tx)=>{
+          const snap=await tx.get(ref);
+          if(!snap.exists)return;
+          const data=snap.data()??{};
+          if(String(data.status)!=='starting')return;
+          const now=Date.now();
+          const game=buildRoomGameState(data);
+          tx.update(ref,{status:'playing',game,gameVersion:Number(data.gameVersion||0)+1,updatedAt:now,expiresAt:now+(24*60*60*1000)});
+        });
+      }catch(err){
+        console.error('start room finalize failed',err);
+      }
+    },200);
   }catch(err){
     console.error('start room failed',err);
     setRoomError(t('roomReadyHint'));
+  }
+}
+async function roomReset(){
+  if(!state.room.id||!firebaseDb)return;
+  const uid=currentRoomPlayerId();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)return;
+      const data=snap.data()??{};
+      if(String(data.hostId)!==uid)throw new Error('not host');
+      const now=Date.now();
+      const players=Array.isArray(data.players)?data.players:[];
+      const resetPlayers=players.map((p)=>({...p,ready:false}));
+      tx.update(ref,{status:'lobby',game:null,updatedAt:now,expiresAt:now+(2*60*60*1000),players:resetPlayers});
+    });
+  }catch(err){
+    console.error('room reset failed',err);
   }
 }
 async function restartRoomGame(){
@@ -1777,8 +1829,15 @@ function roomSeatForPlayer(roomData,playerId){
 function roomSelfSeat(roomData){
   return roomSeatForPlayer(roomData,currentRoomPlayerId());
 }
+function getRoomTurnTimeout(roomData){
+  const v=Number(roomData?.settings?.turnTimeout);
+  if(Number.isFinite(v)&&v>=5000&&v<=60000)return Math.trunc(v);
+  return DEFAULT_TURN_TIMEOUT_MS;
+}
+function getRoomTurnTimeoutWithGrace(roomData){
+  return getRoomTurnTimeout(roomData)+ROOM_TIMEOUT_GRACE_MS;
+}
 const ROOM_PRESENCE_PING_MS=15000;
-const ROOM_PRESENCE_STALE_MS=15000;
 function startRoomPresencePing(){
   if(roomPresenceTimer||!state.room.id||!firebaseDb)return;
   roomPresenceTimer=window.setInterval(async()=>{
@@ -1805,6 +1864,32 @@ function startRoomPresencePing(){
       });
     }catch{}
   },ROOM_PRESENCE_PING_MS);
+}
+function currentAuthUserUid(){
+  return String(firebaseAuth?.currentUser?.uid??'').trim();
+}
+async function updateActiveRoomPointer(roomId){
+  const uid=currentAuthUserUid();
+  if(!uid||!firebaseDb)return;
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_USERS_COLLECTION).doc(uid);
+    const payload={currentRoomId:String(roomId||''),updatedAt:Date.now()};
+    await ref.set(payload,{merge:true});
+  }catch{}
+}
+async function loadActiveRoomPointer(){
+  const uid=currentAuthUserUid();
+  if(!uid||!firebaseDb)return;
+  if(state.room.id)return;
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_USERS_COLLECTION).doc(uid);
+    const snap=await ref.get();
+    if(!snap.exists)return;
+    const data=snap.data()??{};
+    const roomId=String(data.currentRoomId??'').trim();
+    if(!roomId)return;
+    subscribeRoom(roomId,'');
+  }catch{}
 }
 async function syncRoomSelfProfile(){
   if(!state.room.id||!firebaseDb)return;
@@ -1851,7 +1936,7 @@ function syncRoomGameRoster(roomData){
     const lastSeen=Number(p?.lastSeen)||0;
     if(String(roomData?.status)!=='playing')return true;
     if(!lastSeen)return true;
-    return now-lastSeen<=ROOM_PRESENCE_STALE_MS;
+    return now-lastSeen<=ROOM_PRUNE_MS;
   });
   const seatMap=new Map();
   activeRoster.forEach((p)=>{
@@ -1928,7 +2013,7 @@ function buildRoomGameState(roomData){
   const start=players.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));
   const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];
   const difficulty=(roomData?.settings?.aiDifficulty&&isValidDifficulty(roomData.settings.aiDifficulty))?roomData.settings.aiDifficulty:state.home.aiDifficulty;
-  const game={players,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now()};
+  const game={players,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now(),turnStartedAt:Date.now(),lastMove:null,playerActionLog:[null,null,null,null],handCount:players.map((p)=>p.hand.length)};
   setGameStatus(game,`${players[start].name} ${t('start')}`);
   return game;
 }
@@ -1955,7 +2040,11 @@ function applyPlayToGame(game,seat,cards,now=Date.now()){
   g.lastPlay={seat,eval:ev,cards:ev.sorted};
   g.passStreak=0;
   g.isFirstTrick=false;
+    g.lastMove={type:'play',seat,uid:String(g.players[seat]?.uid??''),cards:ev.sorted,ts:now};
+  if(Array.isArray(g.playerActionLog))g.playerActionLog[seat]={type:'play',cards:ev.sorted,ts:now};
+  g.turnStartedAt=now;
   g.history.push({action:'play',seat,name:g.players[seat].name,cards:ev.sorted,kind:ev.kind,ts:now});
+  if(Array.isArray(g.handCount))g.handCount[seat]=g.players[seat].hand.length;
   if(g.players[seat].hand.length===0){
     g.gameOver=true;
     const details=g.players.map((p,i)=>i===seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(p.hand));
@@ -1970,6 +2059,7 @@ function applyPlayToGame(game,seat,cards,now=Date.now()){
     g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
     const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
     setGameStatus(g,`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`,{now});
+    g.lastMove={type:'win',seat,uid:String(g.players[seat]?.uid??''),cards:[],ts:now};
     return{ok:true,game:g,finished:true};
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
@@ -1983,12 +2073,16 @@ function applyPassToGame(game,seat,now=Date.now()){
   if(!g.lastPlay)return{ok:false,reason:t('cantPass')};
   g.passStreak+=1;
   g.history.push({action:'pass',seat,name:g.players[seat].name,ts:now});
+  g.lastMove={type:'pass',seat,uid:String(g.players[seat]?.uid??''),cards:[],ts:now};
+  if(Array.isArray(g.playerActionLog))g.playerActionLog[seat]={type:'pass',cards:[],ts:now};
+  g.turnStartedAt=now;
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   if(g.passStreak>=3){
     const lead=g.lastPlay.seat;
     g.currentSeat=lead;
     g.lastPlay=null;
     g.passStreak=0;
+    g.turnStartedAt=now;
     setGameStatus(g,`${g.players[lead].name} ${t('retake')}`,{now});
     return{ok:true,game:g};
   }
@@ -1999,7 +2093,24 @@ function applyPassToGame(game,seat,now=Date.now()){
 function applyRoomGameSnapshot(roomData){
   const game=roomData?.game;
   if(!game||!Array.isArray(game.players)||!game.players.length)return;
-  state.solo=cloneRoomGame(game)||state.solo;
+  const move=game.lastMove;
+  if(move&&typeof move==='object'){
+    const key=`${move.type||''}:${move.seat||0}:${move.ts||0}`;
+    if(key&&key!==state.room.lastMoveKey){
+      const now=Date.now();
+      if(Number(move.ts)&&now-Number(move.ts)<=1000){
+        if(move.type==='play')playSound('play');
+        if(move.type==='pass')playSound('pass');
+        if(move.type==='win')playSound('win');
+      }
+      state.room.lastMoveKey=key;
+    }
+  }
+  const nextGame=cloneRoomGame(game)||state.solo;
+  if(Array.isArray(nextGame.players)&&Array.isArray(nextGame.handCount)){
+    nextGame.players.forEach((p,i)=>{nextGame.handCount[i]=p?.hand?.length??nextGame.handCount[i]??0;});
+  }
+  state.solo=nextGame;
   state.room.selfSeat=roomSelfSeat(roomData);
   state.screen='game';
   state.home.mode='room';
@@ -2031,12 +2142,35 @@ function applyRoomGameSnapshot(roomData){
         const delta=Number(deltas[selfSeat]??0);
         void recordLeaderboardRound(currentLeaderboardIdentity(),delta,selfSeat===winnerSeat);
       }
+      void writeRoomGameLog(roomData,game);
     }
   }else{
     state.room.recordedGameKey='';
   }
   render();
   maybeRunRoomAi();
+}
+async function writeRoomGameLog(roomData,game){
+  if(!firebaseDb||!roomData||!game)return;
+  const roomId=String(state.room.id||roomData.id||'').trim();
+  const gameVersion=Number(roomData?.gameVersion);
+  if(!roomId||!Number.isFinite(gameVersion))return;
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_GAMELOGS_COLLECTION).doc(`${roomId}_${gameVersion}`);
+    const payload={
+      roomId,
+      gameVersion:Math.trunc(gameVersion),
+      status:String(roomData.status||''),
+      createdAt:Date.now(),
+      endedAt:Date.now(),
+      settings:roomData.settings||{},
+      summary:game.roundSummary||null,
+      players:game.players?.map((p)=>({uid:String(p.uid||''),name:String(p.name||''),gender:String(p.gender||'male'),isHuman:!!p.isHuman}))||[],
+      totals:game.totals||[],
+      history:game.history||[]
+    };
+    await ref.set(payload,{merge:true});
+  }catch{}
 }
 async function roomSubmitPlay(cards,seatOverride=null){
   if(!state.room.id||!firebaseDb)return;
@@ -2055,11 +2189,19 @@ async function roomSubmitPlay(cards,seatOverride=null){
       if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
       const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
       const target=game.players?.[seat];
-      const canAct=(selfSeat===seat)||(target&&!target.isHuman);
+      const timeout=getRoomTurnTimeoutWithGrace(data);
+      const startedAt=Number(game.turnStartedAt)||0;
+      const timedOut=startedAt>0&&(Date.now()-startedAt)>=timeout;
+      const canAct=(selfSeat===seat)||(target&&!target.isHuman)||(timedOut&&target?.isHuman);
       if(!canAct)throw new Error('not allowed');
       const result=applyPlayToGame(game,seat,cards,now);
       if(!result.ok)throw new Error(result.reason||'invalid');
-      tx.update(ref,{game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1});
+      const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
+      if(result.finished){
+        updates.status='finished';
+        updates.expiresAt=now+(10*60*1000);
+      }
+      tx.update(ref,updates);
     });
     playSound('play');
   }catch(err){
@@ -2108,7 +2250,24 @@ function maybeRunRoomAi(){
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
   const g=state.room.data.game;
   const current=g?.players?.[g?.currentSeat];
-  if(!g||g.gameOver||!current||current.isHuman)return;
+  if(!g||g.gameOver||!current)return;
+  if(current.isHuman){
+    const timeout=getRoomTurnTimeoutWithGrace(state.room.data);
+    const startedAt=Number(g.turnStartedAt)||0;
+    const timedOut=startedAt>0&&(Date.now()-startedAt)>=timeout;
+    if(timedOut){
+      if(g.lastPlay){
+        void roomSubmitPass(g.currentSeat);
+      }else{
+        const legal=legalTurnPlays(current.hand,g);
+        if(legal.length){
+          legal.sort((a,b)=>comparePower(a.eval.power,b.eval.power));
+          void roomSubmitPlay(legal[0].cards,g.currentSeat);
+        }
+      }
+    }
+    return;
+  }
   const DEFAULT_AI_DELAY_MS=320;
   const wait=DEFAULT_AI_DELAY_MS;
   aiTimer=window.setTimeout(async()=>{
@@ -2749,6 +2908,7 @@ async function handleCredentialResponse(response){
     saveGoogleSession();
     await syncLeaderboardProfile(currentLeaderboardIdentity());
     if(state.home.showLeaderboard)refreshLeaderboard(true);
+    void loadActiveRoomPointer();
   }
   render();
 }
@@ -2798,6 +2958,7 @@ async function signInWithProvider(providerId){
     saveGoogleSession();
     await syncLeaderboardProfile(currentLeaderboardIdentity());
     if(state.home.showLeaderboard)refreshLeaderboard(true);
+    void loadActiveRoomPointer();
     render();
     return true;
   }catch(err){
@@ -2843,6 +3004,7 @@ function bootFirebase(attempt=0){
       void hydrateProfileFromCloudByIdentity(currentLeaderboardIdentity()).then(()=>{if(state.home.showLeaderboard)refreshLeaderboard(true);render();});
     }
     refreshLeaderboard(true);
+    void loadActiveRoomPointer();
     return;
   }
   if(attempt<120)window.setTimeout(()=>bootFirebase(attempt+1),250);
@@ -4707,8 +4869,8 @@ function resultScreenHtml(v,arr,showAdHint){
       :`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreBase')} ${detail.base} x ${detail.multiplier} · ${t('scoreDeduct')} ${detail.deduction}${mulTags?` · ${t('scorePenaltyBoost')}: ${mulTags}`:''}</div>`;
     const isSelf=p.seat===v.selfSeat;
     const avatarSrc=isSelf
-      ?selfAvatarDataUri(p.name,color,p.gender)
-      :avatarDataUri(p.name,color,p.gender,p.isBot);
+      ?(p.picture?authPictureUrlFrom(p.picture):selfAvatarDataUri(p.name,color,p.gender))
+      :(p.picture?authPictureUrlFrom(p.picture):avatarDataUri(p.name,color,p.gender,p.isBot));
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
     const winnerLastDiscardHtml=isWinner
       ?`<div class="result-card-block"><div class="result-block-title">${t('resultLastDiscard')}</div><div class="result-cards" aria-label="${t('resultLastDiscard')}">${winnerLastDiscardCards.length?winnerLastDiscardCards.map((c)=>renderStaticCard(c,true)).join(''):`<span class="hint">-</span>`}</div></div>`
@@ -4892,12 +5054,18 @@ function renderHome(){
   const aiFieldLeft=`<label class="field field-ai field-ai-left"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-left" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
   const aiFieldRight=`<label class="field field-ai field-ai-right"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-right" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
   const roomErrorHtml=state.room.error?`<div class="hint room-error">${esc(state.room.error)}</div>`:'';
+  const roomStatus=String(roomData?.status??'');
+  const roomStarting=roomStatus==='starting';
   const roomButtonsHtml=inRoom?'':`<div class="home-room-panel"><h3 class="home-section-title">🧩 ${t('roomSettings')}</h3><div class="action-row home-room-row"><button id="room-create" class="secondary">${t('roomCreate')}</button><button id="room-join" class="secondary">${t('roomJoin')}</button></div>${roomErrorHtml}</div>`;
   const roomListHtml=roomPlayers.map((p)=>{
     const avatarSrc=p.picture?authPictureUrlFrom(p.picture):avatarDataUri(p.name,'#7aaed8',p.gender??'male',false);
-    return`<div class="room-player ${p.ready?'ready':''}"><span class="room-player-name"><img class="room-player-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/><span>${esc(p.name)}</span></span><span class="room-status">${p.ready?t('roomReady'):t('roomNotReady')}</span></div>`;
+    const isHost=String(p.uid)===String(roomData?.hostId??'');
+    const hostTag=isHost?`<span class="room-host-tag">HOST</span>`:'';
+    const lastSeen=Number(p.lastSeen)||0;
+    const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
+    return`<div class="room-player ${p.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}"><span class="room-player-name"><img class="room-player-avatar" src="${avatarSrc}" alt="${esc(p.name)}"/><span>${esc(p.name)}</span>${hostTag}</span><span class="room-status">${p.ready?t('roomReady'):t('roomNotReady')}</span></div>`;
   }).join('');
-  const roomLobbyHtml=(inRoom&&String(roomData?.status)==='lobby')?`<div class="room-overlay"><div class="room-card"><div class="room-head"><h3>${t('roomLobby')}</h3><div class="room-code"><span>${t('roomCode')}:</span><strong>${esc(state.room.code)}</strong><button id="room-copy" class="secondary">${t('roomCopy')}</button></div></div><div class="room-id-center">${esc(state.room.code)}</div><div class="room-list">${roomListHtml}</div>${roomErrorHtml}<div class="room-actions"><button id="room-ready" class="secondary">${roomReady?t('roomNotReady'):t('roomReady')}</button>${roomIsHost?`<button id="room-start" class="primary">${t('roomStart')}</button>`:`<span class="hint">${t('roomReadyHint')}</span>`}<button id="room-leave" class="danger">${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card"><div class="room-head"><h3>${t('roomLobby')}</h3><div class="room-code"><span>${t('roomCode')}:</span><strong>${esc(state.room.code)}</strong><button id="room-copy" class="secondary">${t('roomCopy')}</button></div></div><div class="room-id-center">${esc(state.room.code)}</div><div class="room-list">${roomListHtml}</div>${roomStarting?`<div class="hint">${t('roomStarting')}</div>`:''}${roomErrorHtml}<div class="room-actions"><button id="room-ready" class="secondary" ${roomStarting?'disabled':''}>${roomReady?t('roomNotReady'):t('roomReady')}</button>${roomIsHost?`<button id="room-start" class="primary" ${roomStarting?'disabled':''}>${t('roomStart')}</button>`:`<span class="hint">${t('roomReadyHint')}</span>`}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const roomJoinModal=(!inRoom&&state.room.joinOpen)?`<div class="room-overlay"><div class="room-card room-join-card"><div class="room-head"><h3>${t('roomJoin')}</h3></div><label class="field"><span>${t('roomCode')}</span><input id="room-code-input" class="room-input" maxlength="8" placeholder="ABC123"/></label>${roomErrorHtml}<div class="room-actions"><button id="room-join-confirm" class="primary">${t('roomJoin')}</button><button id="room-join-cancel" class="secondary">${t('home')}</button></div></div></div>`:'';
   app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><div class="home-logo-block"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></div></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${aiFieldLeft}${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3>${aiFieldRight}<label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}${roomButtonsHtml}</div></div><div class="action-row home-start-row">${showAdHint?adHintWrap(`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`,'center'):`<button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>`}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${roomLobbyHtml}${roomJoinModal}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
@@ -5609,7 +5777,7 @@ function bindGameEvents(v,arr){
     state.recommendation=null;
     setRecommendHint('');
     if(state.home.mode==='room'){
-      await restartRoomGame();
+      await roomReset();
       return;
     }
     startSoloGame();
@@ -5622,7 +5790,7 @@ function bindGameEvents(v,arr){
     state.recommendation=null;
     setRecommendHint('');
     if(state.home.mode==='room'){
-      await restartRoomGame();
+      await roomReset();
       return;
     }
     startSoloGame();

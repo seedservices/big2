@@ -10,7 +10,21 @@ service cloud.firestore {
     match /big2Rooms/{roomId} {
       allow read: if true;
       allow create: if isValidRoomData(request.resource.data);
-      allow update: if isValidRoomData(request.resource.data);
+      allow update: if isValidRoomData(request.resource.data) &&
+        (resource.data.status != 'playing' || request.resource.data.players.size() <= resource.data.players.size()) &&
+        (request.resource.data.gameVersion is int && request.resource.data.gameVersion == resource.data.gameVersion + 1);
+      allow delete: if false;
+    }
+    match /big2Users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid && isValidUserDoc(uid, request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == uid && isValidUserDoc(uid, request.resource.data);
+      allow delete: if false;
+    }
+    match /big2GameLogs/{logId} {
+      allow read: if true;
+      allow create: if isValidGameLog(request.resource.data);
+      allow update: if isValidGameLog(request.resource.data);
       allow delete: if false;
     }
   }
@@ -42,7 +56,8 @@ service cloud.firestore {
       'voiceMode',
       'gender',
       'avatarChoice',
-      'theme'
+      'theme',
+      'turnTimeout'
     ];
   }
 
@@ -107,7 +122,8 @@ service cloud.firestore {
       (!('voiceMode' in s) || (s.voiceMode is string && isValidVoiceMode(s.voiceMode))) &&
       (!('gender' in s) || (s.gender is string && isValidGender(s.gender))) &&
       (!('avatarChoice' in s) || (s.avatarChoice is string && isValidAvatarChoice(s.avatarChoice))) &&
-      (!('theme' in s) || (s.theme is string && isValidTheme(s.theme)));
+      (!('theme' in s) || (s.theme is string && isValidTheme(s.theme))) &&
+      (!('turnTimeout' in s) || (s.turnTimeout is int && s.turnTimeout >= 5000 && s.turnTimeout <= 60000));
   }
 
   function roomAllowedKeys() {
@@ -118,6 +134,7 @@ service cloud.firestore {
       'status',
       'createdAt',
       'updatedAt',
+      'expiresAt',
       'maxPlayers',
       'players',
       'settings',
@@ -127,7 +144,7 @@ service cloud.firestore {
   }
 
   function isValidRoomStatus(v) {
-    return v == 'lobby' || v == 'playing' || v == 'finished';
+    return v == 'lobby' || v == 'starting' || v == 'playing' || v == 'finished';
   }
 
 
@@ -140,6 +157,7 @@ service cloud.firestore {
       d.status is string && isValidRoomStatus(d.status) &&
       d.createdAt is int &&
       d.updatedAt is int &&
+      (!('expiresAt' in d) || d.expiresAt is int) &&
       d.maxPlayers is int &&
       d.maxPlayers >= 2 &&
       d.maxPlayers <= 4 &&
@@ -194,5 +212,21 @@ service cloud.firestore {
     return
       changed.hasOnly(topLevelAllowedKeys()) &&
       isValidBody(docId, d);
+  }
+
+  function isValidUserDoc(uid, d) {
+    return
+      d.keys().hasOnly(['currentRoomId','updatedAt']) &&
+      (!('currentRoomId' in d) || d.currentRoomId is string) &&
+      (!('updatedAt' in d) || d.updatedAt is int);
+  }
+
+  function isValidGameLog(d) {
+    return
+      d.keys().hasOnly(['roomId','gameVersion','status','createdAt','endedAt','settings','summary','players','totals','history']) &&
+      d.roomId is string &&
+      d.gameVersion is int &&
+      d.createdAt is int &&
+      d.endedAt is int;
   }
 }
