@@ -4380,6 +4380,21 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     grid-template-columns: 1fr !important;
     gap: 10px;
   }
+  .royal-home-body .home-form-right {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .royal-home-body .home-form-right > .field:nth-of-type(1),
+  .royal-home-body .home-form-right > .field:nth-of-type(4) {
+    grid-column: 1 / -1;
+  }
+  .royal-home-body .home-form-right > .field:nth-of-type(3) {
+    grid-column: 2;
+  }
+  .royal-home-body .home-form-right > .field:nth-of-type(2) {
+    grid-column: 1;
+  }
   .royal-home-body .home-form-left {
     border-right: 0;
     padding-right: 0;

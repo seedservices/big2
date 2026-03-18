@@ -88,7 +88,7 @@ const I18N={
     congrats:'恭喜你贏咗哩局！',
     resultTitle:'對局結果',
     resultWinner:'本局勝出',
-    resultRemain:'剩餘手牌',
+    resultRemain:'剩餘張數',
     resultLastDiscard:'最後出牌',
     resultDelta:'本局分數變動',
     resultDetail:'計分明細',
