@@ -11,8 +11,16 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isValidRoomData(request.resource.data);
       allow update: if isValidRoomData(request.resource.data) &&
-        (resource.data.status != 'playing' || request.resource.data.players.size() <= resource.data.players.size()) &&
-        (request.resource.data.gameVersion is int && request.resource.data.gameVersion == resource.data.gameVersion + 1);
+        (
+          (resource.data.status == 'playing' &&
+            request.resource.data.players.size() <= resource.data.players.size() &&
+            request.resource.data.gameVersion is int &&
+            request.resource.data.gameVersion == resource.data.gameVersion + 1)
+          ||
+          (resource.data.status != 'playing' &&
+            request.resource.data.gameVersion is int &&
+            request.resource.data.gameVersion == resource.data.gameVersion)
+        );
       allow delete: if false;
     }
     match /big2Users/{uid} {
