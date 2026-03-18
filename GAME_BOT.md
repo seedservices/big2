@@ -152,6 +152,15 @@ Leading (no `lastPlay`):
 - If `oppMin <= 2` and a single uses the highest card: `+6`
 - Bait logic: if leading, holding at least two 2s including ♠2, and the play is a non-2 pair, add `+10` to encourage baiting with a smaller pair.
 
+  
+  First trick (must include 3â™¦):
+  - If 3â™¦ is a true singleton and hand size > 10, add `+25` to shed it early.
+  - If playing the 3â™¦ reduces overall singletons, add `+15`.
+  - If leading with a 3â™¦ pair, add `+10`.
+  - If leading with a 3â™¦ pair leaves only singletons, apply `-20`.
+  - If leading with a five-card that includes 3â™¦ and it contains A or 2, apply `-30`.
+  - If leading with a straight flush that includes 3â™¦, apply `-50`.
+
   Global modifiers:
   - If `shouldForceMaxAgainstLastCard` is true and not the strongest legal play: `-28`
   - If `shouldForceMaxAgainstLastCard` is true and strongest: `+8`

@@ -2728,7 +2728,7 @@ function hasControlCheck(hand){
   return twos>=2||highPairCount>=2;
 }
 function recommendPlayScore(play,ctx){
-  const {hand,lastPlay,game,seat,orderedByWeak,canPass,prePlayTriples}=ctx;
+  const {hand,lastPlay,isFirstTrick,game,seat,orderedByWeak,canPass,prePlayTriples}=ctx;
   const rem=removeCardsFromHand(hand,play.cards);
   const m=handShapeMetrics(rem);
   const startLen=(hand??[]).length;
@@ -2741,6 +2741,11 @@ function recommendPlayScore(play,ctx){
   const blitz=hasControlCheck(hand)||threat;
   const preStraights=allValidPlays(hand).filter((p)=>p.eval.kind==='straight').length;
   const postStraights=allValidPlays(rem).filter((p)=>p.eval.kind==='straight').length;
+  const beforeSingles=[...beforeRankCount.values()].filter((n)=>n===1).length;
+  const afterRankCount=new Map();
+  for(const c of rem??[])afterRankCount.set(c.rank,(afterRankCount.get(c.rank)??0)+1);
+  const afterSingles=[...afterRankCount.values()].filter((n)=>n===1).length;
+  const hasMust3=play.cards.some((c)=>c.rank===0&&c.suit===0);
 
   let score=0;
   score+=(startLen-endLen)*48;
@@ -2786,6 +2791,19 @@ function recommendPlayScore(play,ctx){
       const hasTopTwo=(hand??[]).some((c)=>c.rank===12&&c.suit===3);
       if(twoCount>=2&&hasTopTwo&&!play.cards.some((c)=>c.rank===12)){
         score+=10;
+      }
+    }
+    if(isFirstTrick&&hasMust3){
+      const isSingle=play.eval.count===1;
+      const isPair=play.eval.count===2;
+      const isFive=play.eval.count===5;
+      if(isSingle&&(beforeRankCount.get(0)??0)===1&&startLen>10)score+=25;
+      if(afterSingles<beforeSingles)score+=15;
+      if(isPair)score+=10;
+      if(isPair&&afterRankCount.size===endLen)score-=20;
+      if(isFive){
+        if(play.cards.some((c)=>c.rank===12||c.rank===11))score-=30;
+        if(play.eval.kind==='straightflush')score-=50;
       }
     }
   }
