@@ -1623,7 +1623,7 @@ function subscribeRoom(roomId,code){
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     if(String(data.status)==='playing'){
       state.room.started=true;
-      if(roomIsHost()&&data.game){
+      if(data.game){
         const updated=syncRoomGameRoster(data);
         if(updated){
           void firebaseDb.runTransaction(async(tx)=>{
@@ -1939,9 +1939,8 @@ async function roomSubmitPlay(cards,seatOverride=null){
       const game=data.game;
       if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
       const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
-      const isHost=String(data.hostId??'')===currentRoomPlayerId();
       const target=game.players?.[seat];
-      const canAct=(selfSeat===seat)||(isHost&&target&&!target.isHuman);
+      const canAct=(selfSeat===seat)||(target&&!target.isHuman);
       if(!canAct)throw new Error('not allowed');
       const result=applyPlayToGame(game,seat,cards,now);
       if(!result.ok)throw new Error(result.reason||'invalid');
@@ -1969,9 +1968,8 @@ async function roomSubmitPass(seatOverride=null){
       const game=data.game;
       if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
       const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
-      const isHost=String(data.hostId??'')===currentRoomPlayerId();
       const target=game.players?.[seat];
-      const canAct=(selfSeat===seat)||(isHost&&target&&!target.isHuman);
+      const canAct=(selfSeat===seat)||(target&&!target.isHuman);
       if(!canAct)throw new Error('not allowed');
       const result=applyPassToGame(game,seat,now);
       if(!result.ok)throw new Error(result.reason||'invalid');
@@ -1992,7 +1990,6 @@ function roomIsHost(){
 function maybeRunRoomAi(){
   if(state.home.mode!=='room')return;
   if(!state.room.id||!state.room.data||!state.room.data.game)return;
-  if(!roomIsHost())return;
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
   const g=state.room.data.game;
   const current=g?.players?.[g?.currentSeat];
