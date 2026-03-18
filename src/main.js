@@ -1994,17 +1994,8 @@ function maybeRunRoomAi(){
   const g=state.room.data.game;
   const current=g?.players?.[g?.currentSeat];
   if(!g||g.gameOver||!current||current.isHuman)return;
-  const now=Date.now();
-  const turnLockRemaining=Math.max(0,turnLockUntil-now);
-  const remaining=Math.max(0,calloutSpeechUntil-Date.now());
-  const afterCallout=calloutResumePending;
-  if(afterCallout)calloutResumePending=false;
-  const DEFAULT_AI_DELAY_MS=360;
-  const POST_CALLOUT_DELAY_MS=320;
-  const MIN_AI_DELAY_MS=250;
-  const wait=(calloutSpeechActive||remaining>0||turnLockRemaining>0)
-    ?Math.max(MIN_AI_DELAY_MS,remaining,turnLockRemaining)
-    :afterCallout?POST_CALLOUT_DELAY_MS:DEFAULT_AI_DELAY_MS;
+  const DEFAULT_AI_DELAY_MS=320;
+  const wait=DEFAULT_AI_DELAY_MS;
   aiTimer=window.setTimeout(async()=>{
     const live=state.room.data?.game;
     if(!live||live.gameOver)return;
@@ -2013,6 +2004,7 @@ function maybeRunRoomAi(){
     const ch=chooseAiPlay(actor.hand,live,live.aiDifficulty);
     if(!ch)await roomSubmitPass(live.currentSeat);
     else await roomSubmitPlay(ch.cards,live.currentSeat);
+    window.setTimeout(()=>{maybeRunRoomAi();},420);
   },wait);
 }
 function currentLeaderboardIdentity(){
