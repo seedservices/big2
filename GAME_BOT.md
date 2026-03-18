@@ -136,14 +136,15 @@ Responding to a `lastPlay`:
 - If opponents are close (`oppMin <= 2`): stronger replies score higher by `+idx * 5`
 - Otherwise: conserve power, `+(orderedByWeak.length - 1 - idx) * 3`
 - If max rank >= Q and hand size > 4: `-8`
-- If single breaks a pair and hand size > 3: `-14`
+  - If single breaks a pair and remaining hand size > 3: `-14`
 - If single uses highest card and hand size > 3: `-16`
 
 Leading (no `lastPlay`):
 - By count: single `-5`, pair `+5`, triple `+8`, five-card `+11`
 - If max rank >= Q and hand size > 5: `-10`
 - Lowest single: `+2`
-- Using any 2: `+12` if blitz is active, otherwise `-18`
+  - Using any 2: `+12` if blitz is active, otherwise `-18`
+  - If control check is active and leading with a single or pair of 2s, add `+10` to enable blitz play.
 - If the play is a spade flush, add `+12` to reflect near-absolute lead control.
 - Blitz is active when `hasControlCheck(hand)` is true or `oppMin <= 2`
 - If `oppMin <= 2` (threat mode):
@@ -151,10 +152,12 @@ Leading (no `lastPlay`):
 - If `oppMin <= 2` and a single uses the highest card: `+6`
 - Bait logic: if leading, holding at least two 2s including ♠2, and the play is a non-2 pair, add `+10` to encourage baiting with a smaller pair.
 
-Global modifiers:
-- If `shouldForceMaxAgainstLastCard` is true and not the strongest legal play: `-28`
-- If `shouldForceMaxAgainstLastCard` is true and strongest: `+8`
-- Endgame: if `endLen <= 5`, `+(5 - endLen) * 14`
+  Global modifiers:
+  - If `shouldForceMaxAgainstLastCard` is true and not the strongest legal play: `-28`
+  - If `shouldForceMaxAgainstLastCard` is true and strongest: `+8`
+  - If a full house or four of a kind uses a 2 as the kicker (four of a kind) or the pair (full house) and the hand does not finish, apply `-28`.
+  - If a non-five-card play reduces available straight options while you still have cards and `oppMin !== 1`, apply `-22`.
+  - Endgame: if `endLen <= 5`, `+(5 - endLen) * 14`
 - If `endLen == 0`: `+500`
 - If `endLen in {1,2,3}`: `+26`
 - Threat bonuses: `+12` for five-card plays, `+6` for singles
