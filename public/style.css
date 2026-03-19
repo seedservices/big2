@@ -901,9 +901,9 @@ body[data-screen='home'] .home-wrap {
   place-items: center;
   padding: 6px 8px;
   border-radius: 10px;
-  background: rgba(180, 120, 60, .18);
-  border: 1px solid rgba(180, 120, 60, .45);
-  color: #f2d7b3;
+  background: rgba(82, 210, 115, .16);
+  border: 1px solid rgba(82, 210, 115, .35);
+  color: #c8f0d3;
   font-weight: 800;
   letter-spacing: .34em;
   text-transform: uppercase;
@@ -918,8 +918,8 @@ body[data-screen='home'] .home-wrap {
   gap: 12px;
   padding: 16px;
   border-radius: 16px;
-  background: radial-gradient(circle at center, rgba(122, 78, 42, .42), rgba(36, 20, 12, .78) 60%, rgba(12, 8, 8, .94) 100%);
-  border: 1px solid rgba(180, 120, 60, .35);
+  background: radial-gradient(circle at center, rgba(36, 112, 76, .38), rgba(10, 30, 24, .76) 60%, rgba(8, 20, 30, .92) 100%);
+  border: 1px solid rgba(130, 200, 160, .35);
   overflow: hidden;
 }
 .lobby-table::before {
@@ -941,12 +941,12 @@ body[data-screen='home'] .home-wrap {
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 .lobby-seat.ready {
-  border-color: rgba(200, 150, 90, .6);
-  background: rgba(150, 96, 50, .2);
+  border-color: rgba(82, 210, 115, .55);
+  background: rgba(82, 210, 115, .1);
 }
 .lobby-seat.host {
-  border-color: rgba(232, 194, 130, .7);
-  box-shadow: 0 0 0 1px rgba(232, 194, 130, .35) inset;
+  border-color: rgba(246, 224, 165, .55);
+  box-shadow: 0 0 0 1px rgba(246, 224, 165, .25) inset;
 }
 .lobby-seat.offline {
   opacity: .65;
@@ -991,9 +991,9 @@ body[data-screen='home'] .home-wrap {
   cursor: pointer;
 }
 .lobby-seat-ready.active {
-  border-color: rgba(200, 150, 90, .7);
-  background: rgba(150, 96, 50, .35);
-  color: #ffe7c4;
+  border-color: rgba(82, 210, 115, .6);
+  background: rgba(82, 210, 115, .2);
+  color: #eafff2;
 }
 .room-list {
   display: grid;
