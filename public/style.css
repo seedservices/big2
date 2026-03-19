@@ -573,10 +573,10 @@ body[data-screen='home'] .home-wrap {
   gap: 12px;
 }
 .royal-home-body .field-ai-left {
-  display: grid;
+  display: none;
 }
 .royal-home-body .field-ai-right {
-  display: none;
+  display: grid;
 }
 .royal-home-body .field-cardback-left {
   display: grid;
@@ -816,6 +816,10 @@ body[data-screen='home'] .home-wrap {
   justify-items: center;
   align-items: center;
   min-height: 38px;
+  gap: 10px;
+}
+.royal-room-btn {
+  min-width: 140px;
 }
 .royal-home-body .home-start-row .hint {
   position: absolute;
