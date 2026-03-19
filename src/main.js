@@ -1547,6 +1547,7 @@ function signedInForPlay(){
 }
 function signedInWithEmail(){return Boolean(state.home.google.signedIn&&state.home.google.email);}
 function currentAuthUid(){return String(firebaseAuth?.currentUser?.uid??'').trim();}
+const LOCAL_ROOM_KEY='big2.currentRoomId';
 function baseRoomPlayerId(){
   const uid=currentAuthUid();
   if(uid)return `uid:${uid}`;
@@ -1613,6 +1614,26 @@ async function gateUserRoomAccess(targetRoomId=''){
     return{ok:true};
   }
 }
+async function gateGuestRoomAccess(targetRoomId=''){
+  const uid=currentAuthUserUid();
+  if(uid)return{ok:true};
+  try{
+    const active=String(localStorage.getItem(LOCAL_ROOM_KEY)||'').trim();
+    if(!active)return{ok:true};
+    if(targetRoomId&&active===String(targetRoomId))return{ok:true,already:true};
+    if(firebaseDb){
+      const roomRef=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(active);
+      const roomSnap=await roomRef.get();
+      if(!roomSnap.exists){
+        localStorage.removeItem(LOCAL_ROOM_KEY);
+        return{ok:true,cleared:true};
+      }
+    }
+    return{ok:false};
+  }catch{
+    return{ok:true};
+  }
+}
 async function loadActiveRooms(attempt=0){
   if(!initFirebaseIfReady()){
     if(attempt<6)window.setTimeout(()=>{void loadActiveRooms(attempt+1);},500);
@@ -1664,7 +1685,7 @@ async function loadActiveRooms(attempt=0){
         return null;
       }
       const hostId=String(data.hostId||'').trim();
-      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
+      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):humans[0];
       const roster=players
         .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
         .map((p)=>({
@@ -1707,6 +1728,11 @@ async function createRoom(){
       return;
     }
     const gate=await gateUserRoomAccess('');
+    const gateGuest=await gateGuestRoomAccess('');
+    if(!gateGuest.ok){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     if(!gate.ok){
       setRoomError(t('roomAlreadyIn'));
       return;
@@ -1770,6 +1796,11 @@ async function joinRoomByCode(codeRaw){
       return;
     }
     const gate=await gateUserRoomAccess(doc.id);
+    const gateGuest=await gateGuestRoomAccess(doc.id);
+    if(!gateGuest.ok){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     if(!gate.ok){
       setRoomError(t('roomAlreadyIn'));
       return;
@@ -2156,6 +2187,14 @@ function currentAuthUserUid(){
 }
 async function updateActiveRoomPointer(roomId){
   const uid=currentAuthUserUid();
+  if(!uid){
+    try{
+      const v=String(roomId||'');
+      if(v)localStorage.setItem(LOCAL_ROOM_KEY,v);
+      else localStorage.removeItem(LOCAL_ROOM_KEY);
+    }catch{}
+    return;
+  }
   if(!uid||!firebaseDb)return;
   try{
     const ref=firebaseDb.collection(FIRESTORE_USERS_COLLECTION).doc(uid);
@@ -2165,6 +2204,13 @@ async function updateActiveRoomPointer(roomId){
 }
 async function loadActiveRoomPointer(){
   const uid=currentAuthUserUid();
+  if(!uid){
+    try{
+      const local=String(localStorage.getItem(LOCAL_ROOM_KEY)||'').trim();
+      if(local&&!state.room.id)subscribeRoom(local,'');
+    }catch{}
+    return;
+  }
   if(!uid||!firebaseDb)return;
   if(state.room.id)return;
   try{
