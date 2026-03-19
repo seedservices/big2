@@ -53,7 +53,7 @@ Join room:
 
 1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
 2. `subscribeRoom()` listens to doc updates.
-3. Join modal shows a live list of joinable lobby rooms (code + host + count).
+3. Join modal shows a live select list of joinable lobby rooms (code + host + count).
 
 Lobby:
 
@@ -63,7 +63,7 @@ Lobby:
 - Status flows: `lobby` -> `starting` -> `playing`.
 - Lobby list highlights the current host.
 - Ready/leave buttons are disabled while `status=starting`.
-- Start requires at least 2 players.
+- Start requires at least 2 human players and both must be ready.
 
 Game start:
 

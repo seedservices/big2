@@ -983,6 +983,9 @@ body[data-screen='home'] .home-wrap {
   gap: 6px;
   margin-top: 4px;
 }
+.room-active-field .room-input {
+  width: 100%;
+}
 .room-active-head {
   display: flex;
   align-items: center;
