@@ -1721,12 +1721,20 @@ async function joinRoomByCode(codeRaw){
   if(!code)return;
   setRoomError('');
   try{
+    const doc=await findRoomByCode(code);
+    if(!doc){setRoomError(t('roomNotFound'));return;}
     if(state.room.id){
+      const same=String(state.room.id)===String(doc.id);
+      if(same){
+        subscribeRoom(doc.id,code);
+        void updateActiveRoomPointer(doc.id);
+        state.room.joinOpen=false;
+        render();
+        return;
+      }
       setRoomError(t('roomAlreadyIn'));
       return;
     }
-    const doc=await findRoomByCode(code);
-    if(!doc){setRoomError(t('roomNotFound'));return;}
     const gate=await gateUserRoomAccess(doc.id);
     if(!gate.ok){
       setRoomError(t('roomAlreadyIn'));

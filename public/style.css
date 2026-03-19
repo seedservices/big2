@@ -4726,6 +4726,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-right .field-sound,
   .royal-home-body .home-form-right .field-voice {
     grid-column: 2;
+    margin-left: 6px;
   }
   .royal-home-body .home-form-right .field-cardback {
     order: -2;
