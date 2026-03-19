@@ -1585,12 +1585,82 @@ function generateRoomCode(len=6){
   }
   return out;
 }
+function roomPlayerIds(players){
+  if(!Array.isArray(players))return[];
+  const seen=new Set();
+  players.forEach((p)=>{
+    const v=String(p?.uid??'').trim();
+    if(v)seen.add(v);
+  });
+  return Array.from(seen);
+}
 async function findRoomByCode(code){
   if(!firebaseDb)return null;
   const snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).where('code','==',code).limit(1).get();
   const doc=snap.docs?.[0];
   if(!doc)return null;
   return doc;
+}
+async function findRoomByPlayerId(playerId){
+  if(!firebaseDb||!playerId)return null;
+  try{
+    const snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+      .where('playerIds','array-contains',String(playerId))
+      .limit(1)
+      .get();
+    const doc=snap.docs?.[0];
+    if(!doc)return null;
+    return doc;
+  }catch{
+    return null;
+  }
+}
+async function dropSelfFromRoom(roomDoc,playerId){
+  if(!firebaseDb||!roomDoc||!playerId)return;
+  const ref=roomDoc.ref??firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomDoc.id);
+  await firebaseDb.runTransaction(async(tx)=>{
+    const snap=await tx.get(ref);
+    if(!snap.exists)return;
+    const data=snap.data()??{};
+    const players=Array.isArray(data.players)?[...data.players]:[];
+    const remaining=players.filter((p)=>String(p.uid)!==String(playerId));
+    if(remaining.length===players.length)return;
+    if(!remaining.length){
+      tx.delete(ref);
+      return;
+    }
+    const remainingHumans=remaining.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+    if(!remainingHumans.length){
+      tx.delete(ref);
+      return;
+    }
+    const hostLeaving=String(data.hostId)===String(playerId);
+    const hostUpdate=hostLeaving
+      ?{hostId:String(remainingHumans[0]?.uid??remaining[0]?.uid??''),hostName:String(remainingHumans[0]?.name??remaining[0]?.name??'')}
+      :{};
+    const now=Date.now();
+    tx.update(ref,{players:remaining,playerIds:roomPlayerIds(remaining),updatedAt:now,...hostUpdate});
+  });
+}
+async function ensureSingleRoomMembership(targetRoomId=''){
+  const playerId=baseRoomPlayerId();
+  if(!playerId||!firebaseDb)return{ok:true};
+  const existing=await findRoomByPlayerId(playerId);
+  if(!existing)return{ok:true};
+  const existingId=String(existing.id||'');
+  if(targetRoomId&&existingId===String(targetRoomId))return{ok:true,already:true,roomId:existingId};
+  const data=existing.data()??{};
+  const status=String(data.status||'');
+  const players=Array.isArray(data.players)?data.players:[];
+  const entry=players.find((p)=>String(p.uid)===String(playerId));
+  const lastSeen=Number(entry?.lastSeen)||0;
+  const now=Date.now();
+  const stale=(status==='lobby'||status==='starting')&&lastSeen>0&&(now-lastSeen>ROOM_PRUNE_MS);
+  if(stale){
+    await dropSelfFromRoom(existing,playerId);
+    return{ok:true,cleared:true};
+  }
+  return{ok:false,roomId:existingId,code:String(data.code||'')};
 }
 async function gateUserRoomAccess(targetRoomId=''){
   const uid=currentAuthUserUid();
@@ -1645,17 +1715,18 @@ async function loadActiveRooms(attempt=0){
   state.home.activeRooms.error='';
   render();
   try{
+    const statusFilters=['lobby','starting','finished'];
     let snap=null;
     try{
       snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-        .where('status','in',['lobby','starting'])
+        .where('status','in',statusFilters)
         .orderBy('updatedAt','desc')
         .limit(4)
         .get();
     }catch{
       try{
         snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-          .where('status','in',['lobby','starting'])
+          .where('status','in',statusFilters)
           .limit(4)
           .get();
       }catch{
@@ -1671,42 +1742,76 @@ async function loadActiveRooms(attempt=0){
         }
       }
     }
-    const now=Date.now();
-    const rows=snap.docs.map((doc)=>{
-      const data=doc.data()??{};
-      const players=Array.isArray(data.players)?data.players:[];
-      const status=String(data.status||'');
-      if(status!=='lobby'&&status!=='starting'){
-        return null;
+      const now=Date.now();
+      const rows=[];
+      for(const doc of snap.docs){
+        const data=doc.data()??{};
+        const status=String(data.status||'');
+        if(status!=='lobby'&&status!=='starting'&&status!=='finished'){
+          continue;
+        }
+        const players=Array.isArray(data.players)?data.players:[];
+        const activePlayers=players.filter((p)=>{
+          const lastSeen=Number(p?.lastSeen)||0;
+          if(!lastSeen)return true;
+          return now-lastSeen<=ROOM_PRUNE_MS;
+        });
+        const expectedIds=roomPlayerIds(players);
+        const existingIds=Array.isArray(data.playerIds)?data.playerIds.map((v)=>String(v)):null;
+        const idsMatch=Array.isArray(existingIds)
+          && existingIds.length===expectedIds.length
+          && expectedIds.every((id)=>existingIds.includes(id));
+        if(activePlayers.length!==players.length){
+          const activeHumans=activePlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+          if(!activeHumans.length){
+            void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
+            continue;
+          }
+          const hostInfo=resolveRoomHostInfo({...data,players:activePlayers});
+          void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).update({
+            players:activePlayers,
+            playerIds:roomPlayerIds(activePlayers),
+            hostId:hostInfo.hostId,
+            hostName:hostInfo.hostName,
+            updatedAt:now
+          }).catch(()=>{});
+        }else if(!idsMatch){
+          void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).update({
+            playerIds:expectedIds,
+            updatedAt:now
+          }).catch(()=>{});
+        }
+        const humans=activePlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+        if(!humans.length){
+          void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
+          continue;
+        }
+        if(status==='finished'&&humans.length>=Number(data.maxPlayers||4)){
+          continue;
+        }
+        const hostId=String(data.hostId||'').trim();
+        const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):humans[0];
+        const roster=activePlayers
+          .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
+          .map((p)=>({
+            seat:Number(p.seat),
+            name:String(p.name||''),
+            gender:p.gender==='female'?'female':'male',
+            picture:String(p.picture||''),
+            uid:String(p.uid||''),
+            ready:Boolean(p.ready),
+            lastSeen:Number(p.lastSeen)||0
+          }));
+        rows.push({
+          id:doc.id,
+          code:String(data.code||'').toUpperCase(),
+          hostName:String(hostPlayer?.name||data.hostName||''),
+          hostId:String(hostPlayer?.uid||data.hostId||''),
+          players:activePlayers.length,
+          maxPlayers:Number(data.maxPlayers||4),
+          roster
+        });
       }
-      const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
-      if(!humans.length){
-        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-        return null;
-      }
-      const hostId=String(data.hostId||'').trim();
-      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):humans[0];
-      const roster=players
-        .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
-        .map((p)=>({
-          seat:Number(p.seat),
-          name:String(p.name||''),
-          gender:p.gender==='female'?'female':'male',
-          picture:String(p.picture||''),
-          uid:String(p.uid||''),
-          ready:Boolean(p.ready),
-          lastSeen:Number(p.lastSeen)||0
-        }));
-      return{
-        id:doc.id,
-        code:String(data.code||'').toUpperCase(),
-        hostName:String(hostPlayer?.name||data.hostName||''),
-        hostId:String(hostPlayer?.uid||data.hostId||''),
-        players:players.length,
-        maxPlayers:Number(data.maxPlayers||4),
-        roster
-      };
-    }).filter((r)=>r&&r.code);
     state.home.activeRooms.rows=rows;
     state.home.activeRooms.loadedAt=Date.now();
   }catch{
@@ -1728,6 +1833,15 @@ async function createRoom(){
   setRoomError('');
   try{
     if(state.room.id){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
+    const membership=await ensureSingleRoomMembership('');
+    if(!membership.ok){
+      if(membership.roomId){
+        subscribeRoom(membership.roomId,membership.code||'');
+        void updateActiveRoomPointer(membership.roomId);
+      }
       setRoomError(t('roomAlreadyIn'));
       return;
     }
@@ -1763,6 +1877,7 @@ async function createRoom(){
       expiresAt:now+(2*60*60*1000),
       maxPlayers:4,
       players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
+      playerIds:[uid],
       settings:collectMainSettings(),
       totals:[5000,5000,5000,5000],
       roundCount:0,
@@ -1803,6 +1918,15 @@ async function joinRoomByCode(codeRaw){
       setRoomError(t('roomAlreadyIn'));
       return;
     }
+    const membership=await ensureSingleRoomMembership(doc.id);
+    if(!membership.ok){
+      if(membership.roomId){
+        subscribeRoom(membership.roomId,membership.code||'');
+        void updateActiveRoomPointer(membership.roomId);
+      }
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     const gate=await gateUserRoomAccess(doc.id);
     const gateGuest=await gateGuestRoomAccess(doc.id);
     if(!gateGuest.ok){
@@ -1826,7 +1950,7 @@ async function joinRoomByCode(codeRaw){
       const snap=await tx.get(doc.ref);
       if(!snap.exists)throw new Error('room missing');
       const data=snap.data()??{};
-      if(data.status!=='lobby'&&data.status!=='starting')throw new Error('room closed');
+      if(data.status!=='lobby'&&data.status!=='starting'&&data.status!=='finished')throw new Error('room closed');
       const players=Array.isArray(data.players)?[...data.players]:[];
       const already=players.find((p)=>String(p.uid)===uid);
       const prevCount=players.length;
@@ -1841,7 +1965,7 @@ async function joinRoomByCode(codeRaw){
         const picture=authPictureUrl();
         players.push({uid,name,gender,picture,ready:true,isHost:false,seat,lastSeen:Date.now()});
       }
-      const updates={players,updatedAt:Date.now()};
+      const updates={players,playerIds:roomPlayerIds(players),updatedAt:Date.now()};
       if(data.game&&String(data.status)==='playing'&&players.length>prevCount){
         const game=cloneRoomGame(data.game);
         if(game){
@@ -1919,6 +2043,42 @@ function subscribeRoom(roomId,code){
       render();
       return;
     }
+    if(roomStatus==='lobby'||roomStatus==='starting'){
+      const now=Date.now();
+      const rosterAll=Array.isArray(data.players)?data.players:[];
+      const active=rosterAll.filter((p)=>{
+        const lastSeen=Number(p?.lastSeen)||0;
+        if(!lastSeen)return true;
+        return now-lastSeen<=ROOM_PRUNE_MS;
+      });
+      const expectedIds=roomPlayerIds(rosterAll);
+      const existingIds=Array.isArray(data.playerIds)?data.playerIds.map((v)=>String(v)):null;
+      const idsMatch=Array.isArray(existingIds)
+        && existingIds.length===expectedIds.length
+        && expectedIds.every((id)=>existingIds.includes(id));
+      if(active.length!==rosterAll.length){
+        const activeHumans=active.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+        if(!activeHumans.length){
+          void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).delete().catch(()=>{});
+          resetRoomState();
+          render();
+          return;
+        }
+        const hostInfo=resolveRoomHostInfo({...data,players:active});
+        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).update({
+          players:active,
+          playerIds:roomPlayerIds(active),
+          hostId:hostInfo.hostId,
+          hostName:hostInfo.hostName,
+          updatedAt:now
+        }).catch(()=>{});
+      }else if(!idsMatch){
+        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).update({
+          playerIds:expectedIds,
+          updatedAt:now
+        }).catch(()=>{});
+      }
+    }
     if(roomStatus==='playing'||roomStatus==='finished'){
       state.room.started=true;
       if(data.game){
@@ -1960,11 +2120,25 @@ function subscribeRoom(roomId,code){
   state.room={...state.room,id:roomId,code,unsub,started:false};
 }
 async function leaveRoom(toLobby=false){
-  if(!state.room.id||!firebaseDb)return;
+  const roomId=String(state.room.id||'').trim();
+  const uid=currentRoomPlayerId();
+  if(roomId){
+    resetRoomState();
+    state.screen='home';
+    state.selected.clear();
+    state.recommendation=null;
+    setRecommendHint('');
+    state.opponentProfileName='';
+    if(toLobby){
+      state.room.joinOpen=true;
+      state.room.error='';
+      void loadActiveRooms();
+    }
+    render();
+  }
+  if(!roomId||!firebaseDb||!uid)return;
   try{
-    const uid=currentRoomPlayerId();
-    if(!uid){resetRoomState();render();return;}
-    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId);
     await firebaseDb.runTransaction(async(tx)=>{
       const snap=await tx.get(ref);
       if(!snap.exists)return;
@@ -2001,23 +2175,14 @@ async function leaveRoom(toLobby=false){
           const text=t('roomLeaveLog').replace('{{name}}',String(leaving.name||''));
           addRoomSystemLog(game,text);
         }
-        tx.update(ref,{players:remaining,game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1,...hostUpdate});
+        tx.update(ref,{players:remaining,playerIds:roomPlayerIds(remaining),game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1,...hostUpdate});
         return;
       }
-      tx.update(ref,{players:remaining,updatedAt:now,...hostUpdate});
+      tx.update(ref,{players:remaining,playerIds:roomPlayerIds(remaining),updatedAt:now,...hostUpdate});
     });
   }catch(err){
     console.error('leave room failed',err);
   }
-  resetRoomState();
-  if(toLobby){
-    state.room.joinOpen=true;
-    state.room.error='';
-    render();
-    void loadActiveRooms();
-    return;
-  }
-  render();
 }
 async function setRoomReady(ready){
   if(!state.room.id||!firebaseDb)return;
@@ -2066,7 +2231,7 @@ async function startRoom(){
       if(!allReady)throw new Error('not ready');
       const now=Date.now();
       const hostUpdate=(hostId&&String(data.hostId??'').trim()!==hostId)?{hostId,hostName}:{};
-      tx.update(ref,{status:'starting',updatedAt:now,...hostUpdate});
+      tx.update(ref,{status:'starting',updatedAt:now,playerIds:roomPlayerIds(players),...hostUpdate});
     });
     window.setTimeout(async()=>{
       try{
