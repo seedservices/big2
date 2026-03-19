@@ -53,7 +53,7 @@ Join room:
 
 1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
 2. `subscribeRoom()` listens to doc updates.
-3. Join modal shows a live select list of joinable lobby rooms (code + host + count).
+3. Join modal shows a live list of joinable tables. Each card shows table code, host, seat avatars, and can be clicked to join. A "Create Table" card is shown first.
 
 Lobby:
 
@@ -61,8 +61,9 @@ Lobby:
 - Host presses `roomStart` -> `startRoom()` builds and writes `game`.
   - `settings.turnTimeout` is included in the room settings (default 20000ms).
 - Status flows: `lobby` -> `starting` -> `playing`.
-- Lobby list highlights the current host.
-- Ready/leave buttons are disabled while `status=starting`.
+- Table lobby highlights the current host.
+- Ready toggle appears under the local player's seat.
+- Leave button is disabled while `status=starting`.
 - Start requires at least 2 human players and both must be ready.
 - Signed-in users can only be in one room at a time (enforced via `big2Users.currentRoomId`).
 
@@ -129,8 +130,8 @@ Room UI is rendered in `renderHome()`:
 - Room buttons in "Room Settings"
 - Lobby overlay when `status=lobby` or `status=starting`
 - Join modal for code entry
-- Room code is displayed in a centered green label
-- Host is highlighted in the lobby list
+- Table code is displayed in a centered brown label
+- Host is highlighted in the table seats
 - Offline players are shown dimmed
 - In-game center panel shows room code, host name, round number, and countdown
 
