@@ -692,14 +692,12 @@ body[data-screen='home'] .home-wrap {
 }
 .royal-home-body #difficulty-combo .toggle-btn {
   min-height: 32px;
-  height: 32px;
   padding: 3px 9px;
   border-radius: 7px;
   border: 1px solid transparent !important;
   background: transparent !important;
   box-shadow: none !important;
   color: rgba(247, 231, 190, .95);
-  line-height: 1;
   white-space: nowrap;
 }
 .royal-home-body #gender-combo .gender-avatar-btn {
