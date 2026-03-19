@@ -976,6 +976,11 @@ body[data-screen='home'] .home-wrap {
 .lobby-seat-name {
   font-weight: 700;
   font-size: .88rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 .lobby-seat-status {
   font-size: .74rem;
@@ -1039,6 +1044,7 @@ body[data-screen='home'] .home-wrap {
   padding: 2px 6px;
   border-radius: 999px;
   font-size: .68rem;
+  white-space: nowrap;
   letter-spacing: .08em;
   font-weight: 700;
   color: #2a1d00;
