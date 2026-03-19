@@ -173,6 +173,7 @@ const I18N={
     roomCopy:'複製代碼',
     roomReady:'準備',
     roomNotReady:'未準備',
+    roomWaiting:'等待中',
     roomStart:'開始',
     roomLeave:'返回大堂',
     roomLoginRequired:'請先登入才可以建立或加入房間。',
@@ -358,6 +359,7 @@ const I18N={
     roomCopy:'Copy Code',
     roomReady:'Ready',
     roomNotReady:'Not Ready',
+    roomWaiting:'Waiting',
     roomStart:'Start',
     roomLeave:'Return to Lobby',
     roomLoginRequired:'Please sign in to create or join rooms.',
@@ -1623,13 +1625,13 @@ async function loadActiveRooms(attempt=0){
     let snap=null;
     try{
       snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-        .where('status','==','lobby')
+        .where('status','in',['lobby','starting'])
         .orderBy('updatedAt','desc')
         .limit(8)
         .get();
     }catch{
       snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-        .where('status','==','lobby')
+        .where('status','in',['lobby','starting'])
         .limit(8)
         .get();
     }
@@ -1773,7 +1775,7 @@ async function joinRoomByCode(codeRaw){
       const snap=await tx.get(doc.ref);
       if(!snap.exists)throw new Error('room missing');
       const data=snap.data()??{};
-      if(data.status!=='lobby')throw new Error('room closed');
+      if(data.status!=='lobby'&&data.status!=='starting')throw new Error('room closed');
       const players=Array.isArray(data.players)?[...data.players]:[];
       const already=players.find((p)=>String(p.uid)===uid);
       const prevCount=players.length;
@@ -5402,12 +5404,13 @@ function renderHome(){
     }
     const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
     const isHost=String(entry.uid)===String(derivedHostId)||entry.isHost===true;
-    const hostTag=isHost?`<span class="room-host-tag">${t('roomHostTag')}</span>`:'';
+    const hostTag='';
     const lastSeen=Number(entry.lastSeen)||0;
     const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
     const isSelf=String(entry.uid)===String(roomUid);
-    const hostBadge=isHost?`<span class="lobby-seat-host-badge">${t('roomHostTag')}</span>`:'';
-    const readyControl=isSelf?`<button class="lobby-seat-ready ${entry.ready?'active':''}" id="room-ready-seat">${entry.ready?t('roomNotReady'):t('roomReady')}</button>`:`<div class="lobby-seat-status">${entry.ready?t('roomReady'):t('roomNotReady')}</div>`;
+    const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
+    const readyText=entry.ready?t('roomReady'):t('roomWaiting');
+    const readyControl=isSelf?`<button class="lobby-seat-ready ${entry.ready?'active':''}" id="room-ready-seat">${readyText}</button>`:`<div class="lobby-seat-status">${readyText}</div>`;
     return`<div class="lobby-seat ${entry.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
       <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
       <div class="lobby-seat-name">${esc(entry.name)}${hostTag}</div>

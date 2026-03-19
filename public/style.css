@@ -980,16 +980,17 @@ body[data-screen='home'] .home-wrap {
   position: absolute;
   right: -2px;
   bottom: -2px;
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(246, 224, 165, .95), rgba(214, 167, 73, .95));
-  border: 1px solid rgba(214, 167, 73, .7);
-  box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+  background: none;
+  border: 0;
+  box-shadow: none;
   display: grid;
   place-items: center;
-  font-size: .6rem;
-  color: #2a1d00;
+  font-size: 1.05rem;
+  color: #ff4d4d;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
 }
 .lobby-seat-avatar.empty {
   display: grid;
