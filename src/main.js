@@ -1639,7 +1639,8 @@ async function loadActiveRooms(attempt=0){
       const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
       const hostLastSeen=Number(hostPlayer?.lastSeen)||0;
       const hostStale=!hostPlayer||!hostLastSeen||(now-hostLastSeen>ROOM_OFFLINE_MS);
-      if(!activeHumans.length||hostStale){
+      const soloLobbyStale=humans.length<=1&&hostLastSeen>0&&(now-hostLastSeen>3000);
+      if(!activeHumans.length||hostStale||soloLobbyStale){
         void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
         return null;
       }
