@@ -178,6 +178,7 @@ const I18N={
     roomNotFound:'找不到房間。',
     roomJoinFail:'加入房間失敗。',
     roomCreateFail:'建立房間失敗。',
+    roomAlreadyIn:'你已在其他房間，請先離開再加入。',
     roomReadyHint:'等待房主開始。',
     roomHost:'房主',
     roomHostTag:'房主',
@@ -358,6 +359,7 @@ const I18N={
     roomNotFound:'Room not found.',
     roomJoinFail:'Failed to join room.',
     roomCreateFail:'Failed to create room.',
+    roomAlreadyIn:'You are already in another room. Leave it before joining.',
     roomReadyHint:'Waiting for host to start.',
     roomHost:'Host',
     roomHostTag:'HOST',
@@ -1577,6 +1579,22 @@ async function findRoomByCode(code){
   if(!doc)return null;
   return doc;
 }
+async function gateUserRoomAccess(targetRoomId=''){
+  const uid=currentAuthUserUid();
+  if(!uid||!firebaseDb)return{ok:true};
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_USERS_COLLECTION).doc(uid);
+    const snap=await ref.get();
+    if(!snap.exists)return{ok:true};
+    const data=snap.data()??{};
+    const active=String(data.currentRoomId??'').trim();
+    if(!active)return{ok:true};
+    if(targetRoomId&&active===String(targetRoomId))return{ok:true,already:true};
+    return{ok:false};
+  }catch{
+    return{ok:true};
+  }
+}
 async function loadActiveRooms(attempt=0){
   if(!initFirebaseIfReady()){
     if(attempt<6)window.setTimeout(()=>{void loadActiveRooms(attempt+1);},500);
@@ -1627,6 +1645,11 @@ async function createRoom(){
   }
   setRoomError('');
   try{
+    const gate=await gateUserRoomAccess('');
+    if(!gate.ok){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     let code='';
     for(let i=0;i<5;i++){
       const candidate=generateRoomCode();
@@ -1673,6 +1696,18 @@ async function joinRoomByCode(codeRaw){
   try{
     const doc=await findRoomByCode(code);
     if(!doc){setRoomError(t('roomNotFound'));return;}
+    const gate=await gateUserRoomAccess(doc.id);
+    if(!gate.ok){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
+    if(gate.already){
+      subscribeRoom(doc.id,code);
+      void updateActiveRoomPointer(doc.id);
+      state.room.joinOpen=false;
+      render();
+      return;
+    }
     const uid=baseRoomPlayerId();
     state.room.playerId=uid;
     await firebaseDb.runTransaction(async(tx)=>{
@@ -1818,7 +1853,12 @@ async function leaveRoom(){
         tx.delete(ref);
         return;
       }
-      const hostUpdate=hostLeaving?{hostId:String(remaining[0]?.uid??''),hostName:String(remaining[0]?.name??'')}:{};
+      const remainingHumans=remaining.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+      if(hostLeaving&&!remainingHumans.length){
+        tx.delete(ref);
+        return;
+      }
+      const hostUpdate=hostLeaving?{hostId:String(remainingHumans[0]?.uid??remaining[0]?.uid??''),hostName:String(remainingHumans[0]?.name??remaining[0]?.name??'')}:{};
       const now=Date.now();
       if(status==='playing'&&data.game&&leaving&&Number.isFinite(Number(leaving.seat))){
         const game=cloneRoomGame(data.game);

@@ -64,6 +64,7 @@ Lobby:
 - Lobby list highlights the current host.
 - Ready/leave buttons are disabled while `status=starting`.
 - Start requires at least 2 human players and both must be ready.
+- Signed-in users can only be in one room at a time (enforced via `big2Users.currentRoomId`).
 
 Game start:
 
@@ -109,6 +110,7 @@ Replacement:
 - If the host times out, host is migrated to the first active player.
 - If the host leaves, host is migrated to the next remaining player (no auto-delete).
 - If a player leaves during an active game, their seat is converted to a bot immediately.
+- If the host leaves and no human players remain, the room is deleted.
 
 ## Score / Leaderboard
 
