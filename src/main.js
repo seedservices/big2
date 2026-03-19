@@ -1650,7 +1650,6 @@ async function loadActiveRooms(attempt=0){
       const hostLastSeen=Number(hostPlayer?.lastSeen)||0;
       const hostStale=!hostPlayer||(!hostLastSeen&&!fresh)||(now-hostLastSeen>ROOM_OFFLINE_MS);
       if((!activeHumans.length&&!fresh)||hostStale){
-        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
         return null;
       }
       const roster=players
@@ -5407,9 +5406,10 @@ function renderHome(){
     const lastSeen=Number(entry.lastSeen)||0;
     const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
     const isSelf=String(entry.uid)===String(roomUid);
+    const hostBadge=isHost?`<span class="lobby-seat-host-badge">${t('roomHostTag')}</span>`:'';
     const readyControl=isSelf?`<button class="lobby-seat-ready ${entry.ready?'active':''}" id="room-ready-seat">${entry.ready?t('roomNotReady'):t('roomReady')}</button>`:`<div class="lobby-seat-status">${entry.ready?t('roomReady'):t('roomNotReady')}</div>`;
     return`<div class="lobby-seat ${entry.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
-      <img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>
+      <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
       <div class="lobby-seat-name">${esc(entry.name)}${hostTag}</div>
       ${readyControl}
       <div class="lobby-seat-label">${seatLabel}</div>
@@ -5420,7 +5420,7 @@ function renderHome(){
     ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart)?'disabled':''}>${t('roomStart')}</button>`}${(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
     :(roomStarting?'':`<span class="hint">${t('roomReadyHint')}</span>`);
   const roomTitle=t('roomTableTitle');
-  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3><div class="room-meta-row">${roomHostLine}<button id="room-copy" class="secondary">${t('roomCopy')}</button></div></div><div class="room-id-center">${esc(state.room.code)}</div><div class="lobby-table">${roomSeats}</div>${roomStarting?`<div class="hint">${t('roomStarting')}</div>`:''}${roomErrorHtml}<div class="room-actions">${roomStartControl}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div><div class="lobby-table">${roomSeats}</div>${roomStarting?`<div class="hint">${t('roomStarting')}</div>`:''}${roomErrorHtml}<div class="room-actions">${roomStartControl}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');

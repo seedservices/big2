@@ -897,9 +897,11 @@ body[data-screen='home'] .home-wrap {
   font-weight: 700;
 }
 .room-id-center {
-  display: grid;
-  place-items: center;
-  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 10px;
   border-radius: 10px;
   background: rgba(82, 210, 115, .16);
   border: 1px solid rgba(82, 210, 115, .35);
@@ -907,6 +909,9 @@ body[data-screen='home'] .home-wrap {
   font-weight: 800;
   letter-spacing: .34em;
   text-transform: uppercase;
+}
+.room-id-center button {
+  letter-spacing: normal;
 }
 .room-lobby-card {
   width: min(640px, calc(100vw - 24px));
@@ -964,6 +969,27 @@ body[data-screen='home'] .home-wrap {
   border: 2px solid rgba(255,255,255,.88);
   object-fit: cover;
   background: rgba(0,0,0,.35);
+}
+.lobby-seat-avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lobby-seat-host-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(246, 224, 165, .95), rgba(214, 167, 73, .95));
+  border: 1px solid rgba(214, 167, 73, .7);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+  display: grid;
+  place-items: center;
+  font-size: .6rem;
+  color: #2a1d00;
 }
 .lobby-seat-avatar.empty {
   display: grid;
