@@ -6433,6 +6433,19 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     min-height: calc(var(--card-h) * 1.34 + 22px) !important;
   }
 }
+@media (max-width: 860px) {
+  /* Mobile: keep south player badge anchored to the green table bottom-left. */
+  body[data-screen='game'] .action-strip .player-tag {
+    position: absolute !important;
+    left: 10px !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: calc(100% + 15px) !important;
+    transform: none !important;
+    z-index: 12 !important;
+    margin: 0 !important;
+  }
+}
 @media (max-width: 420px) and (orientation: portrait) {
   body[data-screen='game'] .topbar-right .control-row {
     gap: 2px !important;

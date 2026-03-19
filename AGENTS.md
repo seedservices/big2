@@ -15,6 +15,10 @@
 - Prevent scrollbar whenever possible
 - Maintain landscape mode and portrait mode separately, and make sure both works
 
+## Regression Guards (UI)
+- Mobile south player badge must stay anchored to the green table bottom-left (not inside the south action panel). See `public/style.css` mobile overrides.
+- Hand card stacking must never hide cards to the right when a card is selected or must-3 highlight is active. The rendered hand uses z-index ordering left-to-right in `renderHandCard()` so left cards sit under right cards.
+
 ## Ad
 - Use local cache to record only the game start time timestamp.
 - When a game starts, update cache with current start time.
