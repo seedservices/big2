@@ -4937,7 +4937,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .royal-home-body .home-form-right {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.5fr);
     gap: 10px;
   }
   .royal-home-body .home-form-right .home-section-title {
