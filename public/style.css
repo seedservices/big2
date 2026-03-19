@@ -4740,6 +4740,14 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-right .toggle-combo {
     flex-wrap: nowrap;
   }
+  .royal-home-body #difficulty-combo .toggle-btn {
+    min-height: 32px;
+    height: 32px;
+    padding: 3px 9px;
+    border-radius: 7px;
+    font-size: .78rem;
+    line-height: 1.1;
+  }
   .royal-home-body .home-form-left {
     border-right: 0;
     padding-right: 0;

@@ -1645,6 +1645,10 @@ async function createRoom(){
   }
   setRoomError('');
   try{
+    if(state.room.id){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     const gate=await gateUserRoomAccess('');
     if(!gate.ok){
       setRoomError(t('roomAlreadyIn'));
@@ -1694,6 +1698,10 @@ async function joinRoomByCode(codeRaw){
   if(!code)return;
   setRoomError('');
   try{
+    if(state.room.id){
+      setRoomError(t('roomAlreadyIn'));
+      return;
+    }
     const doc=await findRoomByCode(code);
     if(!doc){setRoomError(t('roomNotFound'));return;}
     const gate=await gateUserRoomAccess(doc.id);
