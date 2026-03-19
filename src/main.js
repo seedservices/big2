@@ -174,7 +174,7 @@ const I18N={
     roomReady:'準備',
     roomNotReady:'未準備',
     roomStart:'開始',
-    roomLeave:'離開',
+    roomLeave:'返回大堂',
     roomLoginRequired:'請先登入才可以建立或加入房間。',
     roomFull:'房間已滿。',
     roomNotFound:'找不到房間。',
@@ -188,6 +188,7 @@ const I18N={
     roomRoomId:'房間代碼',
     roomRound:'回合',
     roomCountdown:'倒數',
+    seatLabel:'座位 {{n}}',
     roomSeatOpen:'空位',
     roomActiveList:'可加入牌桌',
     roomActiveEmpty:'未有可加入牌桌。',
@@ -358,7 +359,7 @@ const I18N={
     roomReady:'Ready',
     roomNotReady:'Not Ready',
     roomStart:'Start',
-    roomLeave:'Leave',
+    roomLeave:'Return to Lobby',
     roomLoginRequired:'Please sign in to create or join rooms.',
     roomFull:'Room is full.',
     roomNotFound:'Room not found.',
@@ -372,6 +373,7 @@ const I18N={
     roomRoomId:'Room ID',
     roomRound:'Round',
     roomCountdown:'Countdown',
+    seatLabel:'Seat {{n}}',
     roomSeatOpen:'Open Seat',
     roomActiveList:'Available Tables',
     roomActiveEmpty:'No tables available.',
@@ -5394,9 +5396,10 @@ function renderHome(){
   const roomStarting=roomStatus==='starting';
   const roomButtonsHtml=inRoom?'':`<button id="room-lobby-open" class="secondary royal-room-btn">${t('roomEnter')}</button>`;
   const roomSeats=[0,1,2,3].map((seat)=>{
+    const seatLabel=t('seatLabel').replace('{{n}}',String(seat+1));
     const entry=roomPlayers.find((p)=>Number(p.seat)===seat);
     if(!entry){
-      return`<div class="lobby-seat empty"><div class="lobby-seat-avatar empty">+</div><div class="lobby-seat-name">${t('roomSeatOpen')}</div></div>`;
+      return`<div class="lobby-seat empty"><div class="lobby-seat-avatar empty">+</div><div class="lobby-seat-name">${t('roomSeatOpen')}</div><div class="lobby-seat-label">${seatLabel}</div></div>`;
     }
     const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
     const isHost=String(entry.uid)===String(derivedHostId)||entry.isHost===true;
@@ -5409,6 +5412,7 @@ function renderHome(){
       <img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>
       <div class="lobby-seat-name">${esc(entry.name)}${hostTag}</div>
       ${readyControl}
+      <div class="lobby-seat-label">${seatLabel}</div>
     </div>`;
   }).join('');
   const roomHostLine=derivedHostName?`<div class="room-host-line"><span>${t('roomHost')}:</span><strong>${esc(derivedHostName)}</strong></div>`:'';
@@ -5424,6 +5428,7 @@ function renderHome(){
   const activeRoomsCards=activeRooms.length
     ?activeRooms.map((r)=>{
       const roster=Array.isArray(r.roster)?r.roster:[];
+      const playerNames=roster.map((p)=>String(p.name||'')).filter(Boolean).join(' · ');
       const roomSeats=[0,1,2,3].map((seat)=>{
         const entry=roster.find((p)=>Number(p.seat)===seat);
         if(!entry){
@@ -5432,7 +5437,7 @@ function renderHome(){
         const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
         return`<div class="room-active-seat"><img src="${avatarSrc}" alt="${esc(entry.name)}"/></div>`;
       }).join('');
-      return`<button class="room-active-card" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table">${roomSeats}</div><div class="room-active-meta">${esc(r.hostName||'-')} · ${r.players}/${r.maxPlayers}</div></button>`;
+      return`<button class="room-active-card" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table">${roomSeats}</div><div class="room-active-info"><div class="room-active-host">${t('roomHost')}: ${esc(r.hostName||'-')}</div><div class="room-active-names">${esc(playerNames||'-')}</div><div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
     }).join('')
     :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;

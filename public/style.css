@@ -986,6 +986,11 @@ body[data-screen='home'] .home-wrap {
   font-size: .74rem;
   color: var(--muted);
 }
+.lobby-seat-label {
+  font-size: .7rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+}
 .lobby-seat-ready {
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.25);
@@ -1165,8 +1170,29 @@ body[data-screen='home'] .home-wrap {
   font-weight: 800;
   letter-spacing: .24em;
 }
-.room-active-meta {
-  display: none;
+.room-active-info {
+  display: grid;
+  gap: 4px;
+  font-size: .74rem;
+  color: var(--muted);
+}
+.room-active-host {
+  font-weight: 700;
+  color: #e9d8a8;
+}
+.room-active-names {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.room-active-count {
+  justify-self: end;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: #d6e6f5;
+  font-size: .7rem;
 }
 .room-error {
   color: #ffb3b3;
@@ -4909,10 +4935,11 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     padding-right: 0;
   }
   .royal-home-body .home-start-row {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
-    justify-items: stretch;
+    justify-content: center;
+    align-items: center;
   }
   .royal-home-body .home-start-row .hint {
     position: static;
@@ -4920,8 +4947,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     text-align: center;
   }
   .royal-home-body .home-start-row button {
-    width: 100%;
-    min-width: 0;
+    width: auto;
+    min-width: max-content;
   }
   .intro-head > div {
     min-width: 0;
