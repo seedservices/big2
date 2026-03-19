@@ -215,7 +215,7 @@ const I18N={
     easy:'Novice',
     normal:'Skilled',
     hard:'Veteran',
-    solo:'Start',
+    solo:'Start Game',
     loginToStart:'Please sign in before starting the game.',
     config:'Config',
     soundFx:'Sound Effects',
@@ -1721,6 +1721,10 @@ async function createRoom(){
     setRoomError(t('roomCreateFail'));
     return;
   }
+  if(!signedInForPlay()){
+    setRoomError(t('roomLoginRequired'));
+    return;
+  }
   setRoomError('');
   try{
     if(state.room.id){
@@ -1775,6 +1779,10 @@ async function createRoom(){
 async function joinRoomByCode(codeRaw){
   if(!initFirebaseIfReady()){
     setRoomError(t('roomJoinFail'));
+    return;
+  }
+  if(!signedInForPlay()){
+    setRoomError(t('roomLoginRequired'));
     return;
   }
   const code=String(codeRaw??'').trim().toUpperCase();
@@ -2760,7 +2768,18 @@ async function syncLeaderboardProfile(identity){
   }
 }
 function computeLeaderboardRowsFromStore(store,period,sort,limit){
-  const rows=Object.values(store.players).map((entry)=>{
+  const merged={};
+  Object.values(store.players).forEach((entry)=>{
+    const name=String(entry.name??'').trim();
+    const email=String(entry.email??'').trim().toLowerCase();
+    const key=email?`account:${email}`:`name:${name.toLowerCase()}`;
+    if(!key)return;
+    const current=merged[key];
+    if(!current||Number(entry.updatedAt||0)>=Number(current.updatedAt||0)){
+      merged[key]={...entry};
+    }
+  });
+  const rows=Object.values(merged).map((entry)=>{
     const id=String(entry.id??'').trim();
     const games=Number(entry.games)||0;
     const wins=Number(entry.wins)||0;
@@ -2810,7 +2829,15 @@ function leaderboardPanelHtml(){
   const rows=lb.rows??[];
   const lx=lbText();
   const botSource=[...BOT_PROFILES.zh,...BOT_PROFILES.en];
-  const botRows=botSource.map((b,i)=>({
+  const botUnique=[];
+  const botSeen=new Set();
+  botSource.forEach((b)=>{
+    const key=`${b.name}|${b.gender||'male'}`;
+    if(botSeen.has(key))return;
+    botSeen.add(key);
+    botUnique.push(b);
+  });
+  const botRows=botUnique.map((b,i)=>({
     id:`bot:${b.name}:${i}`,
     name:b.name,
     gender:b.gender,
@@ -5453,7 +5480,7 @@ function renderHome(){
   const roomErrorHtml=state.room.error?`<div class="hint room-error">${esc(state.room.error)}</div>`:'';
   const roomStatus=String(roomData?.status??'');
   const roomStarting=roomStatus==='starting';
-  const roomButtonsHtml=inRoom?'':`<button id="room-lobby-open" class="secondary royal-room-btn">${t('roomEnter')}</button>`;
+  const roomButtonsHtml=inRoom?'':`<button id="room-lobby-open" class="secondary royal-room-btn" ${signedIn?'':'disabled'}>${t('roomEnter')}</button>`;
   const roomSeats=[0,1,2,3].map((seat)=>{
     const seatLabel=t('seatLabel').replace('{{n}}',String(seat+1));
     const entry=roomPlayers.find((p)=>Number(p.seat)===seat);
@@ -5569,6 +5596,10 @@ function renderHome(){
     startSoloGame();
   });
   document.getElementById('room-lobby-open')?.addEventListener('click',()=>{
+    if(!signedInForPlay()){
+      setRoomError(t('roomLoginRequired'));
+      return;
+    }
     state.room.joinOpen=true;
     state.room.error='';
     render();

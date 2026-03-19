@@ -49,13 +49,13 @@ Create room:
 3. `expiresAt` is set to now + 2 hours (for TTL cleanup).
 4. `totals` is initialized to `[5000,5000,5000,5000]` and `roundCount` to `0`.
 
-Join room:
+Join room (login required):
 
 1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
 2. `subscribeRoom()` listens to doc updates.
 3. Join modal shows a live list of joinable tables. Each card shows table code, host, seat avatars, and can be clicked to join. A "Create Table" card is shown first.
 
-Lobby:
+Lobby (login required):
 
 - `roomReady` toggles player ready state.
 - Host presses `roomStart` -> `startRoom()` builds and writes `game`.
@@ -65,6 +65,7 @@ Lobby:
 - Ready toggle appears under the local player's seat.
 - Leave button is disabled while `status=starting`.
 - Start requires at least 2 human players and both must be ready.
+- Users must be logged in to access lobby/rooms (solo + room).
 - Signed-in users can only be in one room at a time (enforced via `big2Users.currentRoomId`).
 
 Game start:
