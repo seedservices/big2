@@ -665,10 +665,8 @@ body[data-screen='home'] .home-wrap {
   gap: 2px;
   border-radius: 10px;
   flex-wrap: nowrap;
-  position: relative;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
+  display: flex !important;
+  overflow: visible;
 }
 .royal-home-body #gender-combo {
   background: rgba(10, 30, 42, .42);
@@ -696,13 +694,11 @@ body[data-screen='home'] .home-wrap {
   min-height: 32px;
   padding: 3px 9px;
   border-radius: 7px;
-  border: 0 !important;
+  border: 1px solid transparent !important;
   background: transparent !important;
   box-shadow: none !important;
   color: rgba(247, 231, 190, .95);
   white-space: nowrap;
-  position: relative;
-  z-index: 1;
 }
 .royal-home-body #gender-combo .gender-avatar-btn {
   padding: 0;
@@ -738,21 +734,12 @@ body[data-screen='home'] .home-wrap {
 }
 .royal-home-body #difficulty-combo .toggle-btn.active {
   color: #fef8ef;
-  background: transparent !important;
-  border-color: transparent !important;
+  background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28)) !important;
+  border-color: rgba(247, 222, 167, .72) !important;
   box-shadow: none !important;
 }
 .royal-home-body #difficulty-combo .difficulty-pill {
-  position: absolute;
-  top: 3px;
-  left: calc(3px + var(--difficulty-index, 1) * ((100% - 6px) / 3));
-  width: calc((100% - 6px) / 3);
-  height: calc(100% - 6px);
-  border-radius: 7px;
-  background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28));
-  border: 1px solid rgba(247, 222, 167, .72);
-  z-index: 0;
-  transition: left 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  display: none;
 }
 .royal-home-body #voice-combo {
   background: rgba(10, 30, 42, .42);

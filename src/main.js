@@ -1578,6 +1578,12 @@ async function findRoomByCode(code){
   return doc;
 }
 async function loadActiveRooms(){
+  if(!initFirebaseIfReady()){
+    state.home.activeRooms.error='init';
+    state.home.activeRooms.loading=false;
+    render();
+    return;
+  }
   if(!firebaseDb)return;
   if(state.home.activeRooms.loading)return;
   state.home.activeRooms.loading=true;
