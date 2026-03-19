@@ -1584,11 +1584,19 @@ async function loadActiveRooms(){
   state.home.activeRooms.error='';
   render();
   try{
-    const snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-      .where('status','==','lobby')
-      .orderBy('updatedAt','desc')
-      .limit(8)
-      .get();
+    let snap=null;
+    try{
+      snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+        .where('status','==','lobby')
+        .orderBy('updatedAt','desc')
+        .limit(8)
+        .get();
+    }catch{
+      snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+        .where('status','==','lobby')
+        .limit(8)
+        .get();
+    }
     const rows=snap.docs.map((doc)=>{
       const data=doc.data()??{};
       return{
