@@ -147,6 +147,7 @@ service cloud.firestore {
       'players',
       'settings',
       'totals',
+      'roundCount',
       'game',
       'gameVersion'
     ];
@@ -178,6 +179,7 @@ service cloud.firestore {
       d.players.size() <= 4 &&
       (!('settings' in d) || isValidSettings(d.settings)) &&
       (!('totals' in d) || isValidRoomTotals(d.totals)) &&
+      (!('roundCount' in d) || isValidRoundCount(d.roundCount)) &&
       (!('game' in d) || d.game is map) &&
       (!('gameVersion' in d) || d.gameVersion is int);
   }
@@ -189,6 +191,9 @@ service cloud.firestore {
       v[0] is int && v[1] is int && v[2] is int && v[3] is int &&
       v[0] >= 0 && v[1] >= 0 && v[2] >= 0 && v[3] >= 0 &&
       v[0] <= 100000000 && v[1] <= 100000000 && v[2] <= 100000000 && v[3] <= 100000000;
+  }
+  function isValidRoundCount(v) {
+    return v is int && v >= 0 && v <= 100000;
   }
 
 

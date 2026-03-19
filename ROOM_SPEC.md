@@ -18,10 +18,10 @@ Room document schema (current):
 - `maxPlayers`: int (2..4)
 - `players`: list of player entries
 - `settings`: game settings snapshot at create time
+- `totals`: list[4] of cumulative scores for the room
+- `roundCount`: int (completed rounds)
 - `game`: game state (present when playing)
 - `gameVersion`: int (increments on every game update)
-- `playerActionLog`: list[4] of last actions per seat
-- `handCount`: list[4] of remaining card counts
 
 Player entry schema (in `players` list):
 
@@ -47,11 +47,13 @@ Create room:
 1. `createRoom()` generates a code and writes a new room doc with host in `players`.
 2. Host is `ready` by default.
 3. `expiresAt` is set to now + 2 hours (for TTL cleanup).
+4. `totals` is initialized to `[5000,5000,5000,5000]` and `roundCount` to `0`.
 
 Join room:
 
 1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
 2. `subscribeRoom()` listens to doc updates.
+3. Join modal shows a live list of joinable lobby rooms (code + host + count).
 
 Lobby:
 
@@ -61,6 +63,7 @@ Lobby:
 - Status flows: `lobby` -> `starting` -> `playing`.
 - Lobby list highlights the current host.
 - Ready/leave buttons are disabled while `status=starting`.
+- Start requires at least 2 players.
 
 Game start:
 
@@ -75,7 +78,7 @@ Game start:
 Game sync:
 
 - All clients listen with `subscribeRoom()`.
-- When `status=playing`, `applyRoomGameSnapshot()` replaces local state.
+- When `status=playing` or `status=finished`, `applyRoomGameSnapshot()` replaces local state.
 
 Gameplay:
 
@@ -87,6 +90,8 @@ Gameplay:
 - If a human times out while leading (no lastPlay), a small legal play is auto-fired.
 - `lastMove.ts` is used for near-real-time UI animations (1s window).
 - Clients trigger local SFX based on `lastMove.type` (play/pass/win).
+- When a room game ends, the room doc updates `totals` and increments `roundCount`.
+- If a player joins or leaves during `playing`, a system log entry is appended to the game log.
 
 ## Presence and Replacement
 
@@ -103,6 +108,7 @@ Replacement:
 - Removed entries are also pruned from the `players` list.
 - If the host times out, host is migrated to the first active player.
 - If the host leaves, host is migrated to the next remaining player (no auto-delete).
+- If a player leaves during an active game, their seat is converted to a bot immediately.
 
 ## Score / Leaderboard
 
@@ -123,6 +129,7 @@ Room UI is rendered in `renderHome()`:
 - Room code is displayed in a centered green label
 - Host is highlighted in the lobby list
 - Offline players are shown dimmed
+- In-game center panel shows room code, host name, round number, and countdown
 
 Room avatars:
 
@@ -130,7 +137,9 @@ Room avatars:
 - In-game opponent avatars use `picture` from room `game.players`
 
 Rematch:
-- `roomReset()` sets status back to `lobby`, clears `game`, and resets `ready`.
+- In room mode, the result "Continue" button:
+  - Host calls `restartRoomGame()` (starts a new round with the same players).
+  - Joiners set ready and wait for host.
 
 Zombie room handling (recommended):
 - If all players are offline, a scheduled Cloud Function can advance AI turns.

@@ -978,6 +978,51 @@ body[data-screen='home'] .home-wrap {
   color: var(--text);
   padding: 8px 10px;
 }
+.room-active-block {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+.room-active-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.room-active-list {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+}
+.room-active-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+.room-active-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,.3);
+  background: rgba(255,255,255,.08);
+}
+.room-active-code {
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+.room-active-meta {
+  font-size: .8rem;
+  color: var(--muted);
+}
 .room-error {
   color: #ffb3b3;
 }
@@ -3230,6 +3275,31 @@ body[data-screen='game'] .table-center-stack {
   max-height: 100%;
   overflow: hidden auto;
   box-shadow: inset 0 0 0 1px rgba(8, 25, 42, .65);
+}
+.room-center-meta {
+  display: grid;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(7, 18, 12, .5);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #eef7f1;
+  font-size: .82rem;
+  line-height: 1.1;
+  max-width: 220px;
+}
+.room-center-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.room-center-row span {
+  color: rgba(235, 246, 238, .7);
+}
+.room-center-row strong {
+  color: #f6e0a5;
+  font-weight: 700;
 }
 
 .north .seat-section,
