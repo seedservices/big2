@@ -1138,6 +1138,7 @@ body[data-screen='home'] .home-wrap {
   max-height: 240px;
   overflow: auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
 }
 .room-join-card .room-active-block {
   overflow: hidden;
@@ -1151,11 +1152,12 @@ body[data-screen='home'] .home-wrap {
   border-radius: 12px;
   background: rgba(9, 24, 36, .62);
   color: var(--text);
-  padding: 10px;
+  padding: 6px;
   cursor: pointer;
   display: grid;
   gap: 8px;
   transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  height: 100%;
 }
 .room-create-card {
   border-style: dashed;
@@ -1173,14 +1175,15 @@ body[data-screen='home'] .home-wrap {
   gap: 4px;
 }
 .room-active-table-full {
-  gap: 10px;
+  gap: 6px;
+  min-height: 140px;
 }
 .room-active-card-full {
   text-align: left;
 }
 .room-active-table-full .lobby-seat-mini {
-  min-height: 96px;
-  padding: 8px;
+  min-height: 84px;
+  padding: 6px;
 }
 .room-active-table-full .lobby-seat-mini .lobby-seat-avatar {
   width: 40px;
@@ -4937,7 +4940,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .royal-home-body .home-form-right {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.5fr);
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.55fr);
     gap: 10px;
   }
   .royal-home-body .home-form-right .home-section-title {
@@ -4957,7 +4960,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-right .field-sound,
   .royal-home-body .home-form-right .field-voice {
     grid-column: 2;
-    margin-left: 10px;
+    margin-left: 4px;
   }
   .royal-home-body .home-form-right .field-cardback {
     order: -2;
