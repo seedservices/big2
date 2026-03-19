@@ -1619,16 +1619,28 @@ async function loadActiveRooms(attempt=0){
         .limit(8)
         .get();
     }
+    const now=Date.now();
     const rows=snap.docs.map((doc)=>{
       const data=doc.data()??{};
+      const players=Array.isArray(data.players)?data.players:[];
+      const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+      const activeHumans=humans.filter((p)=>{
+        const lastSeen=Number(p?.lastSeen)||0;
+        if(!lastSeen)return true;
+        return now-lastSeen<=ROOM_PRUNE_MS;
+      });
+      if(!activeHumans.length)return null;
+      const hostId=String(data.hostId||'').trim();
+      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
+      if(hostId&&(!hostPlayer))return null;
       return{
         id:doc.id,
         code:String(data.code||'').toUpperCase(),
-        hostName:String(data.hostName||''),
-        players:Array.isArray(data.players)?data.players.length:0,
+        hostName:String(hostPlayer?.name||data.hostName||''),
+        players:players.length,
         maxPlayers:Number(data.maxPlayers||4)
       };
-    }).filter((r)=>r.code);
+    }).filter((r)=>r&&r.code);
     state.home.activeRooms.rows=rows;
     state.home.activeRooms.loadedAt=Date.now();
   }catch{

@@ -657,7 +657,7 @@ body[data-screen='home'] .home-wrap {
 .royal-home-body .gender-image-combo {
   background: transparent !important;
 }
-.royal-home-body #difficulty-combo {
+.royal-home-body .difficulty-combo {
   background: rgba(10, 30, 42, .42);
   border: 1px solid rgba(236, 204, 134, .42);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
@@ -690,7 +690,7 @@ body[data-screen='home'] .home-wrap {
   background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28));
   border-color: rgba(247, 222, 167, .72);
 }
-.royal-home-body #difficulty-combo .toggle-btn {
+.royal-home-body .difficulty-combo .toggle-btn {
   min-height: 32px;
   padding: 3px 9px;
   border-radius: 7px;
@@ -732,13 +732,13 @@ body[data-screen='home'] .home-wrap {
   border-color: #f5d07a;
   box-shadow: 0 8px 16px rgba(0,0,0,.3), 0 0 0 2px rgba(255, 209, 102, .6);
 }
-.royal-home-body #difficulty-combo .toggle-btn.active {
+.royal-home-body .difficulty-combo .toggle-btn.active {
   color: #fef8ef;
   background: linear-gradient(130deg, rgba(245, 210, 142, .26), rgba(191, 138, 63, .28)) !important;
   border-color: rgba(247, 222, 167, .72) !important;
   box-shadow: none !important;
 }
-.royal-home-body #difficulty-combo .difficulty-pill {
+.royal-home-body .difficulty-combo .difficulty-pill {
   display: none;
 }
 .royal-home-body #voice-combo {
