@@ -914,7 +914,7 @@ body[data-screen='home'] .home-wrap {
 .lobby-table {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   padding: 16px;
   border-radius: 16px;
@@ -936,7 +936,7 @@ body[data-screen='home'] .home-wrap {
   min-height: 110px;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(9, 24, 36, .72);
+  background: rgba(9, 24, 36, .6);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
@@ -1093,17 +1093,18 @@ body[data-screen='home'] .home-wrap {
   gap: 10px;
   max-height: 240px;
   overflow: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .room-active-card {
   appearance: none;
   border: 1px solid rgba(255,255,255,.14);
   outline: none;
   font: inherit;
-  text-align: left;
+  text-align: center;
   border-radius: 12px;
-  background: rgba(255,255,255,.04);
+  background: rgba(9, 24, 36, .62);
   color: var(--text);
-  padding: 10px 12px;
+  padding: 10px;
   cursor: pointer;
   display: grid;
   gap: 8px;
@@ -1117,19 +1118,19 @@ body[data-screen='home'] .home-wrap {
 .room-active-card.active {
   transform: translateY(-1px);
   border-color: rgba(246, 224, 165, .5);
-  background: rgba(255,255,255,.08);
+  background: rgba(28, 46, 58, .7);
 }
 .room-active-table {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
 }
 .room-active-seat {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 1.1;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.2);
-  background: rgba(0,0,0,.25);
+  background: rgba(0,0,0,.2);
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -1143,6 +1144,7 @@ body[data-screen='home'] .home-wrap {
   border-style: dashed;
   color: #d2def5;
   font-weight: 700;
+  font-size: .85rem;
 }
 .room-active-empty {
   padding: 10px;
@@ -1153,11 +1155,10 @@ body[data-screen='home'] .home-wrap {
 }
 .room-active-code {
   font-weight: 800;
-  letter-spacing: .18em;
+  letter-spacing: .24em;
 }
 .room-active-meta {
-  font-size: .8rem;
-  color: var(--muted);
+  display: none;
 }
 .room-error {
   color: #ffb3b3;
