@@ -1807,6 +1807,14 @@ function subscribeRoom(roomId,code){
     syncRoomSelfProfile();
     void updateActiveRoomPointer(roomId);
     const roomStatus=String(data.status);
+    const rosterAll=Array.isArray(data.players)?data.players:[];
+    const hasHuman=rosterAll.some((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+    if((roomStatus==='lobby'||roomStatus==='starting')&&!hasHuman){
+      void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).delete().catch(()=>{});
+      resetRoomState();
+      render();
+      return;
+    }
     if(roomStatus==='playing'||roomStatus==='finished'){
       state.room.started=true;
       if(data.game){
@@ -1824,6 +1832,11 @@ function subscribeRoom(roomId,code){
               if(!lastSeen)return true;
               return now-lastSeen<=ROOM_PRUNE_MS;
             });
+            const activeHumans=active.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+            if(!activeHumans.length){
+              tx.delete(ref);
+              return;
+            }
             let hostId=String(latest.hostId??'');
             let hostName=String(latest.hostName??'');
             if(hostId&&!active.some((p)=>String(p.uid)===hostId)){

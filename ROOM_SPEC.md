@@ -111,6 +111,7 @@ Replacement:
 - If the host leaves, host is migrated to the next remaining player (no auto-delete).
 - If a player leaves during an active game, their seat is converted to a bot immediately.
 - If the host leaves and no human players remain, the room is deleted.
+- If a room has no human players (lobby/starting/playing), it is deleted.
 
 ## Score / Leaderboard
 
