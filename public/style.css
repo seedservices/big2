@@ -1649,6 +1649,13 @@ body[data-screen='home'] .home-wrap {
  }
 .cardback-combo {
   gap: 2px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.cardback-combo .combo-back-preview {
+  width: clamp(44px, 10vw, 64px);
+  height: clamp(62px, 14vw, 90px);
 }
 .cardback-combo .combo-btn {
   padding: 2px 3px;
@@ -4281,7 +4288,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
 
   :root {
-    --card-w: clamp(46px, 11vw, 74px);
+    --card-w: clamp(46px, 8.6vh, 64px);
+    --card-scale: 1 !important;
   }
   body[data-screen='game'] {
     overflow-y: auto;
