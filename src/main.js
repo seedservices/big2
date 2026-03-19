@@ -1629,10 +1629,14 @@ async function loadActiveRooms(attempt=0){
         if(!lastSeen)return true;
         return now-lastSeen<=ROOM_PRUNE_MS;
       });
-      if(!activeHumans.length)return null;
       const hostId=String(data.hostId||'').trim();
       const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
-      if(hostId&&(!hostPlayer))return null;
+      const hostLastSeen=Number(hostPlayer?.lastSeen)||0;
+      const hostStale=hostLastSeen>0&&(now-hostLastSeen>ROOM_OFFLINE_MS);
+      if(!activeHumans.length||!hostPlayer||hostStale){
+        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
+        return null;
+      }
       return{
         id:doc.id,
         code:String(data.code||'').toUpperCase(),
