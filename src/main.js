@@ -190,6 +190,7 @@ const I18N={
     roomRound:'回合',
     roomCountdown:'倒數',
     seatLabel:'座位 {{n}}',
+    roomAvailable:'可加入',
     roomSeatOpen:'空位',
     roomActiveList:'可加入牌桌',
     roomActiveEmpty:'未有可加入牌桌。',
@@ -376,6 +377,7 @@ const I18N={
     roomRound:'Round',
     roomCountdown:'Countdown',
     seatLabel:'Seat {{n}}',
+    roomAvailable:'Available',
     roomSeatOpen:'Open Seat',
     roomActiveList:'Available Tables',
     roomActiveEmpty:'No tables available.',
@@ -1627,27 +1629,28 @@ async function loadActiveRooms(attempt=0){
       snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
         .where('status','in',['lobby','starting'])
         .orderBy('updatedAt','desc')
-        .limit(8)
+        .limit(4)
         .get();
     }catch{
       try{
         snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
           .where('status','in',['lobby','starting'])
-          .limit(12)
+          .limit(4)
           .get();
       }catch{
         try{
           snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
             .orderBy('updatedAt','desc')
-            .limit(12)
+            .limit(4)
             .get();
         }catch{
           snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-            .limit(12)
+            .limit(4)
             .get();
         }
       }
     }
+    const now=Date.now();
     const rows=snap.docs.map((doc)=>{
       const data=doc.data()??{};
       const players=Array.isArray(data.players)?data.players:[];
@@ -1655,11 +1658,24 @@ async function loadActiveRooms(attempt=0){
       if(status!=='lobby'&&status!=='starting'){
         return null;
       }
-      if(!players.length){
+      const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+      if(!humans.length){
+        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
+        return null;
+      }
+      const updatedAt=Number(data.updatedAt||data.createdAt)||0;
+      const fresh=updatedAt>0&&(now-updatedAt<=2*60*1000);
+      const activeHumans=humans.filter((p)=>{
+        const lastSeen=Number(p?.lastSeen)||0;
+        if(!lastSeen)return fresh;
+        return now-lastSeen<=ROOM_PRUNE_MS;
+      });
+      if(!activeHumans.length){
+        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
         return null;
       }
       const hostId=String(data.hostId||'').trim();
-      const hostPlayer=hostId?players.find((p)=>String(p.uid)===hostId):players[0];
+      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
       const roster=players
         .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
         .map((p)=>({
@@ -1675,6 +1691,7 @@ async function loadActiveRooms(attempt=0){
         id:doc.id,
         code:String(data.code||'').toUpperCase(),
         hostName:String(hostPlayer?.name||data.hostName||''),
+        hostId:String(hostPlayer?.uid||data.hostId||''),
         players:players.length,
         maxPlayers:Number(data.maxPlayers||4),
         roster
@@ -5433,20 +5450,23 @@ function renderHome(){
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
-  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-active-table">${emptySeats}</div></button>`;
+  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></button>`;
   const activeRoomsCards=activeRooms.length
     ?activeRooms.map((r)=>{
       const roster=Array.isArray(r.roster)?r.roster:[];
-      const playerNames=roster.map((p)=>String(p.name||'')).filter(Boolean).join(' · ');
       const roomSeats=[0,1,2,3].map((seat)=>{
         const entry=roster.find((p)=>Number(p.seat)===seat);
         if(!entry){
-          return`<div class="room-active-seat empty">+</div>`;
+          return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
         }
         const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
-        return`<div class="room-active-seat"><img src="${avatarSrc}" alt="${esc(entry.name)}"/></div>`;
+        const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
+        const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
+        return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
+          <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
+        </div>`;
       }).join('');
-      return`<button class="room-active-card" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table">${roomSeats}</div><div class="room-active-info"><div class="room-active-host">${t('roomHost')}: ${esc(r.hostName||'-')}</div><div class="room-active-names">${esc(playerNames||'-')}</div><div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
+      return`<button class="room-active-card room-active-card-full" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info"><div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
     }).join('')
     :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
