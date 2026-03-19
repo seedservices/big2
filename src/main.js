@@ -1785,7 +1785,7 @@ async function joinRoomByCode(codeRaw){
         const name=String(state.home.name||'Player').slice(0,32);
         const gender=state.home.gender==='female'?'female':'male';
         const picture=authPictureUrl();
-        players.push({uid,name,gender,picture,ready:false,isHost:false,seat,lastSeen:Date.now()});
+        players.push({uid,name,gender,picture,ready:true,isHost:false,seat,lastSeen:Date.now()});
       }
       const updates={players,updatedAt:Date.now()};
       if(data.game&&String(data.status)==='playing'&&players.length>prevCount){
@@ -1905,7 +1905,7 @@ function subscribeRoom(roomId,code){
   });
   state.room={...state.room,id:roomId,code,unsub,started:false};
 }
-async function leaveRoom(){
+async function leaveRoom(toLobby=false){
   if(!state.room.id||!firebaseDb)return;
   try{
     const uid=currentRoomPlayerId();
@@ -1956,6 +1956,13 @@ async function leaveRoom(){
     console.error('leave room failed',err);
   }
   resetRoomState();
+  if(toLobby){
+    state.room.joinOpen=true;
+    state.room.error='';
+    render();
+    void loadActiveRooms();
+    return;
+  }
   render();
 }
 async function setRoomReady(ready){
@@ -5533,7 +5540,7 @@ function renderHome(){
     try{await navigator.clipboard?.writeText?.(String(state.room.code||''));}catch{}
   });
   document.getElementById('room-leave')?.addEventListener('click',async()=>{
-    await leaveRoom();
+    await leaveRoom(true);
   });
   document.getElementById('room-ready-seat')?.addEventListener('click',async()=>{
     await setRoomReady(!roomReady);

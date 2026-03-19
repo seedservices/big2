@@ -1140,10 +1140,12 @@ body[data-screen='home'] .home-wrap {
   display: grid;
   place-items: center;
   overflow: hidden;
+  padding: 6px;
 }
 .room-active-seat img {
   width: 100%;
   height: 100%;
+  border-radius: 999px;
   object-fit: cover;
 }
 .room-active-seat.empty {
