@@ -1660,18 +1660,6 @@ async function loadActiveRooms(attempt=0){
       }
       const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
       if(!humans.length){
-        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-        return null;
-      }
-      const updatedAt=Number(data.updatedAt||data.createdAt)||0;
-      const fresh=updatedAt>0&&(now-updatedAt<=2*60*1000);
-      const activeHumans=humans.filter((p)=>{
-        const lastSeen=Number(p?.lastSeen)||0;
-        if(!lastSeen)return fresh;
-        return now-lastSeen<=ROOM_PRUNE_MS;
-      });
-      if(!activeHumans.length){
-        void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
         return null;
       }
       const hostId=String(data.hostId||'').trim();
