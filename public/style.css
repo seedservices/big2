@@ -958,6 +958,9 @@ body[data-screen='home'] .home-wrap {
   gap: 8px;
   flex-wrap: wrap;
 }
+.room-join-actions {
+  justify-content: flex-start;
+}
 .room-input {
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,.2);
