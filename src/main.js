@@ -1590,6 +1590,12 @@ async function gateUserRoomAccess(targetRoomId=''){
     const active=String(data.currentRoomId??'').trim();
     if(!active)return{ok:true};
     if(targetRoomId&&active===String(targetRoomId))return{ok:true,already:true};
+    const roomRef=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(active);
+    const roomSnap=await roomRef.get();
+    if(!roomSnap.exists){
+      await ref.set({currentRoomId:'',updatedAt:Date.now()},{merge:true});
+      return{ok:true,cleared:true};
+    }
     return{ok:false};
   }catch{
     return{ok:true};
@@ -1626,14 +1632,14 @@ async function loadActiveRooms(attempt=0){
       const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
       const activeHumans=humans.filter((p)=>{
         const lastSeen=Number(p?.lastSeen)||0;
-        if(!lastSeen)return true;
-        return now-lastSeen<=ROOM_PRUNE_MS;
+        if(!lastSeen)return false;
+        return now-lastSeen<=ROOM_OFFLINE_MS;
       });
       const hostId=String(data.hostId||'').trim();
       const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
       const hostLastSeen=Number(hostPlayer?.lastSeen)||0;
-      const hostStale=hostLastSeen>0&&(now-hostLastSeen>ROOM_OFFLINE_MS);
-      if(!activeHumans.length||!hostPlayer||hostStale){
+      const hostStale=!hostPlayer||!hostLastSeen||(now-hostLastSeen>ROOM_OFFLINE_MS);
+      if(!activeHumans.length||hostStale){
         void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
         return null;
       }
