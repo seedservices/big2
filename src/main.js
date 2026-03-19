@@ -1630,30 +1630,36 @@ async function loadActiveRooms(attempt=0){
         .limit(8)
         .get();
     }catch{
-      snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
-        .where('status','in',['lobby','starting'])
-        .limit(8)
-        .get();
+      try{
+        snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+          .where('status','in',['lobby','starting'])
+          .limit(12)
+          .get();
+      }catch{
+        try{
+          snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+            .orderBy('updatedAt','desc')
+            .limit(12)
+            .get();
+        }catch{
+          snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
+            .limit(12)
+            .get();
+        }
+      }
     }
-    const now=Date.now();
     const rows=snap.docs.map((doc)=>{
       const data=doc.data()??{};
       const players=Array.isArray(data.players)?data.players:[];
-      const updatedAt=Number(data.updatedAt||data.createdAt)||0;
-      const fresh=updatedAt>0&&(now-updatedAt<=30000);
-      const humans=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
-      const activeHumans=humans.filter((p)=>{
-        const lastSeen=Number(p?.lastSeen)||0;
-        if(!lastSeen)return fresh;
-        return now-lastSeen<=ROOM_OFFLINE_MS;
-      });
-      const hostId=String(data.hostId||'').trim();
-      const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):activeHumans[0];
-      const hostLastSeen=Number(hostPlayer?.lastSeen)||0;
-      const hostStale=!hostPlayer||(!hostLastSeen&&!fresh)||(now-hostLastSeen>ROOM_OFFLINE_MS);
-      if((!activeHumans.length&&!fresh)||hostStale){
+      const status=String(data.status||'');
+      if(status!=='lobby'&&status!=='starting'){
         return null;
       }
+      if(!players.length){
+        return null;
+      }
+      const hostId=String(data.hostId||'').trim();
+      const hostPlayer=hostId?players.find((p)=>String(p.uid)===hostId):players[0];
       const roster=players
         .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
         .map((p)=>({
