@@ -421,6 +421,7 @@ body[data-screen='home'] .home-wrap {
   margin-top: 0 !important;
   padding-top: 0 !important;
   align-content: start;
+  gap: 0;
 }
 @media (min-width: 861px) {
   body[data-screen='home'] .royal-home-wrap {
@@ -435,7 +436,7 @@ body[data-screen='home'] .home-wrap {
 }
 .royal-home-panel {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   border-radius: 16px;
   border: 1px solid rgba(224, 186, 107, .6);
   background: transparent;
@@ -1746,11 +1747,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .lobby-panel { border-radius: 12px; padding: 10px; background: var(--panel); display: grid; gap: 7px; }
 .legal-mini {
-  margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255,255,255,.14);
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 .legal-mini-links {
   display: flex;
@@ -1758,6 +1759,36 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   justify-content: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+.bmac-cta {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.bmac-cta .bmac-msg {
+  color: rgba(230, 222, 190, .92);
+  font-size: .76rem;
+  line-height: 1.35;
+  text-align: left;
+}
+.bmac-cta .bmac-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bmac-cta .bmac-button {
+  width: min(170px, 60vw);
+  height: auto;
+  display: block;
+}
+.bmac-cta .bmac-qr {
+  width: min(110px, 38vw);
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  background: #fff;
+  padding: 4px;
 }
 .legal-mini-link {
   background: transparent;
@@ -1804,7 +1835,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .royal-home-wrap .legal-mini {
   margin-top: 4px;
   padding-top: 10px;
-  border-top: 1px solid rgba(238, 203, 131, .24);
+  border-top: 0;
 }
 .royal-home-wrap .legal-mini-links {
   gap: 6px;
@@ -2061,6 +2092,38 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   place-items: center;
   padding: 12px;
   animation: modalFade .16s ease-out;
+}
+.legal-modal {
+  display: none;
+}
+.legal-modal.open {
+  display: grid;
+}
+.legal-modal-body {
+  font-size: .8rem;
+  line-height: 1.45;
+  color: rgba(230, 238, 244, .9);
+  text-align: left;
+}
+.legal-modal-body h4 {
+  margin: 0 0 6px;
+  font-size: .86rem;
+  letter-spacing: .01em;
+  color: rgba(248, 242, 220, .98);
+}
+.legal-modal-body p {
+  margin: 0 0 8px;
+}
+.legal-modal-body ul,
+.legal-modal-body ol {
+  margin: 0 0 8px 18px;
+  padding: 0;
+}
+.legal-modal-body li {
+  margin: 0 0 6px;
+}
+.legal-modal-body a {
+  color: #ffd166;
 }
 .intro-backdrop {
   position: absolute;
@@ -3847,7 +3910,7 @@ body[data-screen='game'] .table-center-stack {
 }
 .table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
 .table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; width: clamp(120px, 26vw, 220px); }
-.table-emote.emote-rude { animation: emoteShake 1.2s ease-in-out infinite; }
+.table-emote.emote-rude { animation: emoteShake 1.2s ease-in-out infinite; width: clamp(110px, 22vw, 190px); }
 .table-emote.emote-sweat { animation: emotePulse 1.2s ease-in-out infinite; }
 .table-emote.emote-rage { animation: emoteRage 1.2s ease-in-out infinite; }
 .table-emote.emote-smash { animation: emoteSmash 1.2s ease-in-out infinite; }
@@ -3979,6 +4042,7 @@ body[data-screen='game'] .table-center-stack {
 .card.back { width: var(--card-w); height: var(--card-h); border-radius: var(--card-radius); border: 0; background: transparent; }
 .card-art { width: 100%; height: 100%; object-fit: fill; display: block; border-radius: inherit; }
 .card.back .card-art { object-fit: fill; }
+body[data-ios='1'] .card.face .card-art { object-fit: contain; }
 .hand-card {
   all: unset;
   box-sizing: border-box;
@@ -4850,8 +4914,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .home-panel { padding: 8px; border-radius: 14px; gap: 8px; }
   .royal-home-panel { border-radius: 16px; }
   .royal-home-head { padding: 8px 8px 2px; }
-  .royal-head-actions { justify-content: center; }
-  .royal-head-actions button { font-size: .66rem; }
+.royal-head-actions { justify-content: center; }
+.royal-head-actions button { font-size: .66rem; }
   .royal-home-body { margin: 0 6px 8px; padding: 6px 8px 8px; }
   .royal-home-body .home-form-left {
     border-right: 0;

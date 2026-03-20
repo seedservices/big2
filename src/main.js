@@ -1169,24 +1169,116 @@ function setSoloStatus(message,{appendLog=true}={}){
   g.systemLog.push({text,ts:Date.now()});
   if(g.systemLog.length>200)g.systemLog=g.systemLog.slice(-200);
 }
-function mainPageLegalMiniHtml(){
+function legalMiniCopy(){
   const zh=state.language==='zh-HK';
+  const listHtml=(items,ordered=false)=>`${ordered?'<ol>':'<ul>'}${items.map((x)=>`<li>${esc(x)}</li>`).join('')}${ordered?'</ol>':'</ul>'}`;
   const labels=zh
     ?{privacy:'私隱政策',about:'關於我們',contact:'聯絡我們',terms:'使用條款'}
     :{privacy:'Privacy',about:'About',contact:'Contact',terms:'Terms'};
-  const privacy=zh
-    ?'我們重視你的私隱，並以透明方式處理資料。網站可能收集及處理以下資訊：你主動提供的帳戶資料（例如顯示名稱、登入電郵）、遊戲設定、對戰紀錄、分數與排行相關資料，以及裝置與瀏覽器技術資訊（例如裝置類型、作業系統、瀏覽器版本、語言與基本錯誤記錄）。我們亦可能使用 Cookies 或同類技術，以維持登入狀態、保存偏好設定、提升系統安全、分析使用情況及改善功能體驗。上述資料主要用於帳戶識別、遊戲運作、排行榜與統計分析、防止濫用與技術維護，不會用於出售或轉讓你的個人資料作第三方行銷用途。資料可能在合理期限內保留，以支援服務運作、偵錯、風險管理及紀錄完整性。你可透過瀏覽器設定管理或停用 Cookies；惟停用後，登入、偏好保存或部分互動功能可能受到影響。若你對資料處理方式有任何查詢，可透過網站提供的聯絡方式與我們聯絡。'
-    :'We value your privacy and handle data transparently. The website may collect and process the following information: account details you provide (such as display name and sign-in email), game settings, match records, scores and leaderboard-related data, and device/browser technical information (such as device type, operating system, browser version, language, and basic error logs). We may also use cookies or similar technologies to maintain sign-in sessions, preserve preference settings, improve security, analyze usage, and enhance product experience. This information is used primarily for account identification, core gameplay operation, leaderboard/statistical functions, abuse prevention, and technical maintenance. We do not sell or transfer your personal data for third-party marketing purposes. Data may be retained for a reasonable period to support service operation, debugging, risk control, and record integrity. You may manage or disable cookies in your browser settings; however, disabling them may affect sign-in, preference persistence, or certain interactive features. If you have questions about data handling, please contact us through the contact channel provided on this website.';
-  const about=zh
-    ?'本網站提供《鋤大D（Big Two）》網頁版遊戲體驗，目標是讓玩家在手機、平板與桌面裝置上，均可獲得一致、流暢且易上手的操作感受。平台設計重視對局節奏與資訊清晰度，透過直觀介面、即時狀態提示、玩法說明與計分展示，協助玩家快速理解牌局狀況並作出判斷。為提升整體可玩性，網站整合排行榜、個人設定、對戰紀錄與成績追蹤等功能，讓玩家可持續觀察自身表現，逐步優化出牌策略。系統亦會持續進行效能優化與介面調整，包括讀取速度、互動回饋、版面適配與穩定性改善，以維持長時間遊玩的舒適度。我們重視公平與品質，致力提供清晰、可靠且具持續更新能力的棋牌娛樂環境，讓新手與進階玩家都能在同一平台獲得良好體驗。'
-    :'This website provides a browser-based Big Two experience, with the goal of delivering consistent, smooth, and easy-to-use gameplay across mobile phones, tablets, and desktop devices. The platform emphasizes match pacing and information clarity through intuitive UI, real-time status cues, gameplay guidance, and scoring display, helping players quickly understand table state and make decisions. To improve long-term playability, the site includes leaderboard, personal settings, match records, and performance tracking features, allowing players to monitor progress and refine strategy over time. The system is continuously optimized in areas such as loading performance, interaction feedback, responsive layout adaptation, and runtime stability to support comfortable extended play sessions. We prioritize fairness and quality, and remain committed to maintaining a clear, reliable, and continuously improving card-gaming environment for both new and experienced players.';
-  const contact=zh
-    ?'如有查詢，請電郵至 4LeafxCS@gmail.com。'
-    :'For enquiries, email 4LeafxCS@gmail.com.';
-  const terms=zh
-    ?'使用本網站即表示你同意並接受以下條款：1) 你將以合法及公平方式使用本服務，不進行作弊、濫用、騷擾、惡意干擾或任何破壞系統穩定性的行為；2) 你不得使用外掛、自動化程式、爬蟲、模擬器腳本或其他非正常手段影響對局結果、排行數據或服務運作；3) 帳戶與個人資料須由使用者自行妥善管理，因裝置共享、帳戶外洩或第三方登入風險所造成之影響，使用者須自行承擔；4) 排行榜、戰績與相關統計以系統最終記錄為準，系統有權在發現異常時進行修正、重算或移除可疑資料；5) 我們可按需要調整功能、介面、規則、活動安排或服務內容，並可在維護、安全或法規要求下暫停、限制或終止部分功能；6) 對於因網絡狀態、裝置效能、瀏覽器差異、第三方服務中斷或不可抗力造成之延遲、錯誤、資料遺失或服務中斷，本網站不作任何明示或默示保證；7) 使用者使用本服務即代表理解並同意上述條款，若不同意，請停止使用本網站。'
-    :'By using this website, you agree to the following terms: (1) you will use the service lawfully and fairly, and will not engage in cheating, abuse, harassment, malicious interference, or any activity that harms system stability; (2) you must not use plugins, automation tools, crawlers, scripted emulators, or other non-standard methods to influence match outcomes, leaderboard data, or service operation; (3) you are responsible for safeguarding your account and personal access, and any impact caused by shared devices, account leakage, or third-party sign-in risk remains your responsibility; (4) leaderboard records, match history, and related statistics are subject to final system records, and we reserve the right to correct, recalculate, or remove suspicious data when anomalies are detected; (5) we may update features, interface, rules, event arrangements, or service content as needed, and may suspend, restrict, or terminate certain functions for maintenance, security, legal, or compliance reasons; (6) we make no express or implied guarantee of uninterrupted service, and are not liable for delays, errors, data loss, or interruption caused by network conditions, device limitations, browser differences, third-party service outages, or force majeure; and (7) continued use of this service constitutes your understanding and acceptance of these terms. If you do not agree, please discontinue use of this website.';
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${labels.terms}</button></div><div class="legal-mini-panels"><article class="legal-mini-panel" data-legal-panel="privacy">${esc(privacy)}</article><article class="legal-mini-panel" data-legal-panel="about">${esc(about)}</article><article class="legal-mini-panel" data-legal-panel="contact">${zh?`如有查詢，請電郵至 <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>。`:`For enquiries, email <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.`}</article><article class="legal-mini-panel" data-legal-panel="terms">${esc(terms)}</article></div></section>`;
+  const privacyIntro=zh
+    ?'我們重視你的私隱並以最少必要原則處理資料。'
+    :'We follow a data-minimal approach to protect your privacy.';
+  const privacyCollect=zh
+    ?[
+      '帳戶資料：顯示名稱、登入電郵',
+      '遊戲資料：設定、對戰紀錄、分數與排行榜',
+      '技術資料：裝置類型、作業系統、瀏覽器版本、語言、基本錯誤記錄'
+    ]
+    :[
+      'Account data: display name, sign-in email',
+      'Game data: settings, match records, scores, leaderboard',
+      'Technical data: device type, OS, browser version, language, basic error logs'
+    ];
+  const privacyUse=zh
+    ?[
+      '維持登入與偏好設定（Cookies 或同類技術）',
+      '遊戲運作、排行榜與統計分析',
+      '防止濫用、風險控制與技術維護'
+    ]
+    :[
+      'Maintain sign-in and preferences (cookies or similar)',
+      'Core gameplay, leaderboard, and statistics',
+      'Abuse prevention, risk control, and maintenance'
+    ];
+  const privacyNotes=zh
+    ?'資料不會出售作第三方行銷用途，並會在合理期限內清理。你可在瀏覽器管理 Cookies；停用後可能影響登入或偏好保存。如需查詢或更正／刪除資料，請透過聯絡方式與我們聯絡。'
+    :'We do not sell your data for third‑party marketing and retain it only as needed before cleanup. You can manage cookies in your browser; disabling them may affect sign-in or preferences. For questions or correction/removal requests, contact us.';
+  const aboutIntro=zh
+    ?'《鋤大D（Big Two）》網頁版專注於跨裝置一致體驗。'
+    :'This browser-based Big Two focuses on consistent play across devices.';
+  const aboutList=zh
+    ?[
+      '支援手機、平板與桌面快速開局',
+      '提供單人對戰與房間對戰',
+      '排行榜、個人設定與成績追蹤',
+      '清晰出牌提示、即時狀態與計分明細'
+    ]
+    :[
+      'Fast start on phone, tablet, and desktop',
+      'Solo and room matches',
+      'Leaderboard, personal settings, performance tracking',
+      'Clear play cues, live status, and scoring details'
+    ];
+  const aboutNotes=zh
+    ?'我們持續優化效能、互動回饋、版面適配與穩定性，並依玩家回饋改進。'
+    :'We continuously improve performance, interaction feedback, responsive layout, and stability based on player feedback.';
+  const termsIntro=zh
+    ?'使用本網站即表示你同意：'
+    :'By using this website, you agree to:';
+  const termsList=zh
+    ?[
+      '合法及公平使用服務，不作弊、濫用或干擾系統',
+      '不使用外掛、自動化程式、爬蟲或非正常手段影響對局或排行',
+      '帳戶與裝置安全由使用者自行管理',
+      '排行榜與戰績以系統記錄為準，異常數據可被修正或移除',
+      '維護、安全或法規需要下可調整功能或暫停部分服務',
+      '對於網絡、裝置或第三方服務導致的中斷或損失不作保證'
+    ]
+    :[
+      'Use the service lawfully and fairly without cheating or abuse',
+      'Avoid plugins, automation, crawlers, or non-standard methods that affect matches or leaderboards',
+      'Keep your account/device secure',
+      'Leaderboards and records follow system logs and may be corrected for anomalies',
+      'Features may change or suspend for maintenance, security, or legal needs',
+      'No guarantee against interruptions or data loss from network/device/third-party outages'
+    ];
+  const termsNotes=zh
+    ?'若不同意上述條款，請停止使用本網站。'
+    :'Discontinue use if you do not accept these terms.';
+  const supportText=zh
+    ?'喜歡這個遊戲？歡迎點擊或掃描支持我們一杯咖啡，讓我們持續更新與改善。'
+    :'Enjoying the game? Click or scan to support us with a coffee so we can keep improving it.';
+  const supportHtml=`<div class="bmac-cta"><div class="bmac-msg">${esc(supportText)}</div><div class="bmac-row"><a href="https://www.buymeacoffee.com/4leafx" target="_blank" rel="noopener noreferrer"><img class="bmac-button" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee"></a><img class="bmac-qr" src="${withBase('bmac-qr.png')}" alt="Buy Me A Coffee QR"></div></div>`;
+  const contactHtml=zh
+    ?'如有查詢，請電郵至 <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>。'
+    :'For enquiries, email <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.';
+  const contactList=zh
+    ?[
+      '裝置型號與系統版本',
+      '瀏覽器與版本',
+      '發生時間與操作步驟',
+      '截圖或錄影（如適用）'
+    ]
+    :[
+      'Device model and OS version',
+      'Browser and version',
+      'Time and steps to reproduce',
+      'Screenshots or screen recording (if any)'
+    ];
+  return{
+    labels,
+    closeLabel:zh?'關閉':'Close',
+    content:{
+      privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${zh?'收集資料':'Data we collect'}</p>${listHtml(privacyCollect)}<p>${zh?'使用目的':'How we use data'}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
+      about:`<h4>${esc(labels.about)}</h4><p>${esc(aboutIntro)}</p>${listHtml(aboutList)}<p>${esc(aboutNotes)}</p>${supportHtml}`,
+      contact:`<h4>${esc(labels.contact)}</h4><p>${contactHtml}</p><p>${zh?'建議提供':'Please include'}</p>${listHtml(contactList)}`,
+      terms:`<h4>${esc(labels.terms)}</h4><p>${esc(termsIntro)}</p>${listHtml(termsList,true)}<p>${esc(termsNotes)}</p>`
+    }
+  };
+}
+function mainPageLegalMiniHtml(){
+  const legal=legalMiniCopy();
+  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${legal.labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${legal.labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${legal.labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${legal.labels.terms}</button></div><div class="intro-modal legal-modal" id="legal-modal"><button class="intro-backdrop" id="legal-backdrop" aria-label="close"></button><section class="intro-sheet legal-sheet"><header class="intro-head"><div><h3 id="legal-modal-title"></h3></div><button id="legal-close" class="secondary">${legal.closeLabel}</button></header><div class="legal-modal-body" id="legal-modal-body"></div></section></div></section>`;
 }
 const introText=()=>state.language==='en'
   ?{
@@ -5882,17 +5974,25 @@ function renderHome(){
   });
   document.getElementById('lb-sort')?.addEventListener('change',(e)=>{state.home.leaderboard.sort=e.target.value;refreshLeaderboard();render();});
   document.getElementById('lb-period')?.addEventListener('change',(e)=>{state.home.leaderboard.period=e.target.value;refreshLeaderboard();render();});
+  const legal=legalMiniCopy();
+  const legalModal=document.getElementById('legal-modal');
+  const legalModalTitle=document.getElementById('legal-modal-title');
+  const legalModalBody=document.getElementById('legal-modal-body');
+  const closeLegal=()=>{
+    legalModal?.classList.remove('open');
+    document.querySelectorAll('.legal-mini-link').forEach((b)=>b.classList.remove('active'));
+  };
+  document.getElementById('legal-close')?.addEventListener('click',closeLegal);
+  document.getElementById('legal-backdrop')?.addEventListener('click',closeLegal);
   document.querySelectorAll('.legal-mini-link').forEach((btn)=>btn.addEventListener('click',()=>{
     const key=btn.getAttribute('data-legal');
-    if(!key)return;
-    const panel=document.querySelector(`.legal-mini-panel[data-legal-panel="${key}"]`);
-    const isOpen=panel?.classList.contains('open');
-    document.querySelectorAll('.legal-mini-panel').forEach((p)=>p.classList.remove('open'));
+    const content=key?legal.content[key]:'';
+    if(!key||!content||!legalModal||!legalModalTitle||!legalModalBody)return;
+    legalModalTitle.textContent=legal.labels[key]||'';
+    legalModalBody.innerHTML=content;
+    legalModal.classList.add('open');
     document.querySelectorAll('.legal-mini-link').forEach((b)=>b.classList.remove('active'));
-    if(!isOpen){
-      panel?.classList.add('open');
-      btn.classList.add('active');
-    }
+    btn.classList.add('active');
   }));
   queueGoogleInlineRender();
 }
