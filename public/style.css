@@ -49,7 +49,7 @@
   --center-a: rgba(19, 88, 49, .92);
   --center-b: rgba(12, 63, 35, .9);
   --card-w: clamp(34px, 5.7vw, 58px);
-  --card-h: calc(var(--card-w) * 1.390625);
+  --card-h: calc(var(--card-w) * 1.392857);
   --side-box-h: calc(var(--card-h) * 4.8);
   --card-scale: 1;
   --table-tilt: 0deg;
@@ -4042,7 +4042,7 @@ body[data-screen='game'] .table-center-stack {
 .card.back { width: var(--card-w); height: var(--card-h); border-radius: var(--card-radius); border: 0; background: transparent; }
 .card-art { width: 100%; height: 100%; object-fit: fill; display: block; border-radius: inherit; }
 .card.back .card-art { object-fit: fill; }
-body[data-ios='1'] .card.face .card-art { object-fit: contain; }
+body[data-ios='1'] .card.face .card-art { object-fit: fill; }
 .hand-card {
   all: unset;
   box-sizing: border-box;
