@@ -4124,25 +4124,22 @@ body[data-ios='1'] .card.face .card-art { object-fit: cover; }
 }
 .hand-card:active { cursor: grabbing; }
 .hand-card.selected {
-  transform: translateY(-7px);
+  transform: translateY(-5px);
   box-shadow:
     0 0 0 1px rgba(255, 209, 102, .88),
     0 0 0 2px rgba(7, 16, 24, .92),
     0 6px 12px rgba(255,209,102,.45) !important;
 }
 .hand-card.must3-highlight {
-  box-shadow:
-    0 0 0 3px rgba(255, 232, 160, .95),
-    0 0 18px rgba(255, 209, 102, .75),
-    0 0 32px rgba(255, 209, 102, .5);
+  box-shadow: none;
   animation: must3Pulse 1.2s ease-in-out infinite;
 }
 .hand-card.must3-highlight::before {
   content: '';
   position: absolute;
-  inset: 2px;
-  border-radius: calc(var(--card-radius) - 2px);
-  background: rgba(255, 219, 120, .18);
+  inset: 0;
+  border-radius: var(--card-radius);
+  background: rgba(255, 219, 120, .28);
   box-shadow: inset 0 0 0 2px rgba(255, 232, 160, .9);
   pointer-events: none;
 }
@@ -4865,31 +4862,27 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .east .opponent-fan,
   .west .opponent-fan {
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    max-width: none;
-    overflow: visible;
+    justify-content: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    padding-top: 6px;
   }
   .east .opponent-fan .card.back.mini.closed-back,
   .west .opponent-fan .card.back.mini.closed-back,
   .north .opponent-fan .card.back.mini.closed-back {
     width: calc(var(--card-w) * .62);
     height: calc(var(--card-h) * .62);
-    margin-top: 0 !important;
-    margin-left: calc(var(--card-w) * (-0.30 - (max(var(--n) - var(--closed-tighten-threshold), 0) * 0.016) - (var(--fan-gap, 0.5) * 0.1))) !important;
+    margin-top: calc(var(--card-h) * (-0.30 - (max(var(--n) - var(--closed-tighten-threshold), 0) * 0.018) - (var(--fan-gap, 0.5) * 0.10))) !important;
+    margin-left: 0 !important;
+    transform: rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
     transform-origin: center center;
-  }
-  .east .opponent-fan .card.back.mini.closed-back {
-    transform: translateY(calc(var(--fan-lift, 0.5) * -2px)) rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
-  }
-  .west .opponent-fan .card.back.mini.closed-back {
-    transform: translateY(calc(var(--fan-lift, 0.5) * -2px)) rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
   }
   .east .opponent-fan .card.back.mini.closed-back:first-child,
   .west .opponent-fan .card.back.mini.closed-back:first-child,
   .north .opponent-fan .card.back.mini.closed-back:first-child {
-    margin-left: 0 !important;
+    margin-top: 0 !important;
   }
 }
 @media (max-width: 420px) {
