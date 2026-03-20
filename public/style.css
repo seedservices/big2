@@ -48,7 +48,7 @@
   --line-b: rgba(126, 177, 215, .35);
   --center-a: rgba(19, 88, 49, .92);
   --center-b: rgba(12, 63, 35, .9);
-  --card-w: clamp(34px, 5.7vw, 58px);
+  --card-w: clamp(36px, 5.7vw, 58px);
   --card-h: calc(var(--card-w) * 1.392857);
   --side-box-h: calc(var(--card-h) * 4.8);
   --card-scale: 1;
@@ -3980,8 +3980,8 @@ body[data-screen='game'] .table-center-stack {
 .table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; width: clamp(150px, 30vw, 260px); }
 .table-emote.emote-rude {
   animation: emoteShake 1.2s ease-in-out infinite;
-  width: clamp(180px, 34vw, 300px);
-  height: clamp(150px, 28vw, 260px);
+  width: clamp(200px, 40vw, 340px);
+  height: clamp(170px, 32vw, 300px);
 }
 .table-emote.emote-rude img { width: 70%; height: auto; }
 .table-emote.emote-rude .emote-rude-spark {
@@ -6564,24 +6564,29 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
 }
 @media (max-width: 380px) and (pointer: coarse) {
   body[data-screen='game'] {
-    --card-w: clamp(36px, 5.6vh, 50px);
     --center-discard-scale: 1.18;
   }
 }
 @media (min-width: 381px) and (max-width: 430px) and (pointer: coarse) {
   body[data-screen='game'] {
-    --card-w: clamp(38px, 6vh, 54px);
     --center-discard-scale: 1.22;
   }
 }
 @media (min-width: 431px) and (max-width: 500px) and (pointer: coarse) {
   body[data-screen='game'] {
-    --card-w: clamp(40px, 6.2vh, 56px);
     --center-discard-scale: 1.24;
+  }
+}
+@media (max-width: 860px) {
+  body[data-screen='game'] {
+    --card-w: clamp(36px, 6vmin, 52px);
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
   /* Portrait mobile: place south seat panel back into the green table area. */
+  body[data-screen='game'] {
+    --card-w: clamp(36px, 6vmin, 52px);
+  }
   body[data-screen='game'] .action-zone {
     position: relative;
     overflow: visible !important;
@@ -6888,8 +6893,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     font-size: .84rem !important;
   }
   body[data-screen='game'][data-orientation='portrait'] .table-emote.emote-rude {
-    width: clamp(190px, 46vw, 320px);
-    height: clamp(160px, 38vw, 280px);
+    width: clamp(240px, 56vw, 380px);
+    height: clamp(200px, 46vw, 320px);
   }
 }
 

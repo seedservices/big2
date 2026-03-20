@@ -18,6 +18,7 @@
 ## Regression Guards (UI)
 - Mobile south player badge must stay anchored to the green table bottom-left (not inside the south action panel). See `public/style.css` mobile overrides.
 - Hand card stacking must never hide cards to the right when a card is selected or must-3 highlight is active. The rendered hand uses z-index ordering left-to-right in `renderHandCard()` so left cards sit under right cards.
+- Card size rules: default `--card-w: clamp(36px, 5.7vw, 58px)`, mobile (<=860px) `--card-w: clamp(36px, 6vmin, 52px)`, `--card-h: calc(var(--card-w) * 1.392857)`. Avoid ad-hoc per-device overrides.
 - iPhone game cards (hand/closed/discard) must remain within compact size clamps; verify on iOS Safari and adjust `--card-w` / `--center-discard-scale` only in mobile/iOS breakpoints.
 - Desktop game topbar must not overlap the game log; ensure topbar controls scroll within the main column on narrow desktop widths.
 
