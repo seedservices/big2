@@ -31,6 +31,7 @@ This document defines the functional behavior of the Big Two web application fro
 - AI difficulty selection
 - Sound effects toggle
 - Start game button
+- Room lobby list shows active tables, including tables already in progress with a status tag.
 - Legal mini panels:
   - Privacy Policy
   - About
@@ -51,6 +52,7 @@ This document defines the functional behavior of the Big Two web application fro
   - Pass
   - Recommend
   - Auto sort (sequence / pattern)
+- Emote button opens a sticker picker; selected sticker appears over the discard table and auto-clears shortly after.
 - Hand-card select/deselect interactions
 - Drag-and-reorder support (where applicable)
 - Active-seat visual indication

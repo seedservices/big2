@@ -4664,6 +4664,7 @@ function triggerEmoteSticker(id){
   const now=Date.now();
   state.emote.active={id:match.id,ts:now};
   state.emote.open=false;
+  playSound(`emote-${match.id}`);
   if(emoteTimer){clearTimeout(emoteTimer);emoteTimer=null;}
   emoteTimer=window.setTimeout(()=>{
     if(state.emote.active&&state.emote.active.ts===now){
@@ -5030,6 +5031,13 @@ function playSound(kind){
     playTone(1175,0.28,'triangle',0.044,0.46);
   }
   if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}
+  if(kind==='emote-cool'){playTone(520,0.09,'triangle',0.025);playTone(780,0.12,'triangle',0.02,0.05);}
+  if(kind==='emote-throw'){playTone(680,0.08,'square',0.03);playTone(240,0.12,'sine',0.025,0.06);}
+  if(kind==='emote-rude'){playTone(260,0.06,'square',0.035);playTone(260,0.06,'square',0.035,0.08);playTone(260,0.06,'square',0.035,0.16);}
+  if(kind==='emote-sweat'){playTone(420,0.1,'triangle',0.02);playTone(560,0.12,'triangle',0.02,0.06);}
+  if(kind==='emote-rage'){playTone(180,0.08,'sawtooth',0.04);playTone(160,0.1,'square',0.04,0.06);}
+  if(kind==='emote-smash'){playTone(140,0.12,'square',0.045);playTone(90,0.14,'sine',0.04,0.08);}
+  if(kind==='emote-fire'){playTone(720,0.06,'triangle',0.02);playTone(620,0.06,'triangle',0.02,0.07);playTone(820,0.08,'triangle',0.02,0.14);}
 }
 function playWinSfxThen(fn,delayFallback=2000){
   const seq=++winSfxSeq;

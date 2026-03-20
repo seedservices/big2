@@ -3832,7 +3832,7 @@ body[data-screen='game'] .table-center-stack {
   height: auto;
   pointer-events: none;
   animation: emoteWobble 1.2s ease-in-out infinite;
-  z-index: 10;
+  z-index: 35;
   filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
 }
 .table-emote img {
@@ -6356,9 +6356,6 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     min-height: 32px;
     padding: 2px 7px !important;
   }
-  body[data-ios='1'][data-screen='game'] {
-    --card-w: clamp(42px, 7.2vh, 58px);
-  }
   body[data-screen='game'] .north .seat-played .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini,
   body[data-screen='game'] .east .seat-played .card.mini,
@@ -6368,6 +6365,30 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
     width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
     height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
+  }
+}
+@media (max-width: 380px) and (pointer: coarse) {
+  body[data-screen='game'] {
+    --card-w: clamp(36px, 5.6vh, 50px);
+    --center-discard-scale: 1.18;
+  }
+}
+@media (min-width: 381px) and (max-width: 430px) and (pointer: coarse) {
+  body[data-screen='game'] {
+    --card-w: clamp(38px, 6vh, 54px);
+    --center-discard-scale: 1.22;
+  }
+}
+@media (min-width: 431px) and (max-width: 500px) and (pointer: coarse) {
+  body[data-screen='game'] {
+    --card-w: clamp(40px, 6.2vh, 56px);
+    --center-discard-scale: 1.24;
+  }
+}
+@media (max-width: 860px) and (pointer: coarse) {
+  body[data-ios='1'][data-screen='game'] {
+    --card-w: clamp(36px, 5.8vh, 50px);
+    --center-discard-scale: 1.18;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {

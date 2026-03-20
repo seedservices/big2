@@ -22,6 +22,7 @@
 - `public/`
   - Card assets
   - Avatar assets
+  - Emote sticker assets (gameplay UI)
   - Fonts and background assets
 
 ## 3. Application Architecture
@@ -31,6 +32,7 @@
   - Home settings (name, gender/avatar, difficulty, card back, theme, sound)
   - Session identity data
   - Solo game runtime (players, turn, last play, history, score)
+  - Emote UI state (picker open + active sticker timer)
 - Render pipeline:
   - `render()` dispatches to screen-specific renderers:
     - `renderHome()`
@@ -83,6 +85,8 @@
   - Tablet/desktop behaviors differ by media queries
 - Dynamic viewport sync:
   - `syncViewport()` updates runtime CSS variables and orientation attributes
+- Device-specific card sizing:
+  - CSS clamps for card width and center-discard scale on small mobile devices (including iOS).
 - Small desktop/web viewport guard:
   - Runtime attribute flags (`data-web-too-small`)
   - Interaction-blocking overlay in game screen
@@ -109,6 +113,7 @@
 - Callouts use recorded audio clips only (no TTS path).
 - Audio lookup supports variant clip keys for pass/last/play/winner lines.
 - Callouts are gated until the first play of a new round.
+- Emote stickers trigger short Web Audio SFX tone sequences.
 
 ## 11. Ads Integration
 - Popunder ad script source defined in app constants

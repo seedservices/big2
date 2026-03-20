@@ -17,6 +17,7 @@ Room document schema (current):
 - `expiresAt`: int (ms; TTL cleanup target)
 - `maxPlayers`: int (2..4)
 - `players`: list of player entries
+- `playerIds`: list of unique player ids (for membership lookups)
 - `settings`: game settings snapshot at create time
 - `totals`: list[4] of cumulative scores for the room
 - `roundCount`: int (completed rounds)
@@ -53,7 +54,8 @@ Join room (login required):
 
 1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
 2. `subscribeRoom()` listens to doc updates.
-3. Join modal shows a live list of joinable tables. Each card shows table code, host, seat avatars, and can be clicked to join. A "Create Table" card is shown first.
+3. Join modal shows a live list of tables. Each card shows table code, host, seat avatars, and can be clicked to join. A "Create Table" card is shown first.
+   - Tables already in `playing` status are shown with an "In Game / 戰鬥中" badge.
 
 Lobby (login required):
 
@@ -102,12 +104,12 @@ Presence:
 
 - `startRoomPresencePing()` updates `lastSeen` every 15s.
 - Players are marked offline after 15s without a ping.
-- Players are pruned after 60s without a ping.
+- Players are pruned after 180s without a ping.
 
 Replacement:
 
 - On each room snapshot, `syncRoomGameRoster()` removes players with
-  `lastSeen` older than 60s (only during `playing`) and replaces them with bots.
+  `lastSeen` older than 180s (only during `playing`) and replaces them with bots.
 - Removed entries are also pruned from the `players` list.
 - If the host times out, host is migrated to the first active player.
 - If the host leaves, host is migrated to the next remaining player (no auto-delete).

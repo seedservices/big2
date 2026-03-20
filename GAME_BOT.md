@@ -221,3 +221,6 @@ Pass score (`recommendPassScore`) details:
 - Because recommendation is re-runnable, repeated clicks can return different outputs when game state or selected cards changed between renders/events.
 - Mid-game 2 usage: In hard mode, if opponents still hold many cards, the AI can be overly conservative with 2s; the blitz logic helps but still needs field observation.
 - Triple-3 opener: A +30 lead bonus is intentional to secure control, even though it may reduce five-card options later.
+
+## UI Features (Non-Bot)
+- Emote stickers and their SFX are UI-only and do not affect bot logic.

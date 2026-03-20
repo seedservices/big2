@@ -111,6 +111,7 @@ No inserted gap between stitched segments.
 
 - `src/main.js` for `zh-HK` must load MP3 files only.
 - Fallback clip must be `audio/callout/zh-HK/pass.mp3`.
+- Emote SFX are generated at runtime via Web Audio tones and do not use the callout MP3 pipeline.
 
 ## Move-to-Live Rule
 

@@ -12,6 +12,7 @@
   - If the recommendation is a playable set, the `Play` button glows.
   - If the recommendation is a pass, the `Pass` button glows.
 - `Auto Sort` (Sequence/Pattern): Reorders your hand.
+- `Emote`: Opens a sticker picker. Selected stickers appear over the discard table and auto-clear.
 - Tap cards to select/unselect. Drag to reorder where supported.
 
 ## Game Flow
@@ -49,6 +50,10 @@
 ## Leaderboard
 - Sorting and period filters are available.
 - Use `Refresh` to fetch latest data.
+
+## Room List
+- The lobby list includes tables already in progress.
+- Tables in progress are tagged as `In Game` / `戰鬥中`.
 
 ## Tips
 - Use `Recommend` to learn patterns and timing.
