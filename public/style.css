@@ -3794,6 +3794,97 @@ body[data-screen='game'] .table-center-stack {
   align-items: flex-start;
   touch-action: pan-x;
 }
+.emote-panel {
+  position: absolute;
+  right: 8px;
+  bottom: calc(100% + 6px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  background: rgba(9, 24, 36, .92);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 12px;
+  z-index: 40;
+  box-shadow: 0 8px 18px rgba(0,0,0,.28);
+}
+.emote-panel .emote-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+.emote-panel .emote-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.table-emote {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: clamp(86px, 18vw, 160px);
+  height: auto;
+  pointer-events: none;
+  animation: emoteWobble 1.2s ease-in-out infinite;
+  z-index: 10;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+}
+.table-emote img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+@keyframes emoteWobble {
+  0% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.98); }
+  50% { transform: translate(-50%, -52%) rotate(6deg) scale(1.02); }
+  100% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.98); }
+}
+.table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
+.table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; }
+.table-emote.emote-rude { animation: emoteShake 1.2s ease-in-out infinite; }
+.table-emote.emote-sweat { animation: emotePulse 1.2s ease-in-out infinite; }
+.table-emote.emote-rage { animation: emoteRage 1.2s ease-in-out infinite; }
+.table-emote.emote-smash { animation: emoteBounce 1.2s ease-in-out infinite; }
+.table-emote.emote-fire { animation: emoteFire 1.2s ease-in-out infinite; }
+@keyframes emoteThrow {
+  0% { transform: translate(40%, -30%) rotate(18deg) scale(0.9); opacity: 0; }
+  35% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.02); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(-4deg) scale(1); opacity: 1; }
+}
+@keyframes emoteShake {
+  0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  20% { transform: translate(-52%, -50%) rotate(-4deg) scale(1.02); }
+  40% { transform: translate(-48%, -50%) rotate(4deg) scale(1.02); }
+  60% { transform: translate(-52%, -52%) rotate(-3deg) scale(1.01); }
+  80% { transform: translate(-48%, -48%) rotate(3deg) scale(1.01); }
+}
+@keyframes emotePulse {
+  0%,100% { transform: translate(-50%, -50%) scale(0.96); }
+  50% { transform: translate(-50%, -50%) scale(1.04); }
+}
+@keyframes emoteRage {
+  0%,100% { transform: translate(-50%, -50%) rotate(-2deg) scale(1.04); }
+  25% { transform: translate(-51%, -51%) rotate(2deg) scale(1.08); }
+  50% { transform: translate(-49%, -49%) rotate(-3deg) scale(1.06); }
+  75% { transform: translate(-51%, -51%) rotate(3deg) scale(1.08); }
+}
+@keyframes emoteBounce {
+  0%,100% { transform: translate(-50%, -50%) scale(1); }
+  35% { transform: translate(-50%, -56%) scale(1.03); }
+  55% { transform: translate(-50%, -46%) scale(0.98); }
+  75% { transform: translate(-50%, -52%) scale(1.01); }
+}
+@keyframes emoteFire {
+  0%,100% { transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
+  30% { transform: translate(-50%, -52%) rotate(3deg) scale(1.04); }
+  60% { transform: translate(-50%, -48%) rotate(-2deg) scale(1.02); }
+}
 .action-strip .hand-hint {
   grid-area: auto;
   position: absolute;
@@ -6265,6 +6356,9 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     min-height: 32px;
     padding: 2px 7px !important;
   }
+  body[data-ios='1'][data-screen='game'] {
+    --card-w: clamp(42px, 7.2vh, 58px);
+  }
   body[data-screen='game'] .north .seat-played .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini,
   body[data-screen='game'] .east .seat-played .card.mini,
@@ -7061,6 +7155,18 @@ body[data-screen='game'] .topbar-right .control-row {
 }
 body[data-screen='game'] .topbar-right .control-row::-webkit-scrollbar {
   height: 0;
+}
+@media (min-width: 1081px) {
+  body[data-screen='game'] .topbar,
+  body[data-screen='game'] .topbar-right,
+  body[data-screen='game'] .topbar > div:first-child {
+    min-width: 0;
+    max-width: 100%;
+  }
+  body[data-screen='game'] .topbar-right .control-row {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
 }
 body[data-screen='game'][data-web-too-small='1'] #app::after {
   content: '';
