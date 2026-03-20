@@ -196,6 +196,7 @@ const I18N={
     roomActiveList:'可加入牌桌',
     roomActiveEmpty:'未有可加入牌桌。',
     roomActiveRefresh:'更新列表',
+    roomStatusPlaying:'戰鬥中',
     roomJoinLog:'{{name}} 加入了房間。',
     roomLeaveLog:'{{name}} 離開了房間。',
     roomStarting:'房間準備中...'
@@ -384,6 +385,7 @@ const I18N={
     roomActiveList:'Available Tables',
     roomActiveEmpty:'No tables available.',
     roomActiveRefresh:'Refresh',
+    roomStatusPlaying:'In Game',
     roomJoinLog:'{{name}} joined the room.',
     roomLeaveLog:'{{name}} left the room.',
     roomStarting:'Room is starting...'
@@ -1717,7 +1719,7 @@ async function loadActiveRooms(attempt=0){
   state.home.activeRooms.error='';
   render();
   try{
-    const statusFilters=['lobby','starting','finished'];
+    const statusFilters=['lobby','starting','playing','finished'];
     let snap=null;
     try{
       snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION)
@@ -1749,7 +1751,7 @@ async function loadActiveRooms(attempt=0){
       for(const doc of snap.docs){
         const data=doc.data()??{};
         const status=String(data.status||'');
-        if(status!=='lobby'&&status!=='starting'&&status!=='finished'){
+        if(status!=='lobby'&&status!=='starting'&&status!=='playing'&&status!=='finished'){
           continue;
         }
         const players=Array.isArray(data.players)?data.players:[];
@@ -1809,6 +1811,7 @@ async function loadActiveRooms(attempt=0){
           code:String(data.code||'').toUpperCase(),
           hostName:String(hostPlayer?.name||data.hostName||''),
           hostId:String(hostPlayer?.uid||data.hostId||''),
+          status,
           players:activePlayers.length,
           maxPlayers:Number(data.maxPlayers||4),
           roster
@@ -5710,7 +5713,8 @@ function renderHome(){
           <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
         </div>`;
       }).join('');
-      return`<button class="room-active-card room-active-card-full" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info"><div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
+      const statusLabel=r.status==='playing'?`<div class="room-active-status">${t('roomStatusPlaying')}</div>`:'';
+      return`<button class="room-active-card room-active-card-full" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${statusLabel}<div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
     }).join('')
     :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;

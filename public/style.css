@@ -1,4 +1,4 @@
-﻿@font-face {
+﻿﻿﻿﻿﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -1246,6 +1246,16 @@ body[data-screen='home'] .home-wrap {
   background: rgba(255,255,255,.06);
   color: #d6e6f5;
   font-size: .7rem;
+}
+.room-active-status {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 164, 92, .38);
+  background: rgba(255, 164, 92, .12);
+  color: #ffd9b3;
+  font-size: .7rem;
+  font-weight: 700;
 }
 .room-error {
   color: #ffb3b3;
@@ -4983,6 +4993,26 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .royal-home-body .home-form-right .toggle-combo {
     flex-wrap: nowrap;
   }
+  .royal-home-body #sound-combo,
+  .royal-home-body #voice-combo {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .royal-home-body #sound-combo .sound-toggle-btn,
+  .royal-home-body #voice-combo .sound-toggle-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 4px;
+    font-size: .68rem;
+    box-sizing: border-box;
+  }
+  .royal-home-body #sound-combo .sound-icon,
+  .royal-home-body #voice-combo .sound-icon {
+    width: 14px;
+    height: 14px;
+  }
   .royal-home-body #difficulty-combo .toggle-btn {
     min-height: 32px;
     height: 32px;
@@ -7153,4 +7183,3 @@ body[data-screen='game'] .table .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
   height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
 }
-
