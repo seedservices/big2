@@ -2137,6 +2137,33 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .legal-modal-body a {
   color: #ffd166;
 }
+.legal-modal-body .legal-about-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) !important;
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+}
+.legal-about-grid::before {
+  content: '';
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 1px;
+  justify-self: start;
+  background: rgba(255, 255, 255, .18);
+}
+.legal-modal-body .legal-about-main {
+  padding-right: 12px;
+  border-right: 1px solid rgba(255, 255, 255, .18);
+  grid-column: 1 !important;
+}
+.legal-modal-body .legal-about-side {
+  padding-left: 12px;
+  grid-column: 2 !important;
+}
+.legal-about-side .bmac-cta {
+  margin-top: 0;
+}
 .intro-backdrop {
   position: absolute;
   inset: 0;
@@ -3119,7 +3146,13 @@ body[data-screen='game'] .table-center-stack {
 .seat-played .card.face.mini,
 .table-recent .card.face.mini,
 .mobile-discard-cards .card.face.mini {
-  box-shadow: 0 0 0 1px rgba(22, 38, 46, .52);
+  box-shadow: none;
+}
+.seat-played .card.face.mini .card-art,
+.center-last .seat-played .card.face.mini .card-art,
+.mobile-discard-cards .card.face.mini .card-art {
+  object-fit: contain;
+  background: transparent;
 }
 .seat-line { display: flex; align-items: center; gap: 4px; }
 .seat-last { display: inline-flex; align-items: center; }
@@ -3937,7 +3970,31 @@ body[data-screen='game'] .table-center-stack {
 }
 .table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
 .table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; width: clamp(150px, 30vw, 260px); }
-.table-emote.emote-rude { animation: emoteShake 1.2s ease-in-out infinite; width: clamp(140px, 26vw, 230px); }
+.table-emote.emote-rude {
+  animation: emoteShake 1.2s ease-in-out infinite;
+  width: clamp(180px, 34vw, 300px);
+  height: clamp(150px, 28vw, 260px);
+}
+.table-emote.emote-rude img { width: 70%; height: auto; }
+.table-emote.emote-rude .emote-rude-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  animation: emoteShock 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+}
+.table-emote.emote-rude .emote-rude-spark-1 {
+  transform: translate(-60%, -60%) scale(1.05) rotate(-6deg);
+}
+.table-emote.emote-rude .emote-rude-spark-2 {
+  transform: translate(-20%, -30%) scale(0.95) rotate(8deg);
+  animation-delay: 0.08s;
+}
+.table-emote.emote-rude .emote-rude-spark-3 {
+  transform: translate(-35%, -10%) scale(0.9) rotate(-12deg);
+  animation-delay: 0.16s;
+}
 .table-emote.emote-sweat { animation: emotePulse 1.2s ease-in-out infinite; }
 .table-emote.emote-rage { animation: emoteRage 1.2s ease-in-out infinite; }
 .table-emote.emote-smash { animation: emoteSmash 1.2s ease-in-out infinite; width: clamp(160px, 32vw, 280px); }
@@ -3953,6 +4010,11 @@ body[data-screen='game'] .table-center-stack {
   40% { transform: translate(-48%, -50%) rotate(4deg) scale(1.02); }
   60% { transform: translate(-52%, -52%) rotate(-3deg) scale(1.01); }
   80% { transform: translate(-48%, -48%) rotate(3deg) scale(1.01); }
+}
+@keyframes emoteShock {
+  0% { opacity: 0.65; transform: translate(-50%, -50%) scale(0.92); }
+  40% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  100% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.98); }
 }
 @keyframes emotePulse {
   0%,100% { transform: translate(-50%, -50%) scale(0.96); }
@@ -4069,7 +4131,6 @@ body[data-screen='game'] .table-center-stack {
 .card.back { width: var(--card-w); height: var(--card-h); border-radius: var(--card-radius); border: 0; background: transparent; }
 .card-art { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
 .card.back .card-art { object-fit: contain; }
-body[data-ios='1'] .card.face .card-art { object-fit: cover; }
 .hand-card {
   all: unset;
   box-sizing: border-box;
@@ -4862,27 +4923,31 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .east .opponent-fan,
   .west .opponent-fan {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
-    max-width: 100%;
-    overflow: hidden;
-    padding-top: 6px;
+    justify-content: center;
+    max-width: none;
+    overflow: visible;
   }
   .east .opponent-fan .card.back.mini.closed-back,
   .west .opponent-fan .card.back.mini.closed-back,
   .north .opponent-fan .card.back.mini.closed-back {
     width: calc(var(--card-w) * .62);
     height: calc(var(--card-h) * .62);
-    margin-top: calc(var(--card-h) * (-0.30 - (max(var(--n) - var(--closed-tighten-threshold), 0) * 0.018) - (var(--fan-gap, 0.5) * 0.10))) !important;
-    margin-left: 0 !important;
-    transform: rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
+    margin-top: 0 !important;
+    margin-left: calc(var(--card-w) * (-0.36 - (max(var(--n) - var(--closed-tighten-threshold), 0) * 0.02) - (var(--fan-gap, 0.5) * 0.12))) !important;
     transform-origin: center center;
+  }
+  .east .opponent-fan .card.back.mini.closed-back {
+    transform: translateY(calc(var(--fan-lift, 0.5) * -2px)) rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
+  }
+  .west .opponent-fan .card.back.mini.closed-back {
+    transform: translateY(calc(var(--fan-lift, 0.5) * -2px)) rotate(calc((var(--i) - (var(--n) - 1) / 2) * 2deg + var(--fan-jitter, 0deg))) !important;
   }
   .east .opponent-fan .card.back.mini.closed-back:first-child,
   .west .opponent-fan .card.back.mini.closed-back:first-child,
   .north .opponent-fan .card.back.mini.closed-back:first-child {
-    margin-top: 0 !important;
+    margin-left: 0 !important;
   }
 }
 @media (max-width: 420px) {
@@ -5185,6 +5250,23 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .royal-home-body .home-form-right .toggle-combo {
     flex-wrap: nowrap;
+  }
+  body[data-screen='game'] .north > .seat-name-fixed,
+  body[data-screen='game'] .east > .seat-name-fixed,
+  body[data-screen='game'] .west > .seat-name-fixed {
+    top: -12px !important;
+  }
+  body[data-screen='game'] {
+    --center-discard-scale: 1.18;
+  }
+  body[data-screen='game'] .table-emote {
+    width: clamp(150px, 36vw, 260px);
+  }
+  body[data-screen='game'] .table-emote.emote-throw {
+    width: clamp(190px, 44vw, 320px);
+  }
+  body[data-screen='game'] .table-emote.emote-smash {
+    width: clamp(200px, 48vw, 340px);
   }
   .royal-home-body #sound-combo,
   .royal-home-body #voice-combo {
@@ -6232,9 +6314,6 @@ body[data-screen='game'] {
 body[data-screen='game'][data-is-mobile='1'] {
   --center-discard-scale: 1.48;
 }
-body[data-screen='game'][data-ios='1'] {
-  --center-discard-scale: 1.48;
-}
 body[data-screen='game'] .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
   height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
@@ -6487,20 +6566,6 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     --center-discard-scale: 1.24;
   }
 }
-@media (max-width: 860px) and (pointer: coarse) {
-  body[data-ios='1'][data-screen='game'] {
-    --card-w: clamp(40px, 6.4vh, 58px);
-    --center-discard-scale: 1.28;
-    --card-scale: 0.92 !important;
-  }
-  body[data-ios='1'][data-screen='game'] .action-strip {
-    padding-top: 10px !important;
-  }
-  body[data-ios='1'][data-screen='game'] .action-strip .hand {
-    padding-top: 8px !important;
-    padding-bottom: 4px !important;
-  }
-}
 @media (max-width: 860px) and (orientation: portrait) {
   /* Portrait mobile: place south seat panel back into the green table area. */
   body[data-screen='game'] .action-zone {
@@ -6545,6 +6610,16 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     overflow-x: auto !important;
     overflow-y: visible !important;
     gap: 3px !important;
+  }
+  body[data-screen='game'] .north > .seat-name-fixed,
+  body[data-screen='game'] .east > .seat-name-fixed,
+  body[data-screen='game'] .west > .seat-name-fixed {
+    top: -6px !important;
+  }
+  body[data-screen='game'] .east .seat-section,
+  body[data-screen='game'] .west .seat-section,
+  body[data-screen='game'] .north .seat-section {
+    padding-top: 54px !important;
   }
 
   body[data-screen='game'][data-log-open='0'] #app {
@@ -6760,6 +6835,24 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+}
+
+/* Portrait: push N/E/W closed cards lower so avatars never cover them. */
+@media (max-width: 860px) and (orientation: portrait) {
+  body[data-screen='game'] .east .seat-section,
+  body[data-screen='game'] .west .seat-section,
+  body[data-screen='game'] .north .seat-section {
+    padding-top: 70px !important;
+  }
+}
+
+/* Portrait override: ensure opponent avatars move up so closed cards are visible. */
+@media (max-width: 860px) and (orientation: portrait) {
+  body[data-screen='game'] .north > .seat-name-fixed,
+  body[data-screen='game'] .east > .seat-name-fixed,
+  body[data-screen='game'] .west > .seat-name-fixed {
+    top: -12px !important;
   }
 }
 
