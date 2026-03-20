@@ -20,6 +20,8 @@ service cloud.firestore {
           (request.resource.data.status != 'playing' && request.resource.data.status != 'finished' &&
             request.resource.data.gameVersion is int &&
             request.resource.data.gameVersion == currentGameVersion(resource.data))
+          ||
+          isValidEmoteUpdate(request.resource.data,resource.data)
         );
       allow delete: if true;
     }
@@ -146,6 +148,7 @@ service cloud.firestore {
       'maxPlayers',
       'players',
       'playerIds',
+      'emote',
       'settings',
       'totals',
       'roundCount',
@@ -179,11 +182,34 @@ service cloud.firestore {
       d.players.size() >= 1 &&
       d.players.size() <= 4 &&
       (!('playerIds' in d) || isValidRoomPlayerIds(d.playerIds)) &&
+      (!('emote' in d) || isValidRoomEmote(d.emote)) &&
       (!('settings' in d) || isValidSettings(d.settings)) &&
       (!('totals' in d) || isValidRoomTotals(d.totals)) &&
       (!('roundCount' in d) || isValidRoundCount(d.roundCount)) &&
       (!('game' in d) || d.game is map) &&
       (!('gameVersion' in d) || d.gameVersion is int);
+  }
+
+  function isValidRoomEmote(v) {
+    return
+      v == null ||
+      (
+        v is map &&
+        v.keys().hasOnly(['id','ts','by']) &&
+        v.id is string &&
+        v.id.size() >= 1 &&
+        v.id.size() <= 40 &&
+        v.ts is int &&
+        (!('by' in v) || v.by is string)
+      );
+  }
+
+  function isValidEmoteUpdate(next, prev) {
+    let changed = next.diff(prev).affectedKeys();
+    return
+      changed.hasOnly(['emote','updatedAt']) &&
+      next.status == prev.status &&
+      currentGameVersion(next) == currentGameVersion(prev);
   }
 
   function isValidRoomTotals(v) {

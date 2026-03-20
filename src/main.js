@@ -2732,6 +2732,7 @@ function applyPassToGame(game,seat,now=Date.now()){
 function applyRoomGameSnapshot(roomData){
   const game=roomData?.game;
   if(!game||!Array.isArray(game.players)||!game.players.length)return;
+  syncRoomEmote(roomData);
   const move=game.lastMove;
   if(move&&typeof move==='object'){
     const key=`${move.type||''}:${move.seat||0}:${move.ts||0}`;
@@ -2822,6 +2823,29 @@ async function writeRoomGameLog(roomData,game){
       history:game.history||[]
     };
     await ref.set(payload,{merge:true});
+  }catch{}
+}
+async function roomSubmitEmote(id,tsOverride=null){
+  if(!state.room.id||!firebaseDb)return;
+  const match=EMOTE_STICKERS.find((x)=>x.id===id);
+  if(!match)return;
+  const now=Number.isFinite(Number(tsOverride))?Number(tsOverride):Date.now();
+  try{
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)throw new Error('room missing');
+      const data=snap.data()||{};
+      if(String(data.status)!=='playing')return;
+      if(!data.game)return;
+      const updated=cloneRoomGame(data.game)||data.game;
+      updated.emote={id:match.id,ts:Math.trunc(now),by:currentRoomPlayerId()};
+      tx.update(ref,{
+        game:updated,
+        updatedAt:now,
+        gameVersion:Number(data.gameVersion||0)+1
+      });
+    });
   }catch{}
 }
 async function roomSubmitPlay(cards,seatOverride=null){
@@ -4771,9 +4795,12 @@ function triggerEmoteSticker(id){
   const match=EMOTE_STICKERS.find((x)=>x.id===id);
   if(!match)return;
   const now=Date.now();
-  state.emote.active={id:match.id,ts:now};
+  state.emote.active={id:match.id,ts:now,source:'local'};
   state.emote.open=false;
   playSound(`emote-${match.id}`);
+  if(state.home.mode==='room'){
+    void roomSubmitEmote(match.id,now);
+  }
   if(emoteTimer){clearTimeout(emoteTimer);emoteTimer=null;}
   emoteTimer=window.setTimeout(()=>{
     if(state.emote.active&&state.emote.active.ts===now){
@@ -4781,6 +4808,52 @@ function triggerEmoteSticker(id){
       render();
     }
   },EMOTE_DURATION_MS);
+  render();
+}
+function syncRoomEmote(roomData){
+  const raw=roomData?.game?.emote ?? roomData?.emote;
+  if(!raw||typeof raw!=='object'){
+    if(state.emote.active?.source==='room'){
+      state.emote.active=null;
+      render();
+    }
+    return;
+  }
+  const id=String(raw.id||'').trim();
+  const ts=Number(raw.ts||0);
+  if(!id||!Number.isFinite(ts)){
+    if(state.emote.active?.source==='room'){
+      state.emote.active=null;
+      render();
+    }
+    return;
+  }
+  const age=Date.now()-ts;
+  if(age>EMOTE_DURATION_MS){
+    if(state.emote.active?.source==='room'&&state.emote.active.ts===ts){
+      state.emote.active=null;
+      render();
+    }
+    return;
+  }
+  const current=state.emote.active;
+  if(current&&current.id===id&&current.ts===ts){
+    if(current.source==='local')return;
+    if(current.source==='room')return;
+  }
+  state.emote.active={id,ts,source:'room',by:String(raw.by||'')};
+  state.emote.open=false;
+  if(emoteTimer){clearTimeout(emoteTimer);emoteTimer=null;}
+  const remaining=Math.max(0,EMOTE_DURATION_MS-age);
+  emoteTimer=window.setTimeout(()=>{
+    if(state.emote.active&&state.emote.active.ts===ts&&state.emote.active.source==='room'){
+      state.emote.active=null;
+      render();
+    }
+  },remaining);
+  if(String(raw.by||'')!==currentRoomPlayerId()){
+    playSound(`emote-${id}`);
+  }
   render();
 }
 function newCalloutNonce(){
@@ -6915,10 +6988,6 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
-
-
-
-
 
 
 
