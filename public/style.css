@@ -4476,8 +4476,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .history-cards { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
   width: calc(var(--card-w) * .96);
-  height: calc(var(--card-h) * .64);
-  overflow: hidden;
+  height: calc(var(--card-h) * .96);
+  overflow: visible;
   flex: 0 0 auto;
 }
 .history-cards .card.mini + .card.mini {
@@ -4485,8 +4485,9 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 }
 .history-cards .card.mini .card-art {
   width: 100%;
-  height: calc(var(--card-h) * .96);
-  object-position: top;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 .side-card ul { margin: 0; padding-left: 16px; color: var(--muted); line-height: 1.45; font-size: .82rem; }
 
