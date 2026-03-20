@@ -5183,8 +5183,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     padding-bottom: 0 !important;
   }
   body[data-screen='game'] .action-strip .hand .hand-card {
-    width: calc(var(--card-w) * 1.02) !important;
     height: calc(var(--card-h) * 1.02) !important;
+    width: auto !important;
   }
   body[data-screen='game'] .north .seat-played .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini,
@@ -6781,8 +6781,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     flex: 0 0 auto;
   }
   body[data-screen='game'] .action-strip .hand .hand-card {
-    width: calc(var(--card-w) * 1.34) !important;
     height: calc(var(--card-h) * 1.34) !important;
+    width: auto !important;
   }
   body[data-screen='game'] .action-strip .hand .hand-card + .hand-card {
     margin-left: calc(var(--card-w) * -0.78) !important;
