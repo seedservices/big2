@@ -2155,6 +2155,20 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   flex: 0 0 min(280px, 40%);
   padding-left: 12px;
 }
+@media (max-width: 520px) {
+  .legal-modal-body .legal-about-grid {
+    flex-direction: column;
+  }
+  .legal-modal-body .legal-about-main {
+    padding-right: 0;
+    border-right: 0;
+  }
+  .legal-modal-body .legal-about-side {
+    padding-left: 0;
+    border-left: 0;
+    margin-left: 0;
+  }
+}
 .legal-about-side .bmac-cta {
   margin-top: 0;
 }
@@ -6521,6 +6535,12 @@ body[data-screen='game'] .log-side-card .log-toggle-title {
   display: flex !important;
   align-items: center !important;
 }
+body[data-screen='game'] .log-side-card .log-toggle-title {
+  min-height: 30px !important;
+  height: 30px !important;
+  font-size: .86rem !important;
+  padding: 0 2px !important;
+}
 body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   padding: 9px !important;
   align-content: start !important;
@@ -6838,14 +6858,38 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'][data-orientation='portrait'] .east > .seat-name-fixed,
   body[data-screen='game'][data-orientation='portrait'] .west > .seat-name-fixed {
     position: absolute !important;
-    top: -12px !important;
+    top: 6px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
+    z-index: 30 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .east .seat-pack,
+  body[data-screen='game'][data-orientation='portrait'] .west .seat-pack,
+  body[data-screen='game'][data-orientation='portrait'] .north .seat-pack {
+    padding-top: 0 !important;
+    position: relative;
+    z-index: 5;
   }
   body[data-screen='game'][data-orientation='portrait'] .east .seat-section,
   body[data-screen='game'][data-orientation='portrait'] .west .seat-section,
   body[data-screen='game'][data-orientation='portrait'] .north .seat-section {
-    padding-top: 70px !important;
+    padding-top: 0 !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .east .opponent-fan,
+  body[data-screen='game'][data-orientation='portrait'] .west .opponent-fan,
+  body[data-screen='game'][data-orientation='portrait'] .north .opponent-fan {
+    margin-top: 46px !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .log-side-card .log-toggle-title {
+    min-height: 30px !important;
+    height: 30px !important;
+    font-size: .84rem !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .table-emote.emote-rude {
+    width: clamp(190px, 46vw, 320px);
+    height: clamp(160px, 38vw, 280px);
   }
 }
 
