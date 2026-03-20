@@ -3846,16 +3846,16 @@ body[data-screen='game'] .table-center-stack {
   100% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.98); }
 }
 .table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
-.table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; }
+.table-emote.emote-throw { animation: emoteThrow 1.2s ease-out infinite; width: clamp(120px, 26vw, 220px); }
 .table-emote.emote-rude { animation: emoteShake 1.2s ease-in-out infinite; }
 .table-emote.emote-sweat { animation: emotePulse 1.2s ease-in-out infinite; }
 .table-emote.emote-rage { animation: emoteRage 1.2s ease-in-out infinite; }
-.table-emote.emote-smash { animation: emoteBounce 1.2s ease-in-out infinite; }
+.table-emote.emote-smash { animation: emoteSmash 1.2s ease-in-out infinite; }
 .table-emote.emote-fire { animation: emoteFire 1.2s ease-in-out infinite; }
 @keyframes emoteThrow {
-  0% { transform: translate(40%, -30%) rotate(18deg) scale(0.9); opacity: 0; }
-  35% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.02); opacity: 1; }
-  100% { transform: translate(-50%, -50%) rotate(-4deg) scale(1); opacity: 1; }
+  0% { transform: translate(-140%, -30%) rotate(-18deg) scale(0.9); opacity: 0; }
+  35% { transform: translate(-50%, -50%) rotate(6deg) scale(1.02); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(4deg) scale(1); opacity: 1; }
 }
 @keyframes emoteShake {
   0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
@@ -3879,6 +3879,12 @@ body[data-screen='game'] .table-center-stack {
   35% { transform: translate(-50%, -56%) scale(1.03); }
   55% { transform: translate(-50%, -46%) scale(0.98); }
   75% { transform: translate(-50%, -52%) scale(1.01); }
+}
+@keyframes emoteSmash {
+  0% { transform: translate(-90%, -50%) scale(0.95); opacity: 0; }
+  35% { transform: translate(-50%, -56%) scale(1.04); opacity: 1; }
+  55% { transform: translate(-50%, -46%) scale(0.98); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 @keyframes emoteFire {
   0%,100% { transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
@@ -3996,7 +4002,7 @@ body[data-screen='game'] .table-center-stack {
 }
 .action-strip .hand .hand-card {
   width: calc(var(--card-w) * 1.14) !important;
-  height: calc((var(--card-w) * 1.14) * 7 / 5) !important;
+  height: calc(var(--card-h) * 1.14) !important;
   aspect-ratio: 5 / 7;
   display: grid;
   place-items: center;
@@ -5008,7 +5014,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   body[data-screen='game'] .action-strip .hand .hand-card {
     width: calc(var(--card-w) * 1.02) !important;
-    height: calc((var(--card-w) * 1.02) * 7 / 5) !important;
+    height: calc(var(--card-h) * 1.02) !important;
   }
   body[data-screen='game'] .north .seat-played .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini,
@@ -6305,7 +6311,7 @@ body[data-screen='game'] .seat-count-tag {
   /* Web view: reduce south hand cards. */
   body[data-screen='game'] .action-strip .hand .hand-card {
     width: calc(var(--card-w) * 1.2) !important;
-    height: calc((var(--card-w) * 1.2) * 7 / 5) !important;
+    height: calc(var(--card-h) * 1.2) !important;
   }
   body[data-screen='game'] .action-strip .hand {
     min-height: calc(var(--card-h) * 1.2 + 26px) !important;
@@ -6390,6 +6396,13 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     --card-w: clamp(40px, 6.4vh, 58px);
     --center-discard-scale: 1.28;
     --card-scale: 0.92 !important;
+  }
+  body[data-ios='1'][data-screen='game'] .action-strip {
+    padding-top: 10px !important;
+  }
+  body[data-ios='1'][data-screen='game'] .action-strip .hand {
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
@@ -6578,7 +6591,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   }
   body[data-screen='game'] .action-strip .hand .hand-card {
     width: calc(var(--card-w) * 1.34) !important;
-    height: calc((var(--card-w) * 1.34) * 7 / 5) !important;
+    height: calc(var(--card-h) * 1.34) !important;
   }
   body[data-screen='game'] .action-strip .hand .hand-card + .hand-card {
     margin-left: calc(var(--card-w) * -0.78) !important;
