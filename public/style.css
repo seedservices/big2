@@ -2138,28 +2138,22 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   color: #ffd166;
 }
 .legal-modal-body .legal-about-grid {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) !important;
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 14px;
-  align-items: start;
+  align-items: flex-start;
   width: 100%;
 }
-.legal-about-grid::before {
-  content: '';
-  grid-column: 2;
-  grid-row: 1 / -1;
-  width: 1px;
-  justify-self: start;
-  background: rgba(255, 255, 255, .18);
-}
 .legal-modal-body .legal-about-main {
+  flex: 1 1 0;
+  min-width: 0;
   padding-right: 12px;
   border-right: 1px solid rgba(255, 255, 255, .18);
-  grid-column: 1 !important;
 }
 .legal-modal-body .legal-about-side {
+  flex: 0 0 min(280px, 40%);
   padding-left: 12px;
-  grid-column: 2 !important;
 }
 .legal-about-side .bmac-cta {
   margin-top: 0;
@@ -6835,6 +6829,23 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+  }
+}
+
+/* Final portrait lock: move N/E/W avatars up and push cards down to avoid cover. */
+@media (max-width: 860px) and (orientation: portrait) {
+  body[data-screen='game'][data-orientation='portrait'] .north > .seat-name-fixed,
+  body[data-screen='game'][data-orientation='portrait'] .east > .seat-name-fixed,
+  body[data-screen='game'][data-orientation='portrait'] .west > .seat-name-fixed {
+    position: absolute !important;
+    top: -12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .east .seat-section,
+  body[data-screen='game'][data-orientation='portrait'] .west .seat-section,
+  body[data-screen='game'][data-orientation='portrait'] .north .seat-section {
+    padding-top: 70px !important;
   }
 }
 
