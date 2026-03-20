@@ -6387,8 +6387,9 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
 }
 @media (max-width: 860px) and (pointer: coarse) {
   body[data-ios='1'][data-screen='game'] {
-    --card-w: clamp(36px, 5.8vh, 50px);
-    --center-discard-scale: 1.18;
+    --card-w: clamp(40px, 6.4vh, 58px);
+    --center-discard-scale: 1.28;
+    --card-scale: 0.92 !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
