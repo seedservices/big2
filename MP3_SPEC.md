@@ -97,6 +97,7 @@ $ErrorActionPreference='Stop'; $repo=(Resolve-Path .).Path; $out=Join-Path $repo
 
 - `kind-fourofkind-female`: `四條(0->440ms)` + `薯條(440ms->end)`
 - `kind-fourofkind-male`: `四條(0->440ms)` + `薯條(440ms->end)`
+- `kind-triple-female`: `三條(0->440ms)` + `薯條(440ms->end)`
 - `kind-triple-male`: `三條(0->440ms)` + `薯條(440ms->end)`
 
 No inserted gap between stitched segments.
