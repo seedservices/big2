@@ -16,6 +16,7 @@ Room document schema (current):
 - `updatedAt`: int (ms)
 - `expiresAt`: int (ms; TTL cleanup target)
 - `maxPlayers`: int (2..4)
+- `isPrivate`: boolean (host-only toggle)
 - `players`: list of player entries
 - `playerIds`: list of unique player ids (for membership lookups)
 - `settings`: game settings snapshot at create time

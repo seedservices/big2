@@ -245,6 +245,9 @@ const I18N={
     roomDisconnected:'你已離開房間，請重新加入。',
     roomHost:'房主',
     roomHostTag:'房主',
+    roomPrivacy:'房間私隱',
+    roomPrivate:'私人',
+    roomPublic:'公開',
     roomNeedPlayers:'最少需要 2 位玩家先可以開始。',
     roomRoomId:'房間代碼',
     roomRound:'回合',
@@ -439,6 +442,9 @@ const I18N={
     roomDisconnected:'You left the room. Please join again.',
     roomHost:'Host',
     roomHostTag:'HOST',
+    roomPrivacy:'Room Privacy',
+    roomPrivate:'Private',
+    roomPublic:'Public',
     roomNeedPlayers:'Need at least 2 players to start.',
     roomRoomId:'Room ID',
     roomRound:'Round',
@@ -1973,16 +1979,17 @@ async function loadActiveRooms(attempt=0){
             ready:Boolean(p.ready),
             lastSeen:Number(p.lastSeen)||0
           }));
-        rows.push({
-          id:doc.id,
-          code:String(data.code||'').toUpperCase(),
-          hostName:String(hostPlayer?.name||data.hostName||''),
-          hostId:String(hostPlayer?.uid||data.hostId||''),
-          status,
-          players:activePlayers.length,
-          maxPlayers:Number(data.maxPlayers||4),
-          roster
-        });
+          rows.push({
+            id:doc.id,
+            code:String(data.code||'').toUpperCase(),
+            hostName:String(hostPlayer?.name||data.hostName||''),
+            hostId:String(hostPlayer?.uid||data.hostId||''),
+            isPrivate:Boolean(data.isPrivate),
+            status,
+            players:activePlayers.length,
+            maxPlayers:Number(data.maxPlayers||4),
+            roster
+          });
       }
     state.home.activeRooms.rows=rows;
     state.home.activeRooms.loadedAt=Date.now();
@@ -2047,8 +2054,9 @@ async function createRoom(){
       createdAt:now,
       updatedAt:now,
       expiresAt:now+(2*60*60*1000),
-      maxPlayers:4,
-      players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
+        maxPlayers:4,
+        isPrivate:false,
+        players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
       playerIds:[uid],
       settings:collectMainSettings(),
       totals:[5000,5000,5000,5000],
@@ -2432,6 +2440,25 @@ async function setRoomReady(ready){
     });
   }catch(err){
     console.error('ready update failed',err);
+  }
+}
+async function setRoomPrivacy(isPrivate){
+  if(!state.room.id||!firebaseDb)return;
+  try{
+    const uid=currentRoomPlayerId();
+    if(!uid)return;
+    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
+    await firebaseDb.runTransaction(async(tx)=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists)return;
+      const data=snap.data()??{};
+      if(String(data.status)==='playing')return;
+      const hostId=String(data.hostId??'').trim();
+      if(hostId&&hostId!==uid)throw new Error('not host');
+      tx.update(ref,{isPrivate:Boolean(isPrivate),updatedAt:Date.now()});
+    });
+  }catch(err){
+    console.error('privacy update failed',err);
   }
 }
 async function startRoom(){
@@ -5976,6 +6003,7 @@ function renderHome(){
   const roomHumanPlayers=roomPlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
   const roomCanStart=roomHumanPlayers.length>=2;
   const roomReady=Boolean(roomSelf?.ready);
+  const roomPrivate=Boolean(roomData?.isPrivate);
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
@@ -6013,34 +6041,39 @@ function renderHome(){
     </div>`;
   }).join('');
   const roomHostLine=derivedHostName?`<div class="room-host-line"><span>${t('roomHost')}:</span><strong>${esc(derivedHostName)}</strong></div>`:'';
+  const roomPrivacyRow=roomIsHost
+    ?`<div class="room-privacy-row"><span>${t('roomPrivacy')}</span><button id="room-privacy-toggle" class="secondary">${roomPrivate?'🔑 ':''}${roomPrivate?t('roomPrivate'):t('roomPublic')}</button></div>`
+    :'';
   const roomStartControl=roomIsHost
     ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart)?'disabled':''}>${t('roomStart')}</button>`}${roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
     :`<span class="hint">${roomStarting?t('roomStarting'):t('roomWaitingHost')}</span>`;
   const roomTitle=t('roomTableTitle');
-  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div><div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
   const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></button>`;
   const activeRoomsCards=activeRooms.length
     ?activeRooms.map((r)=>{
-      const roster=Array.isArray(r.roster)?r.roster:[];
-      const roomSeats=[0,1,2,3].map((seat)=>{
-        const entry=roster.find((p)=>Number(p.seat)===seat);
-        if(!entry){
-          return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
+        const roster=Array.isArray(r.roster)?r.roster:[];
+        const isPrivate=Boolean(r.isPrivate);
+        const roomSeats=[0,1,2,3].map((seat)=>{
+          const entry=roster.find((p)=>Number(p.seat)===seat);
+          if(!entry){
+            return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
         }
         const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
         const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
         const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
         return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
           <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
-        </div>`;
-      }).join('');
-      const statusLabel=r.status==='playing'?`<div class="room-active-status">${t('roomStatusPlaying')}</div>`:'';
-      return`<button class="room-active-card room-active-card-full" data-code="${esc(r.code)}" type="button"><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${statusLabel}<div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
-    }).join('')
-    :'';
+          </div>`;
+        }).join('');
+        const statusLabel=r.status==='playing'?`<div class="room-active-status">${t('roomStatusPlaying')}</div>`:'';
+        const privateLabel=isPrivate?`<div class="room-active-private" title="${t('roomPrivate')}">🔑 ${t('roomPrivate')}</div>`:'';
+        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${isPrivate?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
+      }).join('')
+      :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
   const activeRoomsBlock=`<div class="room-active-block"><div class="room-active-head"><span>${t('roomActiveList')}</span><button id="room-active-refresh" class="secondary">${t('roomActiveRefresh')}</button></div><div class="room-active-grid">${createTableCard}${activeRoomsCards}${activeRoomsEmpty}</div></div>`;
   const roomJoinModal=(!inRoom&&state.room.joinOpen)?`<div class="room-overlay"><div class="room-card room-join-card"><div class="room-head"><h3>${t('roomLobby')}</h3></div><label class="field"><span>${t('roomCode')}</span><div class="room-code-row"><input id="room-code-input" class="room-input" maxlength="8" placeholder="ABC123"/><button id="room-join-confirm" class="primary">${t('roomJoin')}</button></div></label>${activeRoomsState?.loading?`<div class="hint">...</div>`:activeRoomsBlock}${roomErrorHtml}<div class="room-actions"><button id="room-join-cancel" class="secondary">${t('home')}</button></div></div></div>`:'';
@@ -6134,6 +6167,7 @@ function renderHome(){
     await loadActiveRooms();
   });
   document.querySelectorAll('.room-active-card').forEach((card)=>card.addEventListener('click',()=>{
+    if(card.hasAttribute('disabled')||card.getAttribute('data-private')==='1')return;
     const code=String(card.getAttribute('data-code')||'');
     if(!code)return;
     const input=document.getElementById('room-code-input');
@@ -6154,6 +6188,10 @@ function renderHome(){
   });
   document.getElementById('room-ready-seat')?.addEventListener('click',async()=>{
     await setRoomReady(!roomReady);
+  });
+  document.getElementById('room-privacy-toggle')?.addEventListener('click',async()=>{
+    if(!roomIsHost)return;
+    await setRoomPrivacy(!roomPrivate);
   });
   document.getElementById('room-start')?.addEventListener('click',async()=>{
     if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();

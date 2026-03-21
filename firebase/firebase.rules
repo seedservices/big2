@@ -146,6 +146,7 @@ service cloud.firestore {
       'updatedAt',
       'expiresAt',
       'maxPlayers',
+      'isPrivate',
       'players',
       'playerIds',
       'emote',
@@ -178,6 +179,7 @@ service cloud.firestore {
       d.maxPlayers is int &&
       d.maxPlayers >= 2 &&
       d.maxPlayers <= 4 &&
+      (!('isPrivate' in d) || d.isPrivate is bool) &&
       d.players is list &&
       d.players.size() >= 1 &&
       d.players.size() <= 4 &&

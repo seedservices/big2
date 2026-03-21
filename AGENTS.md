@@ -36,6 +36,9 @@
 - Never write files in UTF-16, UTF-32, or ANSI/legacy encodings.
 - Preserve existing UTF-8 (with/without BOM) unless explicitly requested to change.
 
+## Firebase Deploy Note
+- Firestore rules deploy should be run from `C:\git\big2\firebase` (where `firebase.json` lives).
+
 ## Callout Generation Rule
 - We might have emoji in the callout text, but do not include the emoji in the mp3 generation
 - For Cantonese MP3 generation on this machine, use the exact PowerShell + ffmpeg pipeline documented in `MP3_SPEC.md` (temp folder, `Strip-Emoji`, `SetOutputToWaveFile` before `Speak`, then ffmpeg to mp3). Do not improvise or switch pipelines.
