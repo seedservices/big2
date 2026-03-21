@@ -530,7 +530,14 @@ const EMOTE_STICKERS=[
   {id:'sweat',file:'emote-sweat.png'},
   {id:'rage',file:'emote-rage.png'},
   {id:'smash',file:'emote-smash.png'},
-  {id:'fire',file:'emote-fire.png'}
+  {id:'fire',file:'emote-fire.png'},
+  {id:'smirk',file:'emote-smirk.png'},
+  {id:'cry',file:'emote-cry.png'},
+  {id:'cheers',file:'emote-cheers.png'},
+  {id:'thumbs',file:'emote-thumbs.png'},
+  {id:'crack',file:'emote-crack.png'},
+  {id:'sleep',file:'emote-sleep.png'},
+  {id:'love',file:'emote-love.png'}
 ];
 const app=document.getElementById('app');
 const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
@@ -1340,18 +1347,18 @@ function legalMiniCopy(){
   return{
     labels,
     closeLabel:zh?'關閉':'Close',
-    content:{
-      privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${zh?'收集資料':'Data we collect'}</p>${listHtml(privacyCollect)}<p>${zh?'使用目的':'How we use data'}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
-      about:`<h4>${esc(labels.about)}</h4><div class="legal-about-grid"><div class="legal-about-main"><p>${esc(aboutIntro)}</p>${listHtml(aboutList)}<p>${esc(aboutNotes)}</p></div><div class="legal-about-side">${supportHtml}</div></div>`,
-      contact:`<h4>${esc(labels.contact)}</h4><p>${contactHtml}</p><p>${zh?'建議提供':'Please include'}</p>${listHtml(contactList)}`,
-      terms:`<h4>${esc(labels.terms)}</h4><p>${esc(termsIntro)}</p>${listHtml(termsList,true)}<p>${esc(termsNotes)}</p>`
-    }
-  };
-}
-function mainPageLegalMiniHtml(){
-  const legal=legalMiniCopy();
-  return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${legal.labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${legal.labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${legal.labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${legal.labels.terms}</button></div><div class="intro-modal legal-modal" id="legal-modal"><button class="intro-backdrop" id="legal-backdrop" aria-label="close"></button><section class="intro-sheet legal-sheet"><header class="intro-head"><div><h3 id="legal-modal-title"></h3></div><button id="legal-close" class="secondary">${legal.closeLabel}</button></header><div class="legal-modal-body" id="legal-modal-body"></div></section></div></section>`;
-}
+      content:{
+        privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${zh?'收集資料':'Data we collect'}</p>${listHtml(privacyCollect)}<p>${zh?'使用目的':'How we use data'}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
+        about:`<h4>${esc(labels.about)}</h4><div class="legal-about-grid"><div class="legal-about-main"><p>${esc(aboutIntro)}</p>${listHtml(aboutList)}<p>${esc(aboutNotes)}</p></div><div class="legal-about-side">${supportHtml}</div></div>`,
+        contact:`<h4>${esc(labels.contact)}</h4><p>${contactHtml}</p><p>${zh?'建議提供':'Please include'}</p>${listHtml(contactList)}`,
+        terms:`<h4>${esc(labels.terms)}</h4><p>${esc(termsIntro)}</p>${listHtml(termsList,true)}<p>${esc(termsNotes)}</p>`
+      }
+    };
+  }
+  function mainPageLegalMiniHtml(){
+    const legal=legalMiniCopy();
+    return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${legal.labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${legal.labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${legal.labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${legal.labels.terms}</button></div><div class="intro-modal legal-modal" id="legal-modal"><button class="intro-backdrop" id="legal-backdrop" aria-label="close"></button><section class="intro-sheet legal-sheet"><header class="intro-head"><div><h3 id="legal-modal-title"></h3></div><button id="legal-close" class="secondary">${legal.closeLabel}</button></header><div class="legal-modal-body" id="legal-modal-body"></div></section></div></section>`;
+  }
 const introText=()=>state.language==='en'
   ?{
     btnShow:'Guide',
@@ -1370,18 +1377,44 @@ const introText=()=>state.language==='en'
       'After three consecutive passes, initiative returns to the last successful player.',
       'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
     ],
-    flowTitle:'Opening Flow',
-    flowList:[
-      'Deal 13 cards to each of the 4 players.',
-      'The player holding {{3D}} must open the first trick.',
-      'Other players either beat with matching card count or pass.',
-      'After three passes, the previous winning play resets the lead.',
-      'Round ends immediately when one player plays all cards.'
-    ],
-    howTitle:'Hand Types',
-    howBody:'To follow, card count must match the active play. For 5-card contests, compare hand category first, then compare the relevant high cards and suits under game rules.',
-    howList:[]
-  }
+      flowTitle:'Opening Flow',
+      flowList:[
+        'Deal 13 cards to each of the 4 players.',
+        'The player holding {{3D}} must open the first trick.',
+        'Other players either beat with matching card count or pass.',
+        'After three passes, the previous winning play resets the lead.',
+        'Round ends immediately when one player plays all cards.'
+      ],
+      guideHowTitle:'How to Play',
+      guideHowIntro:'Quick start steps to begin a match:',
+      guideHowList:[
+        'Sign in to enable room play and leaderboard tracking.',
+        'From Home, choose Solo or enter the Lobby to create/join a room.',
+        'In a room, tap Ready; the host presses Start when at least 2 players are ready.',
+        'On your turn, select cards and tap Play; tap Pass when allowed.',
+        'Use Suggest for help, and sort/drag to organize your hand.'
+      ],
+      guideHomeTitle:'Add to Home Screen',
+      guideHomeIntro:'Add it to your Home screen for a full-screen, app-like launch.',
+      guideAndroidTitle:'Android (Chrome)',
+      guideAndroidSteps:[
+        'Open this site in Chrome.',
+        'Tap the three-dot menu.',
+        'Select Add to Home screen.',
+        'Confirm the name and tap Add.'
+      ],
+      guideIosTitle:'iPhone / iPad (Safari)',
+      guideIosSteps:[
+        'Open this site in Safari.',
+        'Tap Share (square with an up arrow).',
+        'Choose Add to Home Screen.',
+        'Confirm the name and tap Add.'
+      ],
+      guideHomeNotes:'If you do not see the option, make sure you are using Safari/Chrome rather than an in-app browser.',
+      howTitle:'Hand Types',
+      howBody:'To follow, card count must match the active play. For 5-card contests, compare hand category first, then compare the relevant high cards and suits under game rules.',
+      howList:[]
+    }
   :{
     btnShow:'玩法指南',
     btnHide:'關閉',
@@ -1399,18 +1432,44 @@ const introText=()=>state.language==='en'
       '連續三家過牌後，由最後有效出牌者重新話事。',
       '當你話事時，應平衡節奏控制與大牌保留，避免被對手一手出清。'
     ],
-    flowTitle:'開局流程',
-    flowList:[
-      '4 位玩家每人派發 13 張手牌。',
-      '持有 {{3D}} 的玩家必須先開第一手。',
-      '其餘玩家需以相同張數壓過，或選擇過牌。',
-      '連續三家過牌後，回到上一手有效出牌者重新話事。',
-      '直至有玩家先出清手牌，該局立即結束。'
-    ],
-    howTitle:'牌型',
-    howBody:'跟牌時必須符合相同張數。若為五張牌對比，先比較牌型等級，再按規則比較相關主牌點數與花色。',
-    howList:[]
-  };
+      flowTitle:'開局流程',
+      flowList:[
+        '4 位玩家每人派發 13 張手牌。',
+        '持有 {{3D}} 的玩家必須先開第一手。',
+        '其餘玩家需以相同張數壓過，或選擇過牌。',
+        '連續三家過牌後，回到上一手有效出牌者重新話事。',
+        '直至有玩家先出清手牌，該局立即結束。'
+      ],
+      guideHowTitle:'玩法教學',
+      guideHowIntro:'快速上手，以下步驟可完成開局並開始對戰：',
+      guideHowList:[
+        '登入後可進行房間對戰與排行榜記錄。',
+        '主頁選擇「開局」（單人）或進入大堂建立／加入房間。',
+        '房間內先點「準備」，房主在至少 2 位玩家就緒後按「開始」。',
+        '輪到你時，選牌後按「出牌」，可過牌時按「過牌」。',
+        '需要提示可按「建議」，亦可使用排序或拖曳整理手牌。'
+      ],
+      guideHomeTitle:'加到主畫面',
+      guideHomeIntro:'加到主畫面後可像 App 一樣全螢幕開啟。',
+      guideAndroidTitle:'Android（Chrome）',
+      guideAndroidSteps:[
+        '用 Chrome 開啟本網站。',
+        '點右上角「⋮」選單。',
+        '選擇「加到主畫面」。',
+        '確認名稱後點「新增」。'
+      ],
+      guideIosTitle:'iPhone / iPad（Safari）',
+      guideIosSteps:[
+        '用 Safari 開啟本網站。',
+        '點下方「分享」按鈕（方形向上箭頭）。',
+        '選擇「加入主畫面」。',
+        '確認名稱後點「加入」。'
+      ],
+      guideHomeNotes:'如看不到相關選項，請確認不是在其他 App 的內置瀏覽器內開啟。',
+      howTitle:'牌型',
+      howBody:'跟牌時必須符合相同張數。若為五張牌對比，先比較牌型等級，再按規則比較相關主牌點數與花色。',
+      howList:[]
+    };
 function introHandSamples(){
   const card=(rank,suit)=>{
     const r=RANKS.indexOf(rank);
@@ -1447,9 +1506,12 @@ function introPanelHtml(){
     const card3d=state.language==='en'?'♦️Diamond 3':'♦️3';
     return colorizeSuitText(String(text??'').replaceAll(token,card3d));
   };
-  const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
-  return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article></div></section></div>`;
-}
+    const rows=introHandSamples().map((row)=>`<div class="intro-hand-row"><div class="intro-hand-meta"><strong>${esc(row.name)}</strong><span>${esc(row.desc)}</span></div><div class="intro-hand-cards">${row.cards.map((c)=>renderStaticCard(c,true)).join('')}</div></div>`).join('');
+    const howList=(it.guideHowList??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
+    const androidList=(it.guideAndroidSteps??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
+    const iosList=(it.guideIosSteps??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
+    return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.guideHowTitle)}</h4><p>${esc(it.guideHowIntro)}</p><ul>${howList}</ul></article><article class="intro-block"><h4>${esc(it.guideHomeTitle)}</h4><p>${esc(it.guideHomeIntro)}</p><p><strong>${esc(it.guideAndroidTitle)}</strong></p><ol>${androidList}</ol><p><strong>${esc(it.guideIosTitle)}</strong></p><ol>${iosList}</ol><p>${esc(it.guideHomeNotes)}</p></article></div></section></div>`;
+  }
 function leaderboardModalHtml(){
   const closeLabel=state.language==='en'?'Close':'關閉';
   return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-leaderboard" aria-hidden="true"></span><span>${t('lb')}</span></h3><p>${esc(t('lbHeadingDesc'))}</p></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
@@ -5349,6 +5411,13 @@ function playSound(kind){
   if(kind==='emote-rage'){playTone(180,0.08,'sawtooth',0.04);playTone(160,0.1,'square',0.04,0.06);}
   if(kind==='emote-smash'){playTone(140,0.12,'square',0.045);playTone(90,0.14,'sine',0.04,0.08);}
   if(kind==='emote-fire'){playTone(720,0.06,'triangle',0.02);playTone(620,0.06,'triangle',0.02,0.07);playTone(820,0.08,'triangle',0.02,0.14);}
+  if(kind==='emote-smirk'){playTone(520,0.07,'triangle',0.02);playTone(390,0.09,'triangle',0.02,0.05);}
+  if(kind==='emote-cry'){playTone(320,0.12,'sine',0.025);playTone(260,0.14,'triangle',0.02,0.08);}
+  if(kind==='emote-cheers'){playTone(660,0.12,'triangle',0.03);playTone(880,0.12,'triangle',0.03,0.05);}
+  if(kind==='emote-thumbs'){playTone(520,0.08,'triangle',0.025);playTone(660,0.1,'triangle',0.02,0.06);}
+  if(kind==='emote-crack'){playTone(160,0.09,'square',0.04);playTone(120,0.1,'square',0.04,0.05);}
+  if(kind==='emote-sleep'){playTone(240,0.1,'sine',0.02);playTone(200,0.12,'sine',0.02,0.06);}
+  if(kind==='emote-love'){playTone(520,0.09,'triangle',0.02);playTone(620,0.11,'triangle',0.02,0.05);}
 }
 function playWinSfxThen(fn,delayFallback=2000){
   const seq=++winSfxSeq;
