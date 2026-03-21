@@ -12,16 +12,26 @@ service cloud.firestore {
       allow create: if isValidRoomData(request.resource.data);
       allow update: if isValidRoomData(request.resource.data) &&
         (
-          ((request.resource.data.status == 'playing' || request.resource.data.status == 'finished') &&
+          ((request.resource.data.status == 'playing') &&
             request.resource.data.players.size() <= resource.data.players.size() &&
             request.resource.data.gameVersion is int &&
             request.resource.data.gameVersion == currentGameVersion(resource.data) + 1)
+          ||
+          ((request.resource.data.status == 'finished') &&
+            request.resource.data.gameVersion is int &&
+            request.resource.data.gameVersion == currentGameVersion(resource.data) + 1 &&
+            (
+              request.resource.data.players.size() <= resource.data.players.size() ||
+              request.resource.data.game == resource.data.game
+            ))
           ||
           (request.resource.data.status != 'playing' && request.resource.data.status != 'finished' &&
             request.resource.data.gameVersion is int &&
             request.resource.data.gameVersion == currentGameVersion(resource.data))
           ||
           isValidEmoteUpdate(request.resource.data,resource.data)
+          ||
+          isValidPresenceUpdate(request.resource.data,resource.data)
         );
       allow delete: if true;
     }
@@ -212,6 +222,14 @@ service cloud.firestore {
       changed.hasOnly(['emote','updatedAt']) &&
       next.status == prev.status &&
       currentGameVersion(next) == currentGameVersion(prev);
+  }
+  function isValidPresenceUpdate(next, prev) {
+    let changed = next.diff(prev).affectedKeys();
+    return
+      changed.hasOnly(['players','updatedAt']) &&
+      next.status == prev.status &&
+      currentGameVersion(next) == currentGameVersion(prev) &&
+      next.players.size() == prev.players.size();
   }
 
   function isValidRoomTotals(v) {
