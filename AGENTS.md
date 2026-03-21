@@ -42,3 +42,6 @@
 ## Callout Generation Rule
 - We might have emoji in the callout text, but do not include the emoji in the mp3 generation
 - For Cantonese MP3 generation on this machine, use the exact PowerShell + ffmpeg pipeline documented in `MP3_SPEC.md` (temp folder, `Strip-Emoji`, `SetOutputToWaveFile` before `Speak`, then ffmpeg to mp3). Do not improvise or switch pipelines.
+
+## Auto build after change
+- "npm run build" for every change done for the prompt request

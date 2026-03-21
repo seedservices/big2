@@ -8,7 +8,7 @@ const SUITS=[
 const DEFAULT_TURN_TIMEOUT_MS=20000;
 const ROOM_OFFLINE_MS=15000;
 const ROOM_PRUNE_LOBBY_MS=300000;
-const ROOM_PRUNE_PLAYING_MS=600000;
+const ROOM_PRUNE_PLAYING_MS=30000;
 const ROOM_STALE_MS=ROOM_PRUNE_PLAYING_MS;
 const ROOM_TIMEOUT_GRACE_MS=2000;
 const ROOM_HOST_TAKEOVER_MS=45000;
@@ -1837,6 +1837,18 @@ function roomPlayerIds(players){
   });
   return Array.from(seen);
 }
+function bumpRoomPlayerLastSeen(players,uid,now){
+  if(!uid||!Array.isArray(players))return{players,changed:false};
+  let changed=false;
+  const next=players.map((p)=>{
+    if(String(p?.uid)!==uid)return p;
+    const prev=Number(p?.lastSeen)||0;
+    if(now-prev<1500)return p;
+    changed=true;
+    return{...p,lastSeen:now};
+  });
+  return{players:next,changed};
+}
 async function findRoomByCode(code){
   if(!firebaseDb)return null;
   const snap=await firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).where('code','==',code).limit(1).get();
@@ -2453,11 +2465,11 @@ async function leaveRoom(toLobby=false){
         tx.delete(ref);
         return;
       }
-      const remainingHumans=remaining.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
-      if(hostLeaving&&!remainingHumans.length){
-        tx.delete(ref);
-        return;
-      }
+        const remainingHumans=remaining.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+        if(!remainingHumans.length){
+          tx.delete(ref);
+          return;
+        }
       const hostUpdate=hostLeaving?{hostId:String(remainingHumans[0]?.uid??remaining[0]?.uid??''),hostName:String(remainingHumans[0]?.name??remaining[0]?.name??'')}:{};
       const now=Date.now();
       if(status==='playing'&&data.game&&leaving&&Number.isFinite(Number(leaving.seat))){
@@ -2647,7 +2659,7 @@ function getRoomTurnTimeout(roomData){
 function getRoomTurnTimeoutWithGrace(roomData){
   return getRoomTurnTimeout(roomData)+ROOM_TIMEOUT_GRACE_MS;
 }
-const ROOM_PRESENCE_PING_MS=15000;
+const ROOM_PRESENCE_PING_MS=5000;
 async function touchRoomPresence(force=false){
   if(!state.room.id||!firebaseDb)return;
   const uid=currentRoomPlayerId();
@@ -2664,7 +2676,7 @@ async function touchRoomPresence(force=false){
       const next=players.map((p)=>{
         if(String(p.uid)!==uid)return p;
         const prev=Number(p.lastSeen)||0;
-        if(!force&&now-prev<3000)return p;
+          if(!force&&now-prev<1000)return p;
         touched=true;
         return{...p,lastSeen:now};
       });
@@ -2674,6 +2686,7 @@ async function touchRoomPresence(force=false){
 }
 function startRoomPresencePing(){
   if(roomPresenceTimer||!state.room.id||!firebaseDb)return;
+  void touchRoomPresence(true);
   roomPresenceTimer=window.setInterval(async()=>{
     if(!state.room.id||!firebaseDb){clearInterval(roomPresenceTimer);roomPresenceTimer=null;return;}
     await touchRoomPresence(false);
@@ -3027,16 +3040,20 @@ async function roomSubmitEmote(id,tsOverride=null){
       const snap=await tx.get(ref);
       if(!snap.exists)throw new Error('room missing');
       const data=snap.data()||{};
-      if(String(data.status)!=='playing')return;
-      if(!data.game)return;
-      const updated=cloneRoomGame(data.game)||data.game;
-      updated.emote={id:match.id,ts:Math.trunc(now),by:currentRoomPlayerId()};
-      tx.update(ref,{
-        game:updated,
-        updatedAt:now,
-        gameVersion:Number(data.gameVersion||0)+1
+        if(String(data.status)!=='playing')return;
+        if(!data.game)return;
+        const updated=cloneRoomGame(data.game)||data.game;
+        updated.emote={id:match.id,ts:Math.trunc(now),by:currentRoomPlayerId()};
+        const updates={
+          game:updated,
+          updatedAt:now,
+          gameVersion:Number(data.gameVersion||0)+1
+        };
+        const actorUid=currentRoomPlayerId();
+        const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],actorUid,now);
+        if(bumped.changed)updates.players=bumped.players;
+        tx.update(ref,updates);
       });
-    });
   }catch{}
 }
 async function roomSubmitPlay(cards,seatOverride=null){
@@ -3061,14 +3078,17 @@ async function roomSubmitPlay(cards,seatOverride=null){
       const timedOut=startedAt>0&&(Date.now()-startedAt)>=timeout;
       const canAct=(selfSeat===seat)||(target&&!target.isHuman)||(timedOut&&target?.isHuman);
       if(!canAct)throw new Error('not allowed');
-      const result=applyPlayToGame(game,seat,cards,now);
-      if(!result.ok)throw new Error(result.reason||'invalid');
-      const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
-      if(result.finished){
-        updates.status='finished';
-        updates.expiresAt=now+(10*60*1000);
-        updates.totals=result.game.totals||[];
-        updates.roundCount=Number(data.roundCount||0)+1;
+        const result=applyPlayToGame(game,seat,cards,now);
+        if(!result.ok)throw new Error(result.reason||'invalid');
+        const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
+        const actorUid=(selfSeat===seat)?currentRoomPlayerId():'';
+        const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],actorUid,now);
+        if(bumped.changed)updates.players=bumped.players;
+        if(result.finished){
+          updates.status='finished';
+          updates.expiresAt=now+(10*60*1000);
+          updates.totals=result.game.totals||[];
+          updates.roundCount=Number(data.roundCount||0)+1;
       }
       tx.update(ref,updates);
     });
@@ -3096,14 +3116,18 @@ async function roomSubmitPass(seatOverride=null){
       const game=data.game;
       if(Number(game.currentSeat)!==seat)throw new Error('not your turn');
       const selfSeat=roomSeatForPlayer(data,currentRoomPlayerId());
-      const target=game.players?.[seat];
-      const canAct=(selfSeat===seat)||(target&&!target.isHuman);
-      if(!canAct)throw new Error('not allowed');
-      const result=applyPassToGame(game,seat,now);
-      if(!result.ok)throw new Error(result.reason||'invalid');
-      tx.update(ref,{game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1});
-    });
-    playSound('pass');
+        const target=game.players?.[seat];
+        const canAct=(selfSeat===seat)||(target&&!target.isHuman);
+        if(!canAct)throw new Error('not allowed');
+        const result=applyPassToGame(game,seat,now);
+        if(!result.ok)throw new Error(result.reason||'invalid');
+        const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
+        const actorUid=(selfSeat===seat)?currentRoomPlayerId():'';
+        const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],actorUid,now);
+        if(bumped.changed)updates.players=bumped.players;
+        tx.update(ref,updates);
+      });
+      playSound('pass');
   }catch(err){
     const msg=String(err?.message??'');
     if(msg)setSoloStatus(msg);
@@ -3125,7 +3149,9 @@ function maybeRunRoomAi(){
   if(current.isHuman){
     const timeout=getRoomTurnTimeoutWithGrace(state.room.data);
     const startedAt=Number(g.turnStartedAt)||0;
-    const timedOut=startedAt>0&&(Date.now()-startedAt)>=timeout;
+    const elapsed=startedAt>0?Date.now()-startedAt:0;
+    const remaining=timeout-elapsed;
+    const timedOut=startedAt>0&&remaining<=0;
     if(timedOut){
       if(g.lastPlay){
         void roomSubmitPass(g.currentSeat);
@@ -3136,6 +3162,9 @@ function maybeRunRoomAi(){
           void roomSubmitPlay(legal[0].cards,g.currentSeat);
         }
       }
+    }else{
+      const wait=Math.min(1000,Math.max(200,Number.isFinite(remaining)?remaining:1000));
+      aiTimer=window.setTimeout(()=>{maybeRunRoomAi();},wait);
     }
     return;
   }
