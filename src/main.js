@@ -7,10 +7,68 @@ const SUITS=[
 ];
 const DEFAULT_TURN_TIMEOUT_MS=20000;
 const ROOM_OFFLINE_MS=15000;
-const ROOM_PRUNE_MS=180000;
+const ROOM_PRUNE_LOBBY_MS=300000;
+const ROOM_PRUNE_PLAYING_MS=600000;
+const ROOM_STALE_MS=ROOM_PRUNE_PLAYING_MS;
 const ROOM_TIMEOUT_GRACE_MS=2000;
+const ROOM_HOST_TAKEOVER_MS=45000;
+const ROOM_HOST_ACTIVE_MS=20000;
 const EMOTE_DURATION_MS=2400;
 const FIVE_KIND_POWER={straight:0,flush:1,fullhouse:2,fourofkind:3,straightflush:4};
+
+function roomPruneMs(status=''){
+  return status==='playing'?ROOM_PRUNE_PLAYING_MS:ROOM_PRUNE_LOBBY_MS;
+}
+function isRoomPlayerActive(entry,status,now){
+  const lastSeen=Number(entry?.lastSeen)||0;
+  if(!lastSeen)return true;
+  return now-lastSeen<=roomPruneMs(status);
+}
+function isRoomPlayerHuman(entry){
+  return String(entry?.uid||'').startsWith('uid:')||String(entry?.uid||'').startsWith('guest:');
+}
+function selectRoomHostCandidate(players,now){
+  const humans=players.filter((p)=>isRoomPlayerHuman(p));
+  if(!humans.length)return null;
+  const sorted=[...humans].sort((a,b)=>Number(b?.lastSeen||0)-Number(a?.lastSeen||0));
+  const best=sorted[0];
+  if(!best)return null;
+  const lastSeen=Number(best.lastSeen||0);
+  if(lastSeen&&now-lastSeen>ROOM_HOST_ACTIVE_MS)return null;
+  return best;
+}
+function matchGuestPlayerId(roomData){
+  if(currentAuthUid())return '';
+  const players=Array.isArray(roomData?.players)?roomData.players:[];
+  if(!players.length)return '';
+  const desiredName=String(state.home.name||'Player').slice(0,32);
+  const desiredGender=state.home.gender==='female'?'female':'male';
+  const desiredPic=String(authPictureUrl()||'').trim();
+  const matchGender=(p)=>String(p?.gender||'male')==='female'?'female':'male';
+  const matchPic=(p)=>{
+    const pic=String(p?.picture||'').trim();
+    if(!desiredPic)return true;
+    if(!pic)return true;
+    return pic===desiredPic;
+  };
+  const matches=players.filter((p)=>{
+    if(!isRoomPlayerHuman(p))return false;
+    if(!String(p.uid||'').startsWith('guest:'))return false;
+    if(String(p.name||'')!==desiredName)return false;
+    if(matchGender(p)!==desiredGender)return false;
+    if(!matchPic(p))return false;
+    return true;
+  });
+  if(matches.length===1)return String(matches[0].uid||'');
+  const hostId=String(roomData?.hostId||'').trim();
+  if(hostId){
+    const host=players.find((p)=>String(p?.uid||'')===hostId);
+    if(host&&String(host.name||'')===desiredName&&matchGender(host)===desiredGender){
+      return hostId;
+    }
+  }
+  return '';
+}
 
 const I18N={
   'zh-HK':{
@@ -1772,7 +1830,7 @@ async function ensureSingleRoomMembership(targetRoomId=''){
   const entry=players.find((p)=>String(p.uid)===String(playerId));
   const lastSeen=Number(entry?.lastSeen)||0;
   const now=Date.now();
-  const stale=(status==='lobby'||status==='starting')&&lastSeen>0&&(now-lastSeen>ROOM_PRUNE_MS);
+  const stale=(status==='lobby'||status==='starting')&&lastSeen>0&&(now-lastSeen>roomPruneMs(status));
   if(stale){
     await dropSelfFromRoom(existing,playerId);
     return{ok:true,cleared:true};
@@ -1868,11 +1926,7 @@ async function loadActiveRooms(attempt=0){
           continue;
         }
         const players=Array.isArray(data.players)?data.players:[];
-        const activePlayers=players.filter((p)=>{
-          const lastSeen=Number(p?.lastSeen)||0;
-          if(!lastSeen)return true;
-          return now-lastSeen<=ROOM_PRUNE_MS;
-        });
+        const activePlayers=players.filter((p)=>isRoomPlayerActive(p,status,now));
         const expectedIds=roomPlayerIds(players);
         const existingIds=Array.isArray(data.playerIds)?data.playerIds.map((v)=>String(v)):null;
         const idsMatch=Array.isArray(existingIds)
@@ -2069,21 +2123,51 @@ async function joinRoomByCode(codeRaw){
       if(!snap.exists)throw new Error('room missing');
       const data=snap.data()??{};
       if(data.status!=='lobby'&&data.status!=='starting'&&data.status!=='finished')throw new Error('room closed');
+      const now=Date.now();
       const players=Array.isArray(data.players)?[...data.players]:[];
       const already=players.find((p)=>String(p.uid)===uid);
       const prevCount=players.length;
-      if(!already){
+      const name=String(state.home.name||'Player').slice(0,32);
+      const gender=state.home.gender==='female'?'female':'male';
+      const picture=authPictureUrl();
+      let hostId=String(data.hostId||'').trim();
+      let hostName=String(data.hostName||'').trim();
+      let tookOver=false;
+      if(!already && uid.startsWith('guest:') && (data.status==='lobby'||data.status==='starting')){
+        const candidates=players.filter((p)=>{
+          if(!isRoomPlayerHuman(p))return false;
+          if(!String(p.uid||'').startsWith('guest:'))return false;
+          if(String(p.name||'').trim()!==name)return false;
+          const pg=String(p.gender||'male')==='female'?'female':'male';
+          if(pg!==gender)return false;
+          const pp=String(p.picture||'').trim();
+          if(pp&&picture&&pp!==picture)return false;
+          if(!isRoomPlayerActive(p,data.status,now))return false;
+          return true;
+        });
+        if(candidates.length===1){
+          const idx=players.findIndex((p)=>p===candidates[0]);
+          if(idx>=0){
+            const oldUid=String(players[idx]?.uid||'');
+            const ready=Boolean(players[idx]?.ready);
+            players[idx]={...players[idx],uid,name,gender,picture,lastSeen:now,ready};
+            if(oldUid&&hostId===oldUid){
+              hostId=uid;
+              hostName=name;
+            }
+            tookOver=true;
+          }
+        }
+      }
+      if(!already && !tookOver){
         if(players.length>=Number(data.maxPlayers||4))throw new Error('room full');
         const usedSeats=new Set(players.map((p)=>Number(p.seat)));
         let seat=0;
         while(usedSeats.has(seat)&&seat<4)seat+=1;
         if(seat>=4)throw new Error('room full');
-        const name=String(state.home.name||'Player').slice(0,32);
-        const gender=state.home.gender==='female'?'female':'male';
-        const picture=authPictureUrl();
-        players.push({uid,name,gender,picture,ready:true,isHost:false,seat,lastSeen:Date.now()});
+        players.push({uid,name,gender,picture,ready:true,isHost:false,seat,lastSeen:now});
       }
-      const updates={players,playerIds:roomPlayerIds(players),updatedAt:Date.now()};
+      const updates={players,playerIds:roomPlayerIds(players),updatedAt:now,hostId,hostName};
       if(data.game&&String(data.status)==='playing'&&players.length>prevCount){
         const game=cloneRoomGame(data.game);
         if(game){
@@ -2150,14 +2234,19 @@ function subscribeRoom(roomId,code){
     const reconnectMsg=t('roomReconnecting');
     const staleMsg=t('roomStale');
     const updatedAt=Number(data.updatedAt)||0;
-    const isStale=updatedAt>0&&(now-updatedAt>ROOM_PRUNE_MS);
+    const isStale=updatedAt>0&&(now-updatedAt>ROOM_STALE_MS);
     if(isStale){
       setRoomError(staleMsg);
     }else if(state.room.error===reconnectMsg||state.room.error===staleMsg){
       setRoomError('');
     }
     void syncRoomHostIfNeeded(ref,data);
-    if(!state.room.playerId)state.room.playerId=baseRoomPlayerId();
+    let resolvedId=String(state.room.playerId||'').trim();
+    if(!resolvedId||!Array.isArray(data.players)||!data.players.some((p)=>String(p?.uid||'')===resolvedId)){
+      const guestMatch=matchGuestPlayerId(data);
+      resolvedId=guestMatch||baseRoomPlayerId();
+    }
+    state.room.playerId=resolvedId;
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
     startRoomPresencePing();
     syncRoomSelfProfile();
@@ -2173,16 +2262,16 @@ function subscribeRoom(roomId,code){
     }
     if(roomStatus==='lobby'||roomStatus==='starting'){
       const rosterAll=Array.isArray(data.players)?data.players:[]; 
-      const active=rosterAll.filter((p)=>{
-        const lastSeen=Number(p?.lastSeen)||0;
-        if(!lastSeen)return true;
-        return now-lastSeen<=ROOM_PRUNE_MS;
-      });
+      const active=rosterAll.filter((p)=>isRoomPlayerActive(p,roomStatus,now));
       const expectedIds=roomPlayerIds(rosterAll);
       const existingIds=Array.isArray(data.playerIds)?data.playerIds.map((v)=>String(v)):null;
       const idsMatch=Array.isArray(existingIds)
         && existingIds.length===expectedIds.length
         && expectedIds.every((id)=>existingIds.includes(id));
+      const hostId=String(data.hostId||'').trim();
+      const hostEntry=rosterAll.find((p)=>String(p?.uid||'')===hostId)||null;
+      const hostLastSeen=Number(hostEntry?.lastSeen||0);
+      const hostStale=!hostEntry|| (hostLastSeen>0 && now-hostLastSeen>ROOM_HOST_TAKEOVER_MS);
       if(active.length!==rosterAll.length){
         const activeHumans=active.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
         if(!activeHumans.length){
@@ -2192,11 +2281,20 @@ function subscribeRoom(roomId,code){
           return;
         }
         const hostInfo=resolveRoomHostInfo({...data,players:active});
+        let nextHostId=hostInfo.hostId;
+        let nextHostName=hostInfo.hostName;
+        if(hostStale){
+          const candidate=selectRoomHostCandidate(active,now);
+          if(candidate){
+            nextHostId=String(candidate.uid||nextHostId||'');
+            nextHostName=String(candidate.name||nextHostName||'');
+          }
+        }
         void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).update({
           players:active,
           playerIds:roomPlayerIds(active),
-          hostId:hostInfo.hostId,
-          hostName:hostInfo.hostName,
+          hostId:nextHostId,
+          hostName:nextHostName,
           updatedAt:now
         }).catch(()=>{});
       }else if(!idsMatch){
@@ -2204,6 +2302,16 @@ function subscribeRoom(roomId,code){
           playerIds:expectedIds,
           updatedAt:now
         }).catch(()=>{});
+      }
+      if(hostStale){
+        const candidate=selectRoomHostCandidate(active,now);
+        if(candidate&&String(candidate.uid||'')!==hostId){
+          void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(roomId).update({
+            hostId:String(candidate.uid||''),
+            hostName:String(candidate.name||''),
+            updatedAt:now
+          }).catch(()=>{});
+        }
       }
     }
     if(roomStatus==='playing'||roomStatus==='finished'){
@@ -2218,11 +2326,7 @@ function subscribeRoom(roomId,code){
             if(String(latest.status)!=='playing'||!latest.game)return;
             const now=Date.now();
             const roster=Array.isArray(latest.players)?[...latest.players]:[];
-            const active=roster.filter((p)=>{
-              const lastSeen=Number(p?.lastSeen)||0;
-              if(!lastSeen)return true;
-              return now-lastSeen<=ROOM_PRUNE_MS;
-            });
+            const active=roster.filter((p)=>isRoomPlayerActive(p,latest.status,now));
             const activeHumans=active.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
             if(!activeHumans.length){
               tx.delete(ref);
@@ -2568,12 +2672,10 @@ function syncRoomGameRoster(roomData){
   const game=cloneRoomGame(base);
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
   const now=Date.now();
-  const isPlaying=String(roomData?.status??'')==='playing';
+  const status=String(roomData?.status??'');
   const activeRoster=roster.filter((p)=>{
-    const lastSeen=Number(p?.lastSeen)||0;
-    if(!isPlaying)return true;
-    if(!lastSeen)return true;
-    return now-lastSeen<=ROOM_PRUNE_MS;
+    if(status!=='playing')return true;
+    return isRoomPlayerActive(p,status,now);
   });
   const seatMap=new Map();
   activeRoster.forEach((p)=>{
@@ -6988,6 +7090,3 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('load',()=>{if(state.screen==='home')queueGoogleInlineRender();},{once:true});
 loadGoogleSession();bootFirebase();syncViewport();render();
-
-
-
