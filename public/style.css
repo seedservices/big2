@@ -3387,6 +3387,23 @@ body[data-screen='game'] .table-center-stack {
   transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
+.emote-callout {
+  --bubble-border: #4a4a4a;
+  --bubble-fill: color-mix(in srgb, var(--player-color, #84a9db) 76%, #f4f6f8 24%);
+  --callout-size: 1.15;
+  position: absolute;
+  z-index: 2600;
+  display: inline-block;
+  padding: calc(3px * var(--callout-size, 1));
+  border: calc(2px * var(--callout-size, 1)) solid var(--bubble-border);
+  border-radius: calc(24px * var(--callout-size, 1)) calc(16px * var(--callout-size, 1)) calc(26px * var(--callout-size, 1)) calc(14px * var(--callout-size, 1));
+  background: var(--bubble-fill);
+  color: #fff;
+  pointer-events: none;
+  filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
+  transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
+  animation: none;
+}
 .play-type-call .hk-inner,
 .last-card-call .hk-inner {
   padding: calc(12px * var(--callout-size, 1)) calc(20px * var(--callout-size, 1));
@@ -3395,6 +3412,22 @@ body[data-screen='game'] .table-center-stack {
   text-align: center;
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+.emote-callout .hk-inner {
+  padding: calc(8px * var(--callout-size, 1)) calc(10px * var(--callout-size, 1));
+  border: 1px dashed rgba(255, 255, 255, 0.42);
+  border-radius: calc(18px * var(--callout-size, 1)) calc(12px * var(--callout-size, 1)) calc(20px * var(--callout-size, 1)) calc(12px * var(--callout-size, 1));
+  text-align: center;
+}
+.emote-callout .emote-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.emote-callout .emote-icon img {
+  width: calc(96px * var(--callout-size, 1));
+  height: auto;
+  display: block;
 }
 .play-type-call .hk-text,
 .last-card-call .hk-text {
@@ -3424,8 +3457,21 @@ body[data-screen='game'] .table-center-stack {
   height: 0;
   border: calc(10px * var(--callout-size, 1)) solid transparent;
 }
+.emote-callout .tail {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: calc(10px * var(--callout-size, 1)) solid transparent;
+}
 .play-type-call .tail::after,
 .last-card-call .tail::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: calc(10px * var(--callout-size, 1)) solid transparent;
+}
+.emote-callout .tail::after {
   content: '';
   position: absolute;
   width: 0;
@@ -3439,8 +3485,19 @@ body[data-screen='game'] .table-center-stack {
   transform: translateX(-50%);
   border-bottom-color: var(--bubble-border);
 }
+.emote-callout .tail-north {
+  top: calc(-20px * var(--callout-size, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--bubble-border);
+}
 .play-type-call .tail-north::after,
 .last-card-call .tail-north::after {
+  bottom: calc(-14px * var(--callout-size, 1));
+  left: calc(-10px * var(--callout-size, 1));
+  border-bottom-color: var(--bubble-fill);
+}
+.emote-callout .tail-north::after {
   bottom: calc(-14px * var(--callout-size, 1));
   left: calc(-10px * var(--callout-size, 1));
   border-bottom-color: var(--bubble-fill);
@@ -3452,8 +3509,19 @@ body[data-screen='game'] .table-center-stack {
   transform: translateX(-50%);
   border-top-color: var(--bubble-border);
 }
+.emote-callout .tail-south {
+  bottom: calc(-20px * var(--callout-size, 1));
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--bubble-border);
+}
 .play-type-call .tail-south::after,
 .last-card-call .tail-south::after {
+  top: calc(-14px * var(--callout-size, 1));
+  left: calc(-10px * var(--callout-size, 1));
+  border-top-color: var(--bubble-fill);
+}
+.emote-callout .tail-south::after {
   top: calc(-14px * var(--callout-size, 1));
   left: calc(-10px * var(--callout-size, 1));
   border-top-color: var(--bubble-fill);
@@ -3465,8 +3533,19 @@ body[data-screen='game'] .table-center-stack {
   transform: translateY(-50%);
   border-left-color: var(--bubble-border);
 }
+.emote-callout .tail-east {
+  right: calc(-20px * var(--callout-size, 1));
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--bubble-border);
+}
 .play-type-call .tail-east::after,
 .last-card-call .tail-east::after {
+  right: calc(-6px * var(--callout-size, 1));
+  top: calc(-10px * var(--callout-size, 1));
+  border-left-color: var(--bubble-fill);
+}
+.emote-callout .tail-east::after {
   right: calc(-6px * var(--callout-size, 1));
   top: calc(-10px * var(--callout-size, 1));
   border-left-color: var(--bubble-fill);
@@ -3478,8 +3557,19 @@ body[data-screen='game'] .table-center-stack {
   transform: translateY(-50%);
   border-right-color: var(--bubble-border);
 }
+.emote-callout .tail-west {
+  left: calc(-20px * var(--callout-size, 1));
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--bubble-border);
+}
 .play-type-call .tail-west::after,
 .last-card-call .tail-west::after {
+  left: calc(-6px * var(--callout-size, 1));
+  top: calc(-10px * var(--callout-size, 1));
+  border-right-color: var(--bubble-fill);
+}
+.emote-callout .tail-west::after {
   left: calc(-6px * var(--callout-size, 1));
   top: calc(-10px * var(--callout-size, 1));
   border-right-color: var(--bubble-fill);
@@ -5663,6 +5753,8 @@ body[data-screen='game'] .result-screen {
   display: flex;
   gap: 0;
   flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
   overflow-x: auto;
   min-width: 0;
   max-width: 100%;
@@ -5889,8 +5981,8 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
 }
 .result-cards .card.mini {
   width: calc(var(--card-w) * .96);
-  height: calc(var(--card-h) * .64);
-  overflow: hidden;
+  height: calc(var(--card-h) * .96);
+  overflow: visible;
   flex: 0 0 auto;
 }
 .result-cards .card.mini + .card.mini {
@@ -5898,16 +5990,13 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
 }
 .result-cards .card.mini .card-art {
   width: 100%;
-  height: calc(var(--card-h) * .96);
-  object-position: top;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 .result-cards {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 .game-shell.game-over .action-strip .player-tag {
   display: none !important;
@@ -7664,4 +7753,41 @@ body[data-screen='game'] .seat.east.active::before {
 body[data-screen='game'] .table .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
   height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
+}
+.seat-emote {
+  position: absolute;
+  width: clamp(110px, 22vw, 200px);
+  height: auto;
+  pointer-events: none;
+  animation: emoteWobble 1.2s ease-in-out infinite;
+  z-index: 35;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+}
+.seat-emote img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.seat-emote-seat {
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(94px + var(--callout-jx, 0px));
+}
+.seat.north .seat-emote-seat {
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(98px + var(--callout-jx, 0px));
+}
+.seat.west .seat-emote-seat {
+  top: calc(14px + var(--callout-jy, 0px));
+  left: calc(98px + var(--callout-jx, 0px));
+}
+.seat.east .seat-emote-seat {
+  top: calc(14px + var(--callout-jy, 0px));
+  left: auto;
+  right: calc(8px - var(--callout-jx, 0px));
+}
+.seat-emote-self {
+  top: calc(-112px + var(--callout-jy, 0px));
+  left: calc(50% + var(--callout-jx, 0px));
+  right: auto;
+  transform: translateX(-50%);
 }

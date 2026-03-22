@@ -1,4 +1,4 @@
-﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'♦️',red:true},
   {symbol:'♣️',red:false},
@@ -261,6 +261,7 @@ const I18N={
     roomActiveRefresh:'更新列表',
     roomStatusPlaying:'戰鬥中',
     roomStarted:'遊戲進行中',
+    roomWelcomeJoin:'歡迎加入',
     roomWaitingHost:'等待房主開始...',
     roomReconnecting:'連線中斷，正在重新連線...',
     roomStale:'房間太久未更新，請返回大堂重試。',
@@ -458,6 +459,7 @@ const I18N={
     roomActiveRefresh:'Refresh',
     roomStatusPlaying:'In Game',
     roomStarted:'Game in progress',
+    roomWelcomeJoin:'Welcome to join',
     roomWaitingHost:'Waiting for host to start...',
     roomReconnecting:'Connection lost. Reconnecting...',
     roomStale:'Room is stale. Return to lobby and try again.',
@@ -693,6 +695,8 @@ const runtimeProfileStore={players:{}};
 let aiTimer=null;
 let roomPresenceTimer=null;
 let emoteTimer=null;
+const BOT_EMOTE_COOLDOWN_MS=5000;
+const botEmoteCooldownBySeat=new Map();
 let roomCountdownTimer=null;
 let playTypeCallTimer=null;
 const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:'',historyLen:0};
@@ -2089,6 +2093,7 @@ async function loadActiveRooms(attempt=0){
             hostId:String(hostPlayer?.uid||data.hostId||''),
             isPrivate:Boolean(data.isPrivate),
             status,
+            roundCount:Number(data.roundCount||0),
             players:activePlayers.length,
             maxPlayers:Number(data.maxPlayers||4),
             roster
@@ -3118,7 +3123,7 @@ async function writeRoomGameLog(roomData,game){
     await ref.set(payload,{merge:true});
   }catch{}
 }
-async function roomSubmitEmote(id,tsOverride=null){
+async function roomSubmitEmote(id,tsOverride=null,byOverride=''){
   if(!state.room.id||!firebaseDb)return;
   const match=EMOTE_STICKERS.find((x)=>x.id===id);
   if(!match)return;
@@ -3132,7 +3137,8 @@ async function roomSubmitEmote(id,tsOverride=null){
         if(String(data.status)!=='playing')return;
         if(!data.game)return;
         const updated=cloneRoomGame(data.game)||data.game;
-        updated.emote={id:match.id,ts:Math.trunc(now),by:currentRoomPlayerId()};
+        const by=String(byOverride||currentRoomPlayerId()||'');
+        updated.emote={id:match.id,ts:Math.trunc(now),by};
         const updates={
           game:updated,
           updatedAt:now,
@@ -3170,6 +3176,10 @@ async function roomSubmitPlay(cards,seatOverride=null){
         const result=applyPlayToGame(game,seat,cards,now);
         if(!result.ok)throw new Error(result.reason||'invalid');
         const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
+        const reaction=pickBotReaction(result.game,seat,'play',result);
+        if(reaction){
+          updates.game={...result.game,emote:{id:reaction.id,ts:Math.trunc(now),by:reaction.by}};
+        }
         const actorUid=(selfSeat===seat)?currentRoomPlayerId():'';
         const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],actorUid,now);
         if(bumped.changed)updates.players=bumped.players;
@@ -3211,6 +3221,10 @@ async function roomSubmitPass(seatOverride=null){
         const result=applyPassToGame(game,seat,now);
         if(!result.ok)throw new Error(result.reason||'invalid');
         const updates={game:result.game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1};
+        const reaction=pickBotReaction(result.game,seat,'pass',null);
+        if(reaction){
+          updates.game={...result.game,emote:{id:reaction.id,ts:Math.trunc(now),by:reaction.by}};
+        }
         const actorUid=(selfSeat===seat)?currentRoomPlayerId():'';
         const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],actorUid,now);
         if(bumped.changed)updates.players=bumped.players;
@@ -5032,17 +5046,25 @@ const opponentFanStyleByName=(name)=>{
   return'';
 };
 const hasAnyBeatingPlay=(hand,lastPlay,isFirst)=>{if(isFirst)return allValidPlays(hand).some((e)=>has3d(e.cards));if(!lastPlay)return allValidPlays(hand).length>0;return allValidPlays(hand).some((e)=>canBeat(e.eval,lastPlay.eval));};
-function randomBotProfiles(){
-  const list=[...BOT_PROFILE_POOL];
-  const bag=[...list];
-  const out=[];
-  while(out.length<3){
-    if(!bag.length)bag.push(...list);
-    const idx=Math.floor(Math.random()*bag.length);
-    const picked=bag.splice(idx,1)[0];
-    out.push({name:picked.name,gender:picked.gender==='female'?'female':'male'});
+function randomBotProfiles(count=3,avoidNames=[]){
+  const normalize=(value)=>String(value??'').trim().toLowerCase();
+  const seen=new Set();
+  const uniquePool=[];
+  for(const entry of BOT_PROFILE_POOL){
+    const key=normalize(entry?.name);
+    if(!key||seen.has(key))continue;
+    seen.add(key);
+    uniquePool.push({name:String(entry.name),gender:entry.gender==='female'?'female':'male'});
   }
-  return out;
+  const avoidSet=new Set(avoidNames.map(normalize));
+  const filtered=uniquePool.filter((p)=>!avoidSet.has(normalize(p.name)));
+  const source=filtered.length>=count?filtered:uniquePool;
+  const bag=[...source];
+  for(let i=bag.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [bag[i],bag[j]]=[bag[j],bag[i]];
+  }
+  return bag.slice(0,count).map((p)=>({name:p.name,gender:p.gender==='female'?'female':'male'}));
 }
 function randomBotNames(){return randomBotProfiles().map((p)=>p.name);}
 function botGenderByName(name){
@@ -5121,6 +5143,66 @@ function triggerEmoteSticker(id){
     }
   },EMOTE_DURATION_MS);
   render();
+}
+function canBotEmote(seat){
+  const now=Date.now();
+  const last=Number(botEmoteCooldownBySeat.get(seat)||0);
+  if(now-last<BOT_EMOTE_COOLDOWN_MS)return false;
+  botEmoteCooldownBySeat.set(seat,now);
+  return true;
+}
+function pickBotEmoteForAction(action,actor,play){
+  const handCount=Array.isArray(actor?.hand)?actor.hand.length:0;
+  const playCount=Array.isArray(play?.cards)?play.cards.length:0;
+  const remaining=action==='play'?Math.max(0,handCount-playCount):handCount;
+  if(action==='play'&&remaining===0)return'cheers';
+  if(action==='pass'){
+    if(remaining<=2)return'cry';
+    return'sweat';
+  }
+  if(action==='play'){
+    const kind=String(play?.eval?.kind||'');
+    if(kind==='straightflush')return'fire';
+    if(kind==='fourofkind')return'smash';
+    if(kind==='fullhouse')return'smirk';
+    if(kind==='flush'||kind==='straight')return'cool';
+    if(playCount>=5)return'smash';
+    if(playCount===1&&play?.cards?.[0]?.rank===12)return'cool';
+    if(remaining<=2)return'smirk';
+    return'thumbs';
+  }
+  return'';
+}
+function triggerBotEmoteLocal(seat,id){
+  const match=EMOTE_STICKERS.find((x)=>x.id===id);
+  if(!match)return;
+  const now=Date.now();
+  state.emote.active={id:match.id,ts:now,source:'local',by:`seat:${seat}`};
+  state.emote.open=false;
+  playSound(`emote-${match.id}`);
+  if(emoteTimer){clearTimeout(emoteTimer);emoteTimer=null;}
+  emoteTimer=window.setTimeout(()=>{
+    if(state.emote.active&&state.emote.active.ts===now){
+      state.emote.active=null;
+      render();
+    }
+  },EMOTE_DURATION_MS);
+  render();
+}
+function pickBotReaction(game,actorSeat,action,play){
+  if(Math.random()>=1/3)return null;
+  const players=Array.isArray(game?.players)?game.players:[];
+  const actor=players[actorSeat];
+  if(!actor)return null;
+  const botSeats=[];
+  players.forEach((p,i)=>{if(i!==actorSeat&&p&&!p.isHuman)botSeats.push(i);});
+  if(!botSeats.length)return null;
+  const botSeat=botSeats[Math.floor(Math.random()*botSeats.length)];
+  if(!canBotEmote(botSeat))return null;
+  const emoteId=pickBotEmoteForAction(action,actor,play);
+  if(!emoteId)return null;
+  const bot=players[botSeat];
+  return{seat:botSeat,id:emoteId,by:String(bot?.uid||'')};
 }
 function syncRoomEmote(roomData){
   const raw=roomData?.game?.emote ?? roomData?.emote;
@@ -5314,8 +5396,11 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   lockTurnProgress(900);
-  g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false});playSound('play');return true;}
-function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)setSoloStatus(t('cantPass'));return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;lockTurnProgress(850);if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;setSoloStatus(`${g.players[lead].name} ${t('retake')}`);playSound('pass');return true;}g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('pass')}.`,{appendLog:false});playSound('pass');return true;}
+  g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false});playSound('play');
+  const reaction=pickBotReaction(g,seat,'play',{cards:ev.sorted,eval:ev});
+  if(reaction)triggerBotEmoteLocal(reaction.seat,reaction.id);
+  return true;}
+function soloPass(seat){const g=state.solo;if(!g.lastPlay){if(seat===0)setSoloStatus(t('cantPass'));return false;}g.passStreak+=1;g.history.push({action:'pass',seat,name:g.players[seat].name,ts:Date.now()});if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;lockTurnProgress(850);if(g.passStreak>=3){const lead=g.lastPlay.seat;g.currentSeat=lead;g.lastPlay=null;g.passStreak=0;setSoloStatus(`${g.players[lead].name} ${t('retake')}`);playSound('pass');return true;}g.currentSeat=(seat+1)%4;setSoloStatus(`${g.players[seat].name} ${t('pass')}.`,{appendLog:false});playSound('pass');const reaction=pickBotReaction(g,seat,'pass',null);if(reaction)triggerBotEmoteLocal(reaction.seat,reaction.id);return true;}
 function maybeRunSoloAi(){
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
   if(state.home.mode!=='solo')return;
@@ -6259,7 +6344,14 @@ function renderHome(){
           <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
           </div>`;
         }).join('');
-        const statusLabel=r.status==='playing'?`<div class="room-active-status">${t('roomStatusPlaying')}</div>`:'';
+        let statusLabel='';
+        if(r.status==='playing'){
+          const round=Number(r.roundCount||0)+1;
+          const roundText=Number.isFinite(round)?round:'-';
+          statusLabel=`<div class="room-active-status">${t('roomStatusPlaying')} · ${t('roomRound')} ${roundText}</div>`;
+        }else if(r.status==='lobby'||r.status==='starting'){
+          statusLabel=`<div class="room-active-status">${t('roomWelcomeJoin')}</div>`;
+        }
         const privateLabel=isPrivate?`<div class="room-active-private" title="${t('roomPrivate')}">🔑 ${t('roomPrivate')}</div>`:'';
         return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${isPrivate?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
       }).join('')
@@ -6606,9 +6698,7 @@ function renderGame(){
   const self=arr.find((p)=>p.viewIndex===0);
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
-  const roomStatusPill=(state.home.mode==='room'&&String(state.room.data?.status)==='playing')
-    ?`<span class="room-status-pill">${t('roomStarted')}</span>`
-    :'';
+  const roomStatusPill='';
   const playTypeFresh=Boolean(playTypeCallState.startedAt&&Date.now()-playTypeCallState.startedAt<260);
   const passCall=currentPassCall(v);
   const passCallFresh=Boolean(passCallState.startedAt&&Date.now()-passCallState.startedAt<260);
@@ -6652,6 +6742,42 @@ function renderGame(){
     }
     return'';
   };
+  const activeEmote=state.emote.active;
+  const emoteSticker=activeEmote?EMOTE_STICKERS.find((x)=>x.id===activeEmote.id):null;
+  const emoteSeat=(()=>{
+    if(!emoteSticker)return null;
+    const activeBy=String(activeEmote?.by||'');
+    if(activeBy.startsWith('seat:')){
+      const seat=Number(activeBy.slice(5));
+      if(Number.isFinite(seat))return seat;
+    }
+    if(v.mode==='room'&&activeBy){
+      const players=Array.isArray(state.solo.players)?state.solo.players:[];
+      const idx=players.findIndex((p)=>String(p?.uid||'')===activeBy);
+      if(idx>=0)return idx;
+      const roster=Array.isArray(state.room.data?.players)?state.room.data.players:[];
+      const entry=roster.find((p)=>String(p?.uid||'')===activeBy);
+      const seat=Number(entry?.seat);
+      if(Number.isFinite(seat))return seat;
+    }
+    return Number.isInteger(v.selfSeat)?v.selfSeat:0;
+  })();
+  const emoteImageHtml=emoteSticker
+    ?`<img src="${withBase(`emotes/${emoteSticker.file}`)}" alt="${emoteSticker.id}"/>`
+    :'';
+  const seatEmoteHtml=(seat,viewCls,color,isSelf=false)=>{
+    if(!emoteSticker||emoteSeat===null||emoteSeat!==seat)return'';
+    if(isSelf){
+      return'';
+    }
+    const seatClass='play-type-call-seat';
+    const tailDir=viewCls==='north'?'north':viewCls==='east'?'east':viewCls==='west'?'west':'south';
+    const jitter=calloutJitterStyle(viewCls,`emote|${seat}|${activeEmote?.ts||0}|${emoteSticker.id}`);
+    return`<div class="emote-callout ${seatClass}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="emote-icon">${emoteImageHtml}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+  };
+  const emoteHtml=(emoteSticker&&Number.isInteger(v.selfSeat)&&emoteSeat===v.selfSeat)
+    ?`<div class="table-emote emote-${emoteSticker.id}">${emoteImageHtml}</div>`
+    :'';
   const lastActions=lastActionBySeat(v.history);
   const playKey=v.lastPlay?`${v.lastPlay.seat}-${v.lastPlay.cards.map(cardId).join(',')}`:'';
   if(playKey&&state.playAnimKey!==playKey)state.playAnimKey=playKey;
@@ -6680,11 +6806,12 @@ function renderGame(){
     const peekActive=isMobilePointer()&&state.mottoPeekName===String(p.rawName||p.name);
     const outerLabel=`<div class="seat-name-fixed${peekActive?' motto-peek':''}"${opponentAttr}>${labelName}</div>`;
     const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
+    const emoteHtml=seatEmoteHtml(p.seat,p.cls,pColor,false);
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
     const sectionStyle=innerNoOutline;
-    return`<div class="seat ${p.cls} ${active?'active':''}" style="${shellStyle}">${outerLabel}${calloutHtml}<div class="seat-pack seat-section" style="${sectionStyle}"><div class="opponent-fan ${opponentFanStyleByName(p.rawName||p.name)}">${fan}</div></div></div>`;
+    return`<div class="seat ${p.cls} ${active?'active':''}" style="${shellStyle}">${outerLabel}${calloutHtml}${emoteHtml}<div class="seat-pack seat-section" style="${sectionStyle}"><div class="opponent-fan ${opponentFanStyleByName(p.rawName||p.name)}">${fan}</div></div></div>`;
   }).join('');
   const selfScore=self?selfScoreValue:0;
   const selfName=self?self.name:t('name');
@@ -6699,7 +6826,9 @@ function renderGame(){
     ?`<span class="avatar-status-badge warning ${selfActive?'danger':''}" aria-label="${esc(t('lastCardCall'))}"></span>`
     :(selfActive?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
   const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfBadgeHtml}</span>`;
-  const selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
+  let selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
+  const selfEmoteHtml=self?seatEmoteHtml(self.seat,'south',selfSeatColor,true):'';
+  if(selfEmoteHtml)selfCalloutHtml+=selfEmoteHtml;
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
@@ -6711,15 +6840,6 @@ function renderGame(){
   const isRecPlay=state.recommendation?.action==='play';
   const showAdHint=shouldOpenAdBeforeStartingNewGame();
   const showPostGameAdHint=shouldOpenAdForImmediateRestart();
-  const activeEmote=state.emote.active;
-  const emoteSticker=activeEmote?EMOTE_STICKERS.find((x)=>x.id===activeEmote.id):null;
-  const emoteHtml=emoteSticker
-    ?`<div class="table-emote emote-${emoteSticker.id}">${
-      emoteSticker.id==='rude'
-        ?[1,2,3].map((i)=>`<img class="emote-rude-spark emote-rude-spark-${i}" src="${withBase(`emotes/${emoteSticker.file}`)}" alt="emote"/>`).join('')
-        :`<img src="${withBase(`emotes/${emoteSticker.file}`)}" alt="emote"/>`
-    }</div>`
-    :'';
   const emotePanel=state.emote.open?`<div class="emote-panel">${EMOTE_STICKERS.map((s)=>`<button class="emote-btn" data-emote-id="${s.id}" type="button"><img src="${withBase(`emotes/${s.file}`)}" alt="${s.id}"/></button>`).join('')}</div>`:'';
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/>${roomStatusPill}</div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="restart-btn" class="primary">${t('restart')}</button>`,'bottom'):`<button id="restart-btn" class="primary">${t('restart')}</button>`}</div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin,showPostGameAdHint)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr,showPostGameAdHint):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
   document.body.setAttribute('data-web-too-small','0');
@@ -6748,7 +6868,7 @@ function renderGame(){
   }
 }
 function retargetCalloutTails(){
-  const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call')];
+  const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call, .emote-callout')];
   const vw=Math.max(0,window.innerWidth||0);
   const vh=Math.max(0,window.innerHeight||0);
   const margin=8;
