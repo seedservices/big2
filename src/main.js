@@ -2075,7 +2075,7 @@ async function loadActiveRooms(attempt=0){
         }
         const hostId=String(data.hostId||'').trim();
         const hostPlayer=hostId?humans.find((p)=>String(p.uid)===hostId):humans[0];
-        const roster=activePlayers
+        let roster=activePlayers
           .filter((p)=>Number.isFinite(Number(p?.seat))&&Number(p.seat)>=0&&Number(p.seat)<=3)
           .map((p)=>({
             seat:Number(p.seat),
@@ -2086,6 +2086,26 @@ async function loadActiveRooms(attempt=0){
             ready:Boolean(p.ready),
             lastSeen:Number(p.lastSeen)||0
           }));
+        if(status==='playing'&&data.game&&Array.isArray(data.game.players)){
+          const seatMap=new Map(roster.map((p)=>[p.seat,p]));
+          data.game.players.forEach((p,idx)=>{
+            const seat=Number(p?.seat);
+            if(!Number.isFinite(seat)&&Number.isFinite(idx))return;
+            const seatId=Number.isFinite(seat)?seat:idx;
+            if(seatMap.has(seatId))return;
+            if(!p||p.isHuman)return;
+            seatMap.set(seatId,{
+              seat:seatId,
+              name:String(p.name||`Bot ${seatId+1}`),
+              gender:String(p.gender||'male')==='female'?'female':'male',
+              picture:'',
+              uid:String(p.uid||`bot:${seatId}`),
+              ready:true,
+              lastSeen:0
+            });
+          });
+          roster=[...seatMap.values()].sort((a,b)=>a.seat-b.seat);
+        }
           rows.push({
             id:doc.id,
             code:String(data.code||'').toUpperCase(),
