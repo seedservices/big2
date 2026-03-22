@@ -5020,8 +5020,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     padding-bottom: 2px;
   }
   .mobile-discard-cards .card.mini {
-    width: calc(var(--card-w) * .56);
-    height: calc(var(--card-h) * .56);
+    width: calc(var(--card-w) * .68);
+    height: calc(var(--card-h) * .68);
     flex: 0 0 auto;
   }
   .mobile-discard-pass {
