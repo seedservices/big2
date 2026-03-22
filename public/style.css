@@ -868,6 +868,15 @@ body[data-screen='home'] .home-wrap {
   display: grid;
   gap: 6px;
 }
+.room-status-banner {
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 209, 102, .35);
+  background: rgba(255, 209, 102, .12);
+  color: #ffd9b3;
+  font-size: .78rem;
+  font-weight: 700;
+}
 .room-meta-row {
   display: flex;
   align-items: center;
@@ -4093,7 +4102,7 @@ body[data-screen='game'] .table-center-stack {
 .table-emote {
   position: absolute;
   left: 50%;
-  top: 52%;
+  top: 50%;
   transform: translate(-50%, -50%);
   width: clamp(110px, 22vw, 200px);
   height: auto;
@@ -4700,6 +4709,12 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .history-list { max-height: 24vh; }
 }
 @media (max-width: 860px) {
+  .opponent-gender-symbol::before,
+  .opponent-gender-icon::before {
+    font-size: .8rem;
+    transform: translateY(-0.5px);
+  }
+
   /* Mobile: opponent callouts should appear directly under the opponent avatar. */
   body[data-screen='game'] .seat.north .play-type-call-seat,
   body[data-screen='game'] .seat.north .last-card-call-seat,
@@ -4812,6 +4827,16 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .intro-grid { grid-template-columns: 1fr; }
   .intro-sheet { padding: 10px; border-radius: 12px; max-height: 88dvh; }
   .action-row { gap: 6px; }
+  .room-ready-toggle {
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 2px;
+  }
+  .room-ready-toggle .toggle-btn {
+    min-height: 28px;
+    padding: 3px 6px;
+    font-size: .72rem;
+  }
   .table { padding: 4px; gap: 4px; }
   .table {
     height: auto;
@@ -6050,9 +6075,10 @@ body[data-screen='game'] .action-strip .player-tag .name {
 }
 body[data-screen='game'] .seat-identity {
   display: grid;
-  gap: 1px;
+  gap: 0;
   line-height: 1.02;
   overflow: visible;
+  justify-items: start;
 }
 body[data-screen='game'] .seat-name-text {
   font-size: .74rem !important;
@@ -6064,6 +6090,28 @@ body[data-screen='game'] .seat-subline {
   font-size: .73rem;
   font-weight: 700;
   color: rgba(224, 234, 227, .94);
+}
+body[data-screen='game'] .seat-namecard {
+  margin-top: -2px;
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(235, 245, 242, .92);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  display: block;
+}
+body[data-screen='game'] .seat-namecard:hover {
+  color: #ffffff;
+}
+body[data-screen='game'] .seat-namecard:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(244, 162, 89, .25);
 }
 body[data-screen='game'] .seat-motto-callout {
   position: absolute;
@@ -6077,6 +6125,8 @@ body[data-screen='game'] .seat-motto-callout {
   --callout-size: .5;
   --callout-tilt: 0deg;
   overflow: visible;
+  padding: 3px;
+  margin: -3px;
 }
 body[data-screen='game'] .seat-motto-callout.play-type-call {
   padding: 0;
@@ -6093,13 +6143,15 @@ body[data-screen='game'] .seat-motto-callout .hk-motto-box {
   background: color-mix(in srgb, var(--player-color, #84a9db) 78%, #0b111b 22%);
   padding: 6px 8px;
   text-align: center;
-  border: 3px double color-mix(in srgb, var(--player-color, #84a9db) 65%, #ffffff 35%);
-  border-radius: 22px 16px 26px 14px;
-  clip-path: polygon(4% 0%, 96% 0%, 100% 18%, 97% 100%, 6% 100%, 0% 82%, 0% 12%);
+  border: 2px solid color-mix(in srgb, var(--player-color, #84a9db) 70%, #ffffff 30%);
+  border-radius: 18px;
   position: relative;
   display: inline-block;
   max-width: 220px;
   transform: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.25),
+    0 2px 8px rgba(0,0,0,.22);
 }
 body[data-screen='game'] .seat-motto-callout .hk-motto-box::before,
 body[data-screen='game'] .seat-motto-callout .hk-motto-box::after {

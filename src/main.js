@@ -259,7 +259,9 @@ const I18N={
     roomActiveList:'可加入牌桌',
     roomActiveEmpty:'未有可加入牌桌。',
     roomActiveRefresh:'更新列表',
+    roomStatusLabel:'房間狀態',
     roomStatusPlaying:'戰鬥中',
+    roomWaitingReady:'等待玩家準備',
     roomStarted:'遊戲進行中',
     roomWelcomeJoin:'歡迎加入',
     roomWaitingHost:'等待房主開局',
@@ -267,7 +269,10 @@ const I18N={
     roomStale:'房間太久未更新，請返回大堂重試。',
     roomJoinLog:'{{name}} 加入了房間。',
     roomLeaveLog:'{{name}} 離開了房間。',
-    roomStarting:'房間準備中...'
+    roomStarting:'房間準備中...',
+    roomReadyCount:'已準備 {{ready}}/{{total}}',
+    roomSending:'提交中...',
+    roomSendTimeout:'連線較慢，請重試。'
   },
   en:{
     title:'Big Two',
@@ -457,7 +462,9 @@ const I18N={
     roomActiveList:'Available Tables',
     roomActiveEmpty:'No tables available.',
     roomActiveRefresh:'Refresh',
+    roomStatusLabel:'Room status',
     roomStatusPlaying:'In Game',
+    roomWaitingReady:'Waiting for players to get ready',
     roomStarted:'Game in progress',
     roomWelcomeJoin:'Welcome to join',
     roomWaitingHost:'Waiting for host to start...',
@@ -465,7 +472,10 @@ const I18N={
     roomStale:'Room is stale. Return to lobby and try again.',
     roomJoinLog:'{{name}} joined the room.',
     roomLeaveLog:'{{name}} left the room.',
-    roomStarting:'Room is starting...'
+    roomStarting:'Room is starting...',
+    roomReadyCount:'Ready {{ready}}/{{total}}',
+    roomSending:'Sending...',
+    roomSendTimeout:'Connection issue — retry.'
   }
 };
 const KIND={
@@ -542,7 +552,7 @@ const EMOTE_STICKERS=[
   {id:'love',file:'emote-love.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:''},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -698,6 +708,8 @@ let emoteTimer=null;
 const BOT_EMOTE_COOLDOWN_MS=5000;
 const botEmoteCooldownBySeat=new Map();
 let roomCountdownTimer=null;
+let roomReadyPendingTimer=null;
+let roomStartPendingTimer=null;
 let playTypeCallTimer=null;
 const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:'',historyLen:0};
 let passCallTimer=null;
@@ -1816,13 +1828,24 @@ function resetRoomState(){
   if(state.room.unsub){try{state.room.unsub();}catch{}}
   if(roomPresenceTimer){clearInterval(roomPresenceTimer);roomPresenceTimer=null;}
   void updateActiveRoomPointer('');
-  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:''};
+  clearRoomReadyPending();
+  clearRoomStartPending();
+  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',pendingReady:false,pendingReadyValue:null,pendingStart:false};
   state.room.playerId='';
   if(state.home.mode==='room')state.home.mode='solo';
 }
 function setRoomError(msg){
   state.room.error=msg||'';
   render();
+}
+function clearRoomReadyPending(){
+  state.room.pendingReady=false;
+  state.room.pendingReadyValue=null;
+  if(roomReadyPendingTimer){clearTimeout(roomReadyPendingTimer);roomReadyPendingTimer=null;}
+}
+function clearRoomStartPending(){
+  state.room.pendingStart=false;
+  if(roomStartPendingTimer){clearTimeout(roomStartPendingTimer);roomStartPendingTimer=null;}
 }
 function generateRoomCode(len=6){
   const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -2066,7 +2089,7 @@ async function loadActiveRooms(attempt=0){
           }).catch(()=>{});
         }
           const humans=activePlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
-          if(!humans.length&&!isPlaying){
+          if(!humans.length){
             void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
             continue;
           }
@@ -2390,10 +2413,19 @@ function subscribeRoom(roomId,code){
     }
     state.room.playerId=resolvedId;
     state.room={...state.room,id:roomId,code:code||String(data.code??''),data,unsub,joinOpen:false,selfSeat:roomSelfSeat(data)};
+    const selfEntry=Array.isArray(data.players)
+      ?data.players.find((p)=>String(p?.uid||'')===String(resolvedId))
+      :null;
+    if(state.room.pendingReady&&selfEntry&&Boolean(selfEntry.ready)===Boolean(state.room.pendingReadyValue)){
+      clearRoomReadyPending();
+    }
     startRoomPresencePing();
     syncRoomSelfProfile();
     void updateActiveRoomPointer(roomId);
     const roomStatus=String(data.status);
+    if(state.room.pendingStart&&(roomStatus==='starting'||roomStatus==='playing')){
+      clearRoomStartPending();
+    }
     const rosterAll=Array.isArray(data.players)?data.players:[];
     const hasHuman=rosterAll.some((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
     if((roomStatus==='lobby'||roomStatus==='starting')&&!hasHuman){
@@ -2579,6 +2611,10 @@ async function setRoomReady(ready){
     });
   }catch(err){
     console.error('ready update failed',err);
+    clearRoomReadyPending();
+    setRoomError(t('roomSendTimeout'));
+  }finally{
+    if(state.room.pendingReady)clearRoomReadyPending();
   }
 }
 async function setRoomPrivacy(isPrivate){
@@ -2654,6 +2690,7 @@ async function startRoom(){
     const msg=String(err?.message??'');
     if(msg.includes('need players'))setRoomError(t('roomNeedPlayers'));
     else setRoomError(t('roomReadyHint'));
+    clearRoomStartPending();
   }
 }
 async function roomReset(){
@@ -6310,6 +6347,21 @@ function renderHome(){
   const roomCanStart=roomHumanPlayers.length>=2;
   const roomReady=Boolean(roomSelf?.ready);
   const roomPrivate=Boolean(roomData?.isPrivate);
+  const roomStatus=String(roomData?.status??'');
+  const roomStarting=roomStatus==='starting';
+  const roomReadyPending=Boolean(state.room.pendingReady);
+  const roomStartPending=Boolean(state.room.pendingStart);
+  const readyCountText=roomHumanPlayers.length
+    ?t('roomReadyCount').replace('{{ready}}',String(roomHumanPlayers.filter((p)=>p.ready).length)).replace('{{total}}',String(roomHumanPlayers.length))
+    :'';
+  const roomStatusText=(()=>{
+    if(roomStatus==='playing')return t('roomStatusPlaying');
+    if(roomStatus==='starting')return t('roomStarting');
+    if(roomStatus==='finished')return t('roomWaitingHost');
+    return roomIsHost?t('roomWaitingReady'):t('roomWaitingHost');
+  })();
+  const roomStatusLine=`${t('roomStatusLabel')}: ${roomStatusText}${readyCountText?` · ${readyCountText}`:''}`;
+  const roomStatusBanner=`<div class="room-status-banner">${esc(roomStatusLine)}</div>`;
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
   }
@@ -6321,8 +6373,6 @@ function renderHome(){
   const aiFieldLeft=`<label class="field field-ai field-ai-left"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-left" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
   const aiFieldRight=`<label class="field field-ai field-ai-right"><span>${t('ai')}</span><div class="option-combo toggle-combo difficulty-combo" id="difficulty-combo-right" style="--difficulty-index:${diffIndex};"><div class="difficulty-pill" aria-hidden="true"></div><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='easy'?'active':''}" data-value="easy">${t('easy')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='normal'?'active':''}" data-value="normal">${t('normal')}</button><button class="combo-btn toggle-btn ${state.home.aiDifficulty==='hard'?'active':''}" data-value="hard">${t('hard')}</button></div></label>`;
   const roomErrorHtml=state.room.error?`<div class="hint room-error">${esc(state.room.error)}</div>`:'';
-  const roomStatus=String(roomData?.status??'');
-  const roomStarting=roomStatus==='starting';
   const roomButtonsHtml=inRoom?'':`<button id="room-lobby-open" class="secondary royal-room-btn" ${signedIn?'':'disabled'}>${t('roomEnter')}</button>`;
   const roomSeats=[0,1,2,3].map((seat)=>{
     const seatLabel=t('seatLabel').replace('{{n}}',String(seat+1));
@@ -6340,8 +6390,8 @@ function renderHome(){
     const readyText=entry.ready?t('roomReady'):t('roomWaiting');
     const readyControl=isSelf
       ?`<div class="option-combo toggle-combo room-ready-toggle" id="room-ready-toggle">
-          <button class="combo-btn toggle-btn ${entry.ready?'active':''}" data-ready="1">${t('roomReady')}</button>
-          <button class="combo-btn toggle-btn ${entry.ready?'':'active'}" data-ready="0">${t('roomWaiting')}</button>
+          <button class="combo-btn toggle-btn ${entry.ready?'active':''}" data-ready="1" ${roomReadyPending?'disabled':''}>${t('roomReady')}</button>
+          <button class="combo-btn toggle-btn ${entry.ready?'':'active'}" data-ready="0" ${roomReadyPending?'disabled':''}>${t('roomWaiting')}</button>
         </div>`
       :`<div class="lobby-seat-status">${readyText}</div>`;
     return`<div class="lobby-seat ${entry.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
@@ -6361,10 +6411,11 @@ function renderHome(){
       </div>`
     :'';
   const roomStartControl=roomIsHost
-    ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart)?'disabled':''}>${t('roomStart')}</button>`}${roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
+    ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart||roomStartPending)?'disabled':''}>${t('roomStart')}</button>`}${roomStartPending?`<span class="hint">${t('roomSending')}</span>`:roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
     :`<span class="hint">${roomStarting?t('roomStarting'):t('roomWaitingHost')}</span>`;
+  const roomPendingHint=(roomReadyPending&&!roomStartPending)?`<span class="hint">${t('roomSending')}</span>`:'';
   const roomTitle=t('roomTableTitle');
-  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}${roomStatusBanner}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
@@ -6511,7 +6562,18 @@ function renderHome(){
     await leaveRoom(true);
   });
   document.querySelectorAll('#room-ready-toggle [data-ready]').forEach((btn)=>btn.addEventListener('click',async()=>{
+    if(state.room.pendingReady)return;
     const desired=btn.getAttribute('data-ready')==='1';
+    state.room.pendingReady=true;
+    state.room.pendingReadyValue=desired;
+    if(roomReadyPendingTimer){clearTimeout(roomReadyPendingTimer);}
+    roomReadyPendingTimer=window.setTimeout(()=>{
+      roomReadyPendingTimer=null;
+      state.room.pendingReady=false;
+      state.room.pendingReadyValue=null;
+      setRoomError(t('roomSendTimeout'));
+    },5000);
+    render();
     await setRoomReady(desired);
   }));
   document.querySelectorAll('#room-privacy-toggle [data-private]').forEach((btn)=>btn.addEventListener('click',async()=>{
@@ -6520,6 +6582,15 @@ function renderHome(){
     await setRoomPrivacy(desired);
   }));
   document.getElementById('room-start')?.addEventListener('click',async()=>{
+    if(state.room.pendingStart)return;
+    state.room.pendingStart=true;
+    if(roomStartPendingTimer){clearTimeout(roomStartPendingTimer);}
+    roomStartPendingTimer=window.setTimeout(()=>{
+      roomStartPendingTimer=null;
+      state.room.pendingStart=false;
+      setRoomError(t('roomSendTimeout'));
+    },5000);
+    render();
     if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     let synced=false;
     for(let i=0;i<4&&!synced;i++){
@@ -6742,7 +6813,15 @@ function renderGame(){
   const self=arr.find((p)=>p.viewIndex===0);
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
-  const roomStatusPill='';
+  const roomStatusPill=(v.mode==='room'&&state.room.data)
+    ?`<span class="room-status-pill">${esc(`${t('roomStatusLabel')}: ${(() => {
+      const status=String(state.room.data?.status||'');
+      if(status==='playing')return t('roomStatusPlaying');
+      if(status==='starting')return t('roomStarting');
+      if(status==='finished')return t('roomWaitingHost');
+      return roomIsHost?t('roomWaitingReady'):t('roomWaitingHost');
+    })()}`)}</span>`
+    :'';
   const playTypeFresh=Boolean(playTypeCallState.startedAt&&Date.now()-playTypeCallState.startedAt<260);
   const passCall=currentPassCall(v);
   const passCallFresh=Boolean(passCallState.startedAt&&Date.now()-passCallState.startedAt<260);
@@ -6839,14 +6918,15 @@ function renderGame(){
     const langKey=state.language==='zh-HK'?'zh-HK':'en';
     const profile=OPPONENT_PROFILE_BY_NAME[p.rawName||p.name];
     const mottoText=profile?.motto?.[langKey]??profile?.motto?.['zh-HK']??'';
-    const hintText=p.isBot?t('clickProfile'):'';
+    const hintText='';
     const mottoClass=state.language==='en'?'hk-power-motto motto-en':'hk-power-motto';
     const mottoTilt=(() => {
       const seed=hashTextSeed(`${p.rawName||p.name}|motto`);
       const raw=(seed%11)-5; // -5..5
       return `${raw}deg`;
     })();
-    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
+    const namecardBtn=p.isBot?`<button type="button" class="seat-namecard" data-opponent-name="${esc(p.rawName||p.name)}" aria-label="${esc(t('profile'))}">🪪</button>`:'';
+    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${namecardBtn}${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
     const peekActive=isMobilePointer()&&state.mottoPeekName===String(p.rawName||p.name);
     const outerLabel=`<div class="seat-name-fixed${peekActive?' motto-peek':''}"${opponentAttr}>${labelName}</div>`;
     const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
@@ -7389,7 +7469,8 @@ function bindGameEvents(v,arr){
     el.addEventListener('click',(ev)=>{
       ev.preventDefault();
       ev.stopPropagation();
-      if(isMobilePointer()){
+      const directProfile=Boolean(ev.target?.closest?.('.seat-namecard'));
+      if(isMobilePointer()&&!directProfile){
         if(state.mottoPeekName!==name){
           state.mottoPeekName=name;
           render();
