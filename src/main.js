@@ -2106,6 +2106,7 @@ async function loadActiveRooms(attempt=0){
           });
           roster=[...seatMap.values()].sort((a,b)=>a.seat-b.seat);
         }
+        const displayPlayers=Math.max(activePlayers.length,roster.length);
           rows.push({
             id:doc.id,
             code:String(data.code||'').toUpperCase(),
@@ -2115,6 +2116,7 @@ async function loadActiveRooms(attempt=0){
             status,
             roundCount:Number(data.roundCount||0),
             players:activePlayers.length,
+            displayPlayers,
             maxPlayers:Number(data.maxPlayers||4),
             roster
           });
@@ -6096,6 +6098,8 @@ function adHintWrap(buttonHtml,align='center'){
   return`<span class="ad-hint-anchor ad-hint-${esc(align)}">${buttonHtml}<span class="ad-hint-pop" role="tooltip">${content}</span></span>`;
 }
 function resultScreenHtml(v,arr,showAdHint){
+  const isRoom=state.home.mode==='room';
+  const isHost=isRoom&&roomIsHost();
   const winner=arr.find((p)=>p.count===0)??arr[0];
   const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
   const winnerLastDiscardCards=winnerLastPlay?.cards??[];
@@ -6146,14 +6150,21 @@ function resultScreenHtml(v,arr,showAdHint){
       <div class="result-list">${rows}</div>
       <div class="control-row">
         <button id="result-home" class="secondary">${t('home')}</button>
-        ${showAdHint?adHintWrap(`<button id="result-again" class="primary">${t('again')}</button>`,'center'):`<button id="result-again" class="primary">${t('again')}</button>`}
+        ${(!isRoom||isHost)
+    ?(showAdHint?adHintWrap(`<button id="result-again" class="primary">${t('again')}</button>`,'center'):`<button id="result-again" class="primary">${t('again')}</button>`)
+    :`<span class="hint">${t('roomWaitingHost')}</span>`}
       </div>
     </div>
   </section>`;
 }
 function congratsOverlayHtml(v,youWin,showAdHint){
   if(!youWin)return'';
-  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="congrats-again" class="primary">${t('again')}</button>`,'center'):`<button id="congrats-again" class="primary">${t('again')}</button>`}</div></div></div>`;
+  const isRoom=state.home.mode==='room';
+  const isHost=isRoom&&roomIsHost();
+  const againHtml=(!isRoom||isHost)
+    ?(showAdHint?adHintWrap(`<button id="congrats-again" class="primary">${t('again')}</button>`,'center'):`<button id="congrats-again" class="primary">${t('again')}</button>`)
+    :`<span class="hint">${t('roomWaitingHost')}</span>`;
+  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button>${againHtml}</div></div></div>`;
 }
 
 function markComboActive(comboId,value){
@@ -6383,7 +6394,8 @@ function renderHome(){
           statusLabel=`<div class="room-active-status">${t('roomWelcomeJoin')}</div>`;
         }
         const privateLabel=isPrivate?`<div class="room-active-private" title="${t('roomPrivate')}">🔑 ${t('roomPrivate')}</div>`:'';
-        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${isPrivate?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${r.players}/${r.maxPlayers}</div></div></button>`;
+        const displayPlayers=Number.isFinite(Number(r.displayPlayers))?Number(r.displayPlayers):Number(r.players||0);
+        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${isPrivate?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div></button>`;
       }).join('')
       :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
