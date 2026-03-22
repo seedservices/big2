@@ -230,10 +230,10 @@ const I18N={
     roomEnter:'進入大堂',
     roomCode:'牌桌代碼',
     roomCopy:'複製代碼',
-    roomReady:'準備',
+    roomReady:'準備好',
     roomNotReady:'未準備',
-    roomWaiting:'等待中',
-    roomStart:'開始',
+    roomWaiting:'請等待',
+    roomStart:'開局',
     roomLeave:'返回大堂',
     roomLoginRequired:'請先登入才可以建立或加入房間。',
     roomFull:'房間已滿。',
@@ -255,14 +255,14 @@ const I18N={
     emote:'表情',
     seatLabel:'座位 {{n}}',
     roomAvailable:'可加入',
-    roomSeatOpen:'空位',
+    roomSeatOpen:'吉位',
     roomActiveList:'可加入牌桌',
     roomActiveEmpty:'未有可加入牌桌。',
     roomActiveRefresh:'更新列表',
     roomStatusPlaying:'戰鬥中',
     roomStarted:'遊戲進行中',
     roomWelcomeJoin:'歡迎加入',
-    roomWaitingHost:'等待房主開始...',
+    roomWaitingHost:'等待房主開局',
     roomReconnecting:'連線中斷，正在重新連線...',
     roomStale:'房間太久未更新，請返回大堂重試。',
     roomJoinLog:'{{name}} 加入了房間。',
@@ -2086,7 +2086,7 @@ async function loadActiveRooms(attempt=0){
             ready:Boolean(p.ready),
             lastSeen:Number(p.lastSeen)||0
           }));
-        if(status==='playing'&&data.game&&Array.isArray(data.game.players)){
+        if(status!=='lobby'&&data.game&&Array.isArray(data.game.players)){
           const seatMap=new Map(roster.map((p)=>[p.seat,p]));
           data.game.players.forEach((p,idx)=>{
             const seat=Number(p?.seat);
@@ -6327,7 +6327,12 @@ function renderHome(){
     const isSelf=String(entry.uid)===String(roomUid);
     const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
     const readyText=entry.ready?t('roomReady'):t('roomWaiting');
-    const readyControl=isSelf?`<button class="lobby-seat-ready ${entry.ready?'active':''}" id="room-ready-seat">${readyText}</button>`:`<div class="lobby-seat-status">${readyText}</div>`;
+    const readyControl=isSelf
+      ?`<div class="option-combo toggle-combo room-ready-toggle" id="room-ready-toggle">
+          <button class="combo-btn toggle-btn ${entry.ready?'active':''}" data-ready="1">${t('roomReady')}</button>
+          <button class="combo-btn toggle-btn ${entry.ready?'':'active'}" data-ready="0">${t('roomWaiting')}</button>
+        </div>`
+      :`<div class="lobby-seat-status">${readyText}</div>`;
     return`<div class="lobby-seat ${entry.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
       <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
       <div class="lobby-seat-name">${esc(entry.name)}${hostTag}</div>
@@ -6337,7 +6342,12 @@ function renderHome(){
   }).join('');
   const roomHostLine=derivedHostName?`<div class="room-host-line"><span>${t('roomHost')}:</span><strong>${esc(derivedHostName)}</strong></div>`:'';
   const roomPrivacyRow=roomIsHost
-    ?`<div class="room-privacy-row"><span>${t('roomPrivacy')}</span><button id="room-privacy-toggle" class="secondary">${roomPrivate?'🔑 ':''}${roomPrivate?t('roomPrivate'):t('roomPublic')}</button></div>`
+    ?`<div class="room-privacy-row"><span>${t('roomPrivacy')}</span>
+        <div class="option-combo toggle-combo" id="room-privacy-toggle">
+          <button class="combo-btn toggle-btn ${roomPrivate?'':'active'}" data-private="0">${t('roomPublic')}</button>
+          <button class="combo-btn toggle-btn ${roomPrivate?'active':''}" data-private="1">🔑 ${t('roomPrivate')}</button>
+        </div>
+      </div>`
     :'';
   const roomStartControl=roomIsHost
     ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart)?'disabled':''}>${t('roomStart')}</button>`}${roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
@@ -6488,13 +6498,15 @@ function renderHome(){
   document.getElementById('room-leave')?.addEventListener('click',async()=>{
     await leaveRoom(true);
   });
-  document.getElementById('room-ready-seat')?.addEventListener('click',async()=>{
-    await setRoomReady(!roomReady);
-  });
-  document.getElementById('room-privacy-toggle')?.addEventListener('click',async()=>{
+  document.querySelectorAll('#room-ready-toggle [data-ready]').forEach((btn)=>btn.addEventListener('click',async()=>{
+    const desired=btn.getAttribute('data-ready')==='1';
+    await setRoomReady(desired);
+  }));
+  document.querySelectorAll('#room-privacy-toggle [data-private]').forEach((btn)=>btn.addEventListener('click',async()=>{
     if(!roomIsHost)return;
-    await setRoomPrivacy(!roomPrivate);
-  });
+    const desired=btn.getAttribute('data-private')==='1';
+    await setRoomPrivacy(desired);
+  }));
   document.getElementById('room-start')?.addEventListener('click',async()=>{
     if(shouldOpenAdBeforeStartingNewGame())triggerStartGameSmartLink();
     let synced=false;
