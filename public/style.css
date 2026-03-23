@@ -1180,15 +1180,16 @@ body[data-screen='home'] .home-wrap {
   gap: 4px;
 }
 .room-active-table-full {
-  gap: 6px;
-  min-height: 140px;
+  gap: 4px;
+  min-height: 0;
 }
 .room-active-card-full {
   text-align: left;
 }
 .room-active-table-full .lobby-seat-mini {
-  min-height: 84px;
-  padding: 6px;
+  min-height: 0;
+  padding: 4px;
+  aspect-ratio: 1.6;
 }
 .room-active-table-full .lobby-seat-mini .lobby-seat-avatar {
   width: 40px;
@@ -1196,14 +1197,14 @@ body[data-screen='home'] .home-wrap {
 }
 .room-active-seat {
   width: 100%;
-  aspect-ratio: 1.1;
+  aspect-ratio: 1.6;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,.2);
   background: rgba(0,0,0,.2);
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: 6px;
+  padding: 4px;
 }
 .room-active-seat img {
   width: 100%;
@@ -1233,6 +1234,12 @@ body[data-screen='home'] .home-wrap {
   gap: 4px;
   font-size: .74rem;
   color: var(--muted);
+}
+.room-active-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
 }
 .room-active-host {
   font-weight: 700;
