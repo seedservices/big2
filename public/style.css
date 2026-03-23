@@ -3408,13 +3408,13 @@ body[data-screen='game'] .table-center-stack {
   justify-content: flex-start;
 }
 .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.48);
-  height: calc(var(--card-h) * 1.48);
+  width: auto;
+  height: auto;
 }
 .center-last-west .seat-played .card.mini,
 .center-last-east .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.48);
-  height: calc(var(--card-h) * 1.48);
+  width: auto;
+  height: auto;
   transform: none;
 }
 .center-last .seat-played-pass {
@@ -3473,6 +3473,9 @@ body[data-screen='game'] .table-center-stack {
   filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
   transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: none;
+}
+.seat[data-seat-emote-active='1'] .emote-callout {
+  display: none !important;
 }
 .play-type-call .hk-inner,
 .last-card-call .hk-inner {
@@ -6647,17 +6650,6 @@ body[data-screen='game'] .seat.east.active::before {
   content: none !important;
 }
 
-/* Final override: center discard size follows shared scale. */
-body[data-screen='game'] .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
-  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
-}
-/* Final final override: force center discard scale at end of file. */
-body[data-screen='game'] .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
-  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
-}
-
 /* Hard override: ultra-tight overlap for 5-card fan in all game views. */
 body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
 body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
@@ -6668,21 +6660,7 @@ body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.m
   margin-left: calc(var(--card-w) * -0.94) !important;
 }
 
-/* Final override: keep all played cards same size as south on mobile. */
-body[data-screen='game'][data-is-mobile='1'] .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.24) !important;
-  height: calc(var(--card-h) * 1.24) !important;
-}
-body[data-screen='game'] {
-  --center-discard-scale: 1.48;
-}
-body[data-screen='game'][data-is-mobile='1'] {
-  --center-discard-scale: 1.48;
-}
-body[data-screen='game'] .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
-  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
-}
+/* Discard size now driven by runtime hand size, avoid extra center overrides. */
 
 /* Bottom (south) player turn highlight: reduce outline/glow intensity by ~70%. */
 body[data-screen='game'] .action-strip.active {
@@ -6856,20 +6834,6 @@ body[data-screen='game'] .seat-count-tag {
   body[data-screen='game'] .action-strip .hand {
     min-height: calc(var(--card-h) * 1.2 + 26px) !important;
   }
-  /* Web view: reduce discarded cards. */
-  body[data-screen='game'] .seat-played .card.mini,
-  body[data-screen='game'] .seat-last .card.mini {
-    width: calc(var(--card-w) * 1.2) !important;
-    height: calc(var(--card-h) * 1.2) !important;
-  }
-  body[data-screen='game'] .center-last .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.48) !important;
-    height: calc(var(--card-h) * 1.48) !important;
-  }
-  body[data-screen='game'] .seat-played .card.mini + .card.mini,
-  body[data-screen='game'] .center-last .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.5) !important;
-  }
   /* Keep collapsed game-log header in same position as expanded (desktop). */
   body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     padding: 9px !important;
@@ -6915,8 +6879,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini,
   body[data-screen='game'] .center-last-south .seat-played .card.mini {
-    width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
-    height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
+    width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
+    height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
   }
 }
 @media (max-width: 380px) and (pointer: coarse) {
@@ -8001,9 +7965,24 @@ body[data-screen='game'] .center-last-south .seat-played .card.mini {
   width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
   height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
 }
+body[data-screen='game'] .center-last .seat-played .card.mini,
+body[data-screen='game'] .center-last-west .seat-played .card.mini,
+body[data-screen='game'] .center-last-east .seat-played .card.mini {
+  width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
+  height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
+}
 body[data-screen='game'] .seat-played .card.face.mini .card-art,
 body[data-screen='game'] .center-last .seat-played .card.face.mini .card-art,
 body[data-screen='game'] .seat-last .card.face.mini .card-art {
   object-fit: contain !important;
   transform: none !important;
+}
+body[data-screen='game'] .seat-played .card.discard-card.mini,
+body[data-screen='game'] .center-last .seat-played .card.discard-card.mini,
+body[data-screen='game'] .center-last-north .seat-played .card.discard-card.mini,
+body[data-screen='game'] .center-last-west .seat-played .card.discard-card.mini,
+body[data-screen='game'] .center-last-east .seat-played .card.discard-card.mini,
+body[data-screen='game'] .center-last-south .seat-played .card.discard-card.mini {
+  width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
+  height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
 }
