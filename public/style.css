@@ -4169,7 +4169,7 @@ body[data-screen='game'] .table-center-stack {
 .table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
 .table-emote.emote-throw { animation: emoteThrow 1.3s ease-out forwards; width: clamp(150px, 30vw, 260px); }
 .table-emote.emote-rude {
-  animation: emoteRudeBump 0.9s ease-in-out infinite;
+  animation: emoteRudeJolt 0.6s steps(2, end) infinite;
   width: clamp(200px, 38vw, 320px);
   height: auto;
   top: 50%;
@@ -4181,9 +4181,9 @@ body[data-screen='game'] .table-center-stack {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(1.1);
-  animation: emoteRudeSpark 0.55s ease-in-out infinite;
-  opacity: 0.85;
+  transform: translate(-50%, -50%) scale(1.15);
+  animation: emoteRudeSpark 0.5s steps(2, end) infinite;
+  opacity: 0.9;
 }
 .table-emote.emote-rude .emote-rude-spark-1 {
   transform: translate(-70%, -70%) scale(1.2) rotate(-10deg);
@@ -4200,13 +4200,15 @@ body[data-screen='game'] .table-center-stack {
 .table-emote.emote-rage { animation: emoteRage 1.2s ease-in-out infinite; }
 .table-emote.emote-smash { animation: emoteSmash 1.2s ease-in-out infinite; width: clamp(160px, 32vw, 280px); }
 .table-emote.emote-fire { animation: emoteFire 1.2s ease-in-out infinite; }
-.table-emote.emote-smirk { animation: emoteSmirk 1.4s ease-in-out infinite; }
+.table-emote.emote-think { animation: emoteSmirk 1.4s ease-in-out infinite; }
 .table-emote.emote-cry { animation: emoteCry 1.6s ease-in-out infinite; }
 .table-emote.emote-cheers { animation: emoteBounce 1.2s ease-in-out infinite; width: clamp(170px, 34vw, 300px); }
 .table-emote.emote-thumbs { animation: emotePop 1.1s ease-in-out infinite; }
 .table-emote.emote-crack { animation: emoteCrackPunch 1.1s ease-out forwards; width: clamp(140px, 26vw, 240px); }
 .table-emote.emote-sleep { animation: emoteFloat 1.8s ease-in-out infinite; width: clamp(130px, 24vw, 220px); opacity: 0.95; }
 .table-emote.emote-love { animation: emoteHeart 1.1s ease-in-out infinite; width: clamp(150px, 28vw, 240px); }
+.table-emote.emote-champagne { animation: emoteChampagne 1.1s ease-in-out infinite; width: clamp(170px, 34vw, 300px); }
+.table-emote.emote-shock { animation: emoteShockFlash 0.7s ease-in-out infinite; width: clamp(170px, 34vw, 300px); }
   @keyframes emoteThrow {
     0% { transform: translate(-140%, -30%) rotate(-18deg) scale(0.9); opacity: 0; }
     45% { transform: translate(-50%, -55%) rotate(7deg) scale(1.03); opacity: 1; }
@@ -7871,16 +7873,26 @@ body[data-screen='game'] .table .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
   height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
 }
-@keyframes emoteRudeBump {
-  0% { transform: translate(-50%, -50%) rotate(-4deg) scale(0.96); }
-  30% { transform: translate(-50%, -56%) rotate(6deg) scale(1.06); }
-  55% { transform: translate(-50%, -48%) rotate(-5deg) scale(1.02); }
-  100% { transform: translate(-50%, -50%) rotate(-4deg) scale(0.98); }
+@keyframes emoteChampagne {
+  0% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
+  40% { transform: translate(-50%, -56%) rotate(6deg) scale(1.06); }
+  70% { transform: translate(-50%, -48%) rotate(-4deg) scale(1.01); }
+  100% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.98); }
+}
+@keyframes emoteShockFlash {
+  0% { transform: translate(-50%, -50%) scale(0.94); }
+  50% { transform: translate(-50%, -52%) scale(1.08); }
+  100% { transform: translate(-50%, -50%) scale(0.98); }
+}
+@keyframes emoteRudeJolt {
+  0% { transform: translate(-50%, -50%) rotate(-12deg) scale(0.92); }
+  50% { transform: translate(-50%, -58%) rotate(14deg) scale(1.12); }
+  100% { transform: translate(-50%, -50%) rotate(-12deg) scale(0.96); }
 }
 @keyframes emoteRudeSpark {
-  0% { transform: translate(-50%, -50%) scale(0.88); opacity: 0.35; }
-  40% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.9; }
-  100% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.55; }
+  0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
 }
 
 /* Discarded cards should match south hand card size on all viewports. */

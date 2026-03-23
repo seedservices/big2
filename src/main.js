@@ -260,7 +260,7 @@ const I18N={
     emoteLabelRage:'反枱',
     emoteLabelSmash:'揼枱',
     emoteLabelFire:'着火',
-    emoteLabelSmirk:'諗緊',
+    emoteLabelThink:'諗緊',
     emoteLabelCry:'爆喊',
     emoteLabelCheers:'飲勝',
     emoteLabelThumbs:'讚好',
@@ -479,7 +479,7 @@ const I18N={
     emoteLabelRage:'Rage',
     emoteLabelSmash:'Smash',
     emoteLabelFire:'Fire',
-    emoteLabelSmirk:'Thinking',
+    emoteLabelThink:'Thinking',
     emoteLabelCry:'Cry',
     emoteLabelCheers:'Cheers',
     emoteLabelThumbs:'Thumbs',
@@ -575,7 +575,7 @@ const EMOTE_STICKERS=[
   {id:'rage',file:'emote-rage.png'},
   {id:'smash',file:'emote-smash.png'},
   {id:'fire',file:'emote-fire.png'},
-  {id:'smirk',file:'emote-smirk.png'},
+  {id:'think',file:'emote-think.png'},
   {id:'cry',file:'emote-cry.png'},
   {id:'cheers',file:'emote-cheers.png'},
   {id:'thumbs',file:'emote-thumbs.png'},
@@ -5245,25 +5245,25 @@ function canBotEmote(seat){
   botEmoteCooldownBySeat.set(seat,now);
   return true;
 }
-function pickBotEmoteForAction(action,actor,play){
+function pickBotEmoteForAction(action,actor,play,isSelf){
   const handCount=Array.isArray(actor?.hand)?actor.hand.length:0;
   const playCount=Array.isArray(play?.cards)?play.cards.length:0;
   const remaining=action==='play'?Math.max(0,handCount-playCount):handCount;
-  if(action==='play'&&remaining===0)return'cheers';
+  const kind=String(play?.eval?.kind||'');
+  const isBomb=kind==='straightflush'||kind==='fourofkind';
+  const isFive=playCount>=5||kind==='fullhouse'||kind==='flush'||kind==='straight';
+  const playedTop2=playCount===1&&play?.cards?.[0]?.rank===12;
+  if(action==='play'&&remaining===0)return isSelf?'champagne':'shock';
   if(action==='pass'){
-    if(remaining<=2)return'cry';
-    return'sweat';
+    if(remaining<=2)return isSelf?'cry':'think';
+    return isSelf?'sweat':'thumbs';
   }
   if(action==='play'){
-    const kind=String(play?.eval?.kind||'');
-    if(kind==='straightflush')return'fire';
-    if(kind==='fourofkind')return'smash';
-    if(kind==='fullhouse')return'smirk';
-    if(kind==='flush'||kind==='straight')return'cool';
-    if(playCount>=5)return'smash';
-    if(playCount===1&&play?.cards?.[0]?.rank===12)return'cool';
-    if(remaining<=2)return'smirk';
-    return'thumbs';
+    if(isBomb)return isSelf?'fire':'shock';
+    if(isFive)return isSelf?'smash':'shock';
+    if(playedTop2)return isSelf?'cool':'shock';
+    if(remaining<=2)return isSelf?'think':'think';
+    return isSelf?'thumbs':'think';
   }
   return'';
 }
@@ -5288,12 +5288,16 @@ function pickBotReaction(game,actorSeat,action,play){
   const players=Array.isArray(game?.players)?game.players:[];
   const actor=players[actorSeat];
   if(!actor)return null;
+  if(!actor.isHuman&&canBotEmote(actorSeat)){
+    const selfEmote=pickBotEmoteForAction(action,actor,play,true);
+    if(selfEmote)return{seat:actorSeat,id:selfEmote,by:String(actor?.uid||'')};
+  }
   const botSeats=[];
   players.forEach((p,i)=>{if(i!==actorSeat&&p&&!p.isHuman)botSeats.push(i);});
   if(!botSeats.length)return null;
   const botSeat=botSeats[Math.floor(Math.random()*botSeats.length)];
   if(!canBotEmote(botSeat))return null;
-  const emoteId=pickBotEmoteForAction(action,actor,play);
+  const emoteId=pickBotEmoteForAction(action,actor,play,false);
   if(!emoteId)return null;
   const bot=players[botSeat];
   return{seat:botSeat,id:emoteId,by:String(bot?.uid||'')};
@@ -5711,7 +5715,7 @@ function playSound(kind){
   if(kind==='emote-rage'){playTone(180,0.08,'sawtooth',0.04);playTone(160,0.1,'square',0.04,0.06);}
   if(kind==='emote-smash'){playTone(140,0.12,'square',0.045);playTone(90,0.14,'sine',0.04,0.08);}
   if(kind==='emote-fire'){playTone(720,0.06,'triangle',0.02);playTone(620,0.06,'triangle',0.02,0.07);playTone(820,0.08,'triangle',0.02,0.14);}
-  if(kind==='emote-smirk'){playTone(520,0.07,'triangle',0.02);playTone(390,0.09,'triangle',0.02,0.05);}
+  if(kind==='emote-think'){playTone(520,0.07,'triangle',0.02);playTone(390,0.09,'triangle',0.02,0.05);}
   if(kind==='emote-cry'){playTone(320,0.12,'sine',0.025);playTone(260,0.14,'triangle',0.02,0.08);}
   if(kind==='emote-cheers'){playTone(660,0.12,'triangle',0.03);playTone(880,0.12,'triangle',0.03,0.05);}
   if(kind==='emote-thumbs'){playTone(520,0.08,'triangle',0.025);playTone(660,0.1,'triangle',0.02,0.06);}
