@@ -267,6 +267,8 @@ const I18N={
     emoteLabelCrack:'爆牆',
     emoteLabelSleep:'眼瞓',
     emoteLabelLove:'心心',
+    emoteLabelChampagne:'開香濱',
+    emoteLabelShock:'Shock',
     seatLabel:'座位 {{n}}',
     roomAvailable:'可加入',
     roomSeatOpen:'吉位',
@@ -484,6 +486,8 @@ const I18N={
     emoteLabelCrack:'Crack',
     emoteLabelSleep:'Sleepy',
     emoteLabelLove:'Love',
+    emoteLabelChampagne:'Champagne',
+    emoteLabelShock:'Shock',
     seatLabel:'Seat {{n}}',
     roomAvailable:'Available',
     roomSeatOpen:'Open Seat',
@@ -577,7 +581,9 @@ const EMOTE_STICKERS=[
   {id:'thumbs',file:'emote-thumbs.png'},
   {id:'crack',file:'emote-crack.png'},
   {id:'sleep',file:'emote-sleep.png'},
-  {id:'love',file:'emote-love.png'}
+  {id:'love',file:'emote-love.png'},
+  {id:'champagne',file:'emote-champagne.png'},
+  {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
 const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};

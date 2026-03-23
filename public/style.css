@@ -4169,21 +4169,21 @@ body[data-screen='game'] .table-center-stack {
 .table-emote.emote-cool { animation: emoteWobble 1.2s ease-in-out infinite; }
 .table-emote.emote-throw { animation: emoteThrow 1.3s ease-out forwards; width: clamp(150px, 30vw, 260px); }
 .table-emote.emote-rude {
-  animation: emoteShakeStrong 0.95s ease-in-out infinite;
-  width: clamp(190px, 36vw, 300px);
-  height: clamp(160px, 30vw, 260px);
+  animation: emoteRudeBump 0.9s ease-in-out infinite;
+  width: clamp(200px, 38vw, 320px);
+  height: auto;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
-.table-emote.emote-rude img { width: 70%; height: auto; }
+.table-emote.emote-rude img { width: 78%; height: auto; }
 .table-emote.emote-rude .emote-rude-spark {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(1.15);
-  animation: emoteShockStrong 0.45s ease-in-out infinite;
-  filter: drop-shadow(0 12px 22px rgba(0,0,0,.45));
+  transform: translate(-50%, -50%) scale(1.1);
+  animation: emoteRudeSpark 0.55s ease-in-out infinite;
+  opacity: 0.85;
 }
 .table-emote.emote-rude .emote-rude-spark-1 {
   transform: translate(-70%, -70%) scale(1.2) rotate(-10deg);
@@ -4413,8 +4413,8 @@ body[data-screen='game'] .table-center-stack {
   box-shadow: 0 0 0 2px rgba(255, 209, 102, .45), 0 6px 12px rgba(0,0,0,.28);
 }
 .action-strip .hand .hand-card {
-  width: calc(var(--card-w) * 1.14) !important;
-  height: calc(var(--card-h) * 1.14) !important;
+  width: calc(var(--card-w) * var(--hand-card-scale, 1.14)) !important;
+  height: calc(var(--card-h) * var(--hand-card-scale, 1.14)) !important;
   aspect-ratio: 5 / 7;
   display: grid;
   place-items: center;
@@ -6788,8 +6788,8 @@ body[data-screen='game'] .seat-count-tag {
 @media (min-width: 861px) {
   /* Web view: reduce south hand cards. */
   body[data-screen='game'] .action-strip .hand .hand-card {
-    width: calc(var(--card-w) * 1.2) !important;
-    height: calc(var(--card-h) * 1.2) !important;
+    width: calc(var(--card-w) * var(--hand-card-scale, 1.2)) !important;
+    height: calc(var(--card-h) * var(--hand-card-scale, 1.2)) !important;
   }
   body[data-screen='game'] .action-strip .hand {
     min-height: calc(var(--card-h) * 1.2 + 26px) !important;
@@ -7871,6 +7871,45 @@ body[data-screen='game'] .table .center-last .seat-played .card.mini {
   width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
   height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
 }
+@keyframes emoteRudeBump {
+  0% { transform: translate(-50%, -50%) rotate(-4deg) scale(0.96); }
+  30% { transform: translate(-50%, -56%) rotate(6deg) scale(1.06); }
+  55% { transform: translate(-50%, -48%) rotate(-5deg) scale(1.02); }
+  100% { transform: translate(-50%, -50%) rotate(-4deg) scale(0.98); }
+}
+@keyframes emoteRudeSpark {
+  0% { transform: translate(-50%, -50%) scale(0.88); opacity: 0.35; }
+  40% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(0.96); opacity: 0.55; }
+}
+
+/* Discarded cards should match south hand card size on all viewports. */
+body[data-screen='game'] { --discard-scale: 1.14; }
+@media (min-width: 861px) {
+  body[data-screen='game'] { --discard-scale: 1.2; }
+}
+body[data-screen='game'] .seat-played .card.mini,
+body[data-screen='game'] .seat-last .card.mini,
+body[data-screen='game'] .center-last .seat-played .card.mini,
+body[data-screen='game'] .center-last-north .seat-played .card.mini,
+body[data-screen='game'] .center-last-west .seat-played .card.mini,
+body[data-screen='game'] .center-last-east .seat-played .card.mini,
+body[data-screen='game'] .center-last-south .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--discard-scale) * var(--card-scale)) !important;
+  height: calc(var(--card-h) * var(--discard-scale) * var(--card-scale)) !important;
+}
+
+/* Absolute final override: discard cards follow south hand visual size. */
+body[data-screen='game'] .seat-played .card,
+body[data-screen='game'] .seat-last .card,
+body[data-screen='game'] .center-last .card,
+body[data-screen='game'] .center-last-north .card,
+body[data-screen='game'] .center-last-west .card,
+body[data-screen='game'] .center-last-east .card,
+body[data-screen='game'] .center-last-south .card {
+  width: calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale)) !important;
+  height: calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale)) !important;
+}
 .seat-emote {
   position: absolute;
   width: clamp(110px, 22vw, 200px);
@@ -7907,4 +7946,20 @@ body[data-screen='game'] .table .center-last .seat-played .card.mini {
   left: calc(50% + var(--callout-jx, 0px));
   right: auto;
   transform: translateX(-50%);
+}
+
+/* Final: discarded cards match south hand card size everywhere. */
+body[data-screen='game'] { --hand-card-scale: 1.14; --discard-scale: var(--hand-card-scale); }
+@media (min-width: 861px) {
+  body[data-screen='game'] { --hand-card-scale: 1.2; }
+}
+body[data-screen='game'] .seat-played .card.mini,
+body[data-screen='game'] .seat-last .card.mini,
+body[data-screen='game'] .center-last .seat-played .card.mini,
+body[data-screen='game'] .center-last-north .seat-played .card.mini,
+body[data-screen='game'] .center-last-west .seat-played .card.mini,
+body[data-screen='game'] .center-last-east .seat-played .card.mini,
+body[data-screen='game'] .center-last-south .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--discard-scale) * var(--card-scale)) !important;
+  height: calc(var(--card-h) * var(--discard-scale) * var(--card-scale)) !important;
 }
