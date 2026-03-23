@@ -22,15 +22,6 @@
 - iPhone game cards (hand/closed/discard) must remain within compact size clamps; verify on iOS Safari and adjust `--card-w` / `--center-discard-scale` only in mobile/iOS breakpoints.
 - Desktop game topbar must not overlap the game log; ensure topbar controls scroll within the main column on narrow desktop widths.
 
-## Ad
-- Use local cache to record only the game start time timestamp.
-- When a game starts, update cache with current start time.
-- When a game ends normally, clear the start time cache.
-- Before starting any new game, if cached start time is within 1 hour, open Smart Link.
-- If cached start time is older than 1 hour, allow start with no ad (and clear stale cache).
-- Do not add the Social Bar script or any social ad.
-- Smart Link is: https://www.effectivegatecpm.com/wbwmxkctg?key=e0907e00577f5c2a3eccf85c395c4b6a
-
 ## Encoding Rule
 - Always save and edit source files in UTF-8.
 - Never write files in UTF-16, UTF-32, or ANSI/legacy encodings.

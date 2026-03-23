@@ -115,8 +115,6 @@
 - Callouts are gated until the first play of a new round.
 - Emote stickers trigger short Web Audio SFX tone sequences.
 
-## 11. Ads Integration
-- Popunder ad script source defined in app constants
 - Trigger path connected to start/restart new-game interactions
 
 ## 12. Security and Integrity Considerations

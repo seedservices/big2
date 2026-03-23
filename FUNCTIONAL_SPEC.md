@@ -105,9 +105,6 @@ This document defines the functional behavior of the Big Two web application fro
 - Callout audio starts after first play in a new round to avoid immediate start callout.
 - First-user-interaction unlock pattern is used for web audio constraints.
 
-## 13. Ads (Functional)
-- Start new game flow includes popunder ad trigger behavior as configured by integration logic.
-
 ## 14. Responsive and Orientation Behavior
 - Mobile phone landscape is restricted by orientation block flow.
 - Layout adapts across phone/tablet/desktop breakpoints.
