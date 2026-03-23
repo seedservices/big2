@@ -6948,32 +6948,35 @@ function renderGame(){
   if(lastCardSeat!==null)calloutCandidates.push({kind:'last',seat:lastCardSeat,text:lastCardCallState.text||t('lastCardCall'),fresh:lastCardFresh,nonce:lastCardCallState.nonce||lastCardCallState.startedAt,startedAt:lastCardCallState.startedAt});
   const calloutPriority={must3:4,pass:3,play:2,last:1};
   const activeCallout=calloutCandidates.sort((a,b)=>(Number(b.startedAt)||0)-(Number(a.startedAt)||0)||(calloutPriority[b.kind]-calloutPriority[a.kind]))[0]??null;
-  const seatCalloutHtml=(seat,viewCls,color,isSelf=false)=>{
+  const seatCalloutHtml=(seat,viewCls,color,isSelf=false,isBot=false)=>{
     const seatClass=isSelf?'play-type-call-self':'play-type-call-seat';
     const lastClass=isSelf?'last-card-call-self':'last-card-call-seat';
     const tailDir=isSelf?'south':viewCls==='north'?'north':viewCls==='east'?'east':viewCls==='west'?'west':'south';
     const textClass=String(activeCallout?.text??'').length>10?'hk-medium':'hk-text';
+    const shouldMergeEmote=Boolean(!isSelf&&isBot&&emoteSticker&&emoteSeat===seat&&activeCallout&&activeCallout.seat===seat);
+    const emoteInlineHtml=shouldMergeEmote?`<span class="emote-icon">${emoteImageHtml}</span>`:'';
+    const calloutClass=shouldMergeEmote?' callout-with-emote':'';
     if(!calloutDisplayEnabled)return'';
     if(!activeCallout||activeCallout.seat!==seat)return'';
     if(activeCallout.kind==='pass'){
       const fresh='';
       const jitter=calloutJitterStyle(viewCls,`pass|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass} pass-call${fresh}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass} pass-call${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='play'){
       const fresh=activeCallout.fresh?' play-type-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`play|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass}${fresh}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='must3'){
       const fresh=activeCallout.fresh?' play-type-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`must3|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass}${fresh}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='last'){
       const fresh=activeCallout.fresh?' last-card-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`last|${seat}|${activeCallout.nonce}`);
-      return`<div class="last-card-call ${lastClass}${fresh}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="last-card-call ${lastClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     return'';
   };
@@ -7000,11 +7003,13 @@ function renderGame(){
   const emoteImageHtml=emoteSticker
     ?`<img src="${withBase(`emotes/${emoteSticker.file}`)}" alt="${emoteSticker.id}"/>`
     :'';
-  const seatEmoteHtml=(seat,viewCls,color,isSelf=false)=>{
+  const seatEmoteHtml=(seat,viewCls,color,isSelf=false,isBot=false)=>{
     if(!emoteSticker||emoteSeat===null||emoteSeat!==seat)return'';
     if(isSelf){
       return'';
     }
+    const shouldMergeEmote=Boolean(isBot&&activeCallout&&activeCallout.seat===seat);
+    if(shouldMergeEmote)return'';
     const seatClass='play-type-call-seat';
     const tailDir=viewCls==='north'?'north':viewCls==='east'?'east':viewCls==='west'?'west':'south';
     const jitter=calloutJitterStyle(viewCls,`emote|${seat}|${activeEmote?.ts||0}|${emoteSticker.id}`);
@@ -7041,8 +7046,8 @@ function renderGame(){
     const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${namecardBtn}${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
     const peekActive=isMobilePointer()&&state.mottoPeekName===String(p.rawName||p.name);
     const outerLabel=`<div class="seat-name-fixed${peekActive?' motto-peek':''}"${opponentAttr}>${labelName}</div>`;
-    const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
-    const emoteHtml=seatEmoteHtml(p.seat,p.cls,pColor,false);
+    const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false,p.isBot);
+    const emoteHtml=seatEmoteHtml(p.seat,p.cls,pColor,false,p.isBot);
     const glass='border:1px solid rgba(255,255,255,.17) !important;background:linear-gradient(130deg, rgba(255,255,255,.10), rgba(255,255,255,.03)),rgba(8, 24, 38, .36) !important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.1) !important;border-radius:12px !important;';
     const innerNoOutline='border:0 !important;box-shadow:none !important;background:transparent !important;';
     const shellStyle=`--player-color:${pColor};${glass}`;
