@@ -191,6 +191,42 @@ h1, h2, h3, p { margin: 0; }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+.room-top-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(8, 22, 34, .35);
+  font-size: .72rem;
+  color: rgba(232, 242, 237, .92);
+  transform: translateY(-2px);
+}
+.room-top-meta.room-top-meta-panel {
+  position: absolute;
+  right: 58px;
+  top: 5px;
+  z-index: 8;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .room-top-meta.room-top-meta-center {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 8;
+  }
+}
+.room-top-meta .room-top-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.room-top-meta strong {
+  font-weight: 800;
+  color: #f6d991;
+}
 .game-logo-block {
   position: relative;
   display: inline-block;
@@ -6153,6 +6189,11 @@ body[data-screen='game'] .seat-namecard {
   cursor: pointer;
   display: block;
 }
+@media (min-width: 861px) {
+  body[data-screen='game'] .seat-namecard {
+    margin-top: 1px;
+  }
+}
 body[data-screen='game'] .seat-namecard:hover {
   color: #ffffff;
 }
@@ -7868,11 +7909,6 @@ body[data-screen='game'] .seat.east.active::before {
 }
 
 
-/* Absolute final override: center discard size */
-body[data-screen='game'] .table .center-last .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--center-discard-scale, 1.48)) !important;
-  height: calc(var(--card-h) * var(--center-discard-scale, 1.48)) !important;
-}
 @keyframes emoteChampagne {
   0% { transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
   40% { transform: translate(-50%, -56%) rotate(6deg) scale(1.06); }
@@ -7893,34 +7929,6 @@ body[data-screen='game'] .table .center-last .seat-played .card.mini {
   0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.5; }
   50% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.95; }
   100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-}
-
-/* Discarded cards should match south hand card size on all viewports. */
-body[data-screen='game'] { --discard-scale: 1.14; }
-@media (min-width: 861px) {
-  body[data-screen='game'] { --discard-scale: 1.2; }
-}
-body[data-screen='game'] .seat-played .card.mini,
-body[data-screen='game'] .seat-last .card.mini,
-body[data-screen='game'] .center-last .seat-played .card.mini,
-body[data-screen='game'] .center-last-north .seat-played .card.mini,
-body[data-screen='game'] .center-last-west .seat-played .card.mini,
-body[data-screen='game'] .center-last-east .seat-played .card.mini,
-body[data-screen='game'] .center-last-south .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--discard-scale) * var(--card-scale)) !important;
-  height: calc(var(--card-h) * var(--discard-scale) * var(--card-scale)) !important;
-}
-
-/* Absolute final override: discard cards follow south hand visual size. */
-body[data-screen='game'] .seat-played .card,
-body[data-screen='game'] .seat-last .card,
-body[data-screen='game'] .center-last .card,
-body[data-screen='game'] .center-last-north .card,
-body[data-screen='game'] .center-last-west .card,
-body[data-screen='game'] .center-last-east .card,
-body[data-screen='game'] .center-last-south .card {
-  width: calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale)) !important;
-  height: calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale)) !important;
 }
 .seat-emote {
   position: absolute;
@@ -7959,9 +7967,8 @@ body[data-screen='game'] .center-last-south .card {
   right: auto;
   transform: translateX(-50%);
 }
-
-/* Final: discarded cards match south hand card size everywhere. */
-body[data-screen='game'] { --hand-card-scale: 1.14; --discard-scale: var(--hand-card-scale); }
+/* Discarded cards: match the actual south hand size. */
+body[data-screen='game'] { --hand-card-scale: 1.14; }
 @media (min-width: 861px) {
   body[data-screen='game'] { --hand-card-scale: 1.2; }
 }
@@ -7972,6 +7979,12 @@ body[data-screen='game'] .center-last-north .seat-played .card.mini,
 body[data-screen='game'] .center-last-west .seat-played .card.mini,
 body[data-screen='game'] .center-last-east .seat-played .card.mini,
 body[data-screen='game'] .center-last-south .seat-played .card.mini {
-  width: calc(var(--card-w) * var(--discard-scale) * var(--card-scale)) !important;
-  height: calc(var(--card-h) * var(--discard-scale) * var(--card-scale)) !important;
+  width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
+  height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
+}
+body[data-screen='game'] .seat-played .card.face.mini .card-art,
+body[data-screen='game'] .center-last .seat-played .card.face.mini .card-art,
+body[data-screen='game'] .seat-last .card.face.mini .card-art {
+  object-fit: contain !important;
+  transform: none !important;
 }

@@ -2953,6 +2953,12 @@ function botProfileForSeat(seat){
   const pick=list[idx]??list[0];
   return{name:String(pick.name??'Bot'),gender:String(pick.gender??'male')==='female'?'female':'male'};
 }
+function isBotRoomEntry(entry){
+  if(!entry||typeof entry!=='object')return false;
+  if(entry.isHuman===false)return true;
+  const uid=String(entry.uid??'').trim().toLowerCase();
+  return uid.startsWith('bot:')||uid.startsWith('ai:');
+}
 function syncRoomGameRoster(roomData){
   const base=roomData?.game;
   if(!base||!Array.isArray(base.players))return null;
@@ -2978,11 +2984,23 @@ function syncRoomGameRoster(roomData){
     if(!player)continue;
     const entry=seatMap.get(seat);
     if(entry){
-      const entryUid=String(entry.uid??'').trim();
-      const entryName=String(entry.name??`Player ${seat+1}`);
-      const entryGender=String(entry.gender??'male')==='female'?'female':'male';
-      const entryPic=String(entry.picture??'').trim();
-      if(!player.isHuman||String(player.uid??'')!==entryUid||player.name!==entryName||player.gender!==entryGender||String(player.picture??'')!==entryPic){
+      const entryIsBot=isBotRoomEntry(entry);
+      const fallbackBot=botProfileForSeat(seat);
+      const entryNameRaw=String(entry.name??'').trim();
+      const entryName=entryNameRaw||fallbackBot.name||`Bot ${seat+1}`;
+      const entryGender=String(entry.gender??fallbackBot.gender??'male')==='female'?'female':'male';
+      const entryUid=String(entry.uid??(entryIsBot?`bot:${seat}:${entryName}`:'')).trim();
+      const entryPic=entryIsBot?'':String(entry.picture??'').trim();
+      if(entryIsBot){
+        if(player.isHuman||String(player.uid??'')!==entryUid||player.name!==entryName||player.gender!==entryGender){
+          player.isHuman=false;
+          player.uid=entryUid;
+          player.name=entryName;
+          player.gender=entryGender;
+          player.picture='';
+          changed=true;
+        }
+      }else if(!player.isHuman||String(player.uid??'')!==entryUid||player.name!==entryName||player.gender!==entryGender||String(player.picture??'')!==entryPic){
         player.isHuman=true;
         player.uid=entryUid;
         player.name=entryName;
@@ -3005,28 +3023,32 @@ function syncRoomGameRoster(roomData){
   return changed?game:null;
 }
 function buildRoomGameState(roomData){
-  const roster=Array.isArray(roomData?.players)?roomData.players:[];
+  const roster=Array.isArray(roomData?.players)?roomData.players:[]; 
   const seatMap=new Map();
   roster.forEach((p)=>{
     const seat=Number(p?.seat);
     if(Number.isFinite(seat)&&seat>=0&&seat<4)seatMap.set(seat,p);
   });
-  const botProfiles=randomBotProfiles();
   const players=[];
   for(let seat=0;seat<4;seat++){
     const entry=seatMap.get(seat);
     if(entry){
+      const entryIsBot=isBotRoomEntry(entry);
+      const fallbackBot=botProfileForSeat(seat);
+      const entryNameRaw=String(entry.name??'').trim();
+      const entryName=entryNameRaw||fallbackBot.name||`Bot ${seat+1}`;
+      const entryGender=String(entry.gender??fallbackBot.gender??'male')==='female'?'female':'male';
       players.push({
-        uid:String(entry.uid??''),
-        name:String(entry.name??`Player ${seat+1}`),
-        gender:String(entry.gender??'male')==='female'?'female':'male',
-        picture:String(entry.picture??'').trim(),
+        uid:String(entry.uid??(entryIsBot?`bot:${seat}:${entryName}`:'')),
+        name:entryName,
+        gender:entryGender,
+        picture:entryIsBot?'':String(entry.picture??'').trim(),
         hand:[],
-        isHuman:true,
+        isHuman:!entryIsBot,
         seat
       });
     }else{
-      const bp=botProfiles[seat%botProfiles.length];
+      const bp=botProfileForSeat(seat);
       players.push({
         uid:`bot:${seat}:${bp.name}`,
         name:String(bp.name),
@@ -3044,7 +3066,8 @@ function buildRoomGameState(roomData){
     :(Array.isArray(roomData?.game?.totals)&&roomData.game.totals.length===4?roomData.game.totals:null);
   const totals=storedTotals?[...storedTotals]:[5000,5000,5000,5000];
   const difficulty=(roomData?.settings?.aiDifficulty&&isValidDifficulty(roomData.settings.aiDifficulty))?roomData.settings.aiDifficulty:state.home.aiDifficulty;
-  const game={players,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now(),turnStartedAt:Date.now(),lastMove:null,playerActionLog:[null,null,null,null],handCount:players.map((p)=>p.hand.length)};
+  const roomBots=players.filter((p)=>!p.isHuman).map((p)=>({name:p.name,gender:p.gender}));
+  const game={players,botProfiles:roomBots,botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now(),turnStartedAt:Date.now(),lastMove:null,playerActionLog:[null,null,null,null],handCount:players.map((p)=>p.hand.length)};
   setGameStatus(game,`${players[start].name} ${t('start')}`);
   return game;
 }
@@ -5856,7 +5879,6 @@ function roomCountdownText(roomData){
 }
 function roomCenterMetaHtml(roomData){
   if(!roomData)return'';
-  const code=String(roomData.code||state.room.code||'').trim();
   const host=resolveRoomHostInfo(roomData);
   const hostName=String(host.hostName||'').trim();
   const baseRound=Number(roomData.roundCount||0);
@@ -5864,7 +5886,6 @@ function roomCenterMetaHtml(roomData){
   const round=baseRound+(status==='playing'||status==='starting'?1:0);
   const countdown=roomCountdownText(roomData);
   return`<div class="room-center-meta">
-    <div class="room-center-row"><span>${t('roomRoomId')}</span><strong>${esc(code||'-')}</strong></div>
     <div class="room-center-row"><span>${t('roomHost')}</span><strong>${esc(hostName||'-')}</strong></div>
     <div class="room-center-row"><span>${t('roomRound')}</span><strong>${Number.isFinite(round)?round:'-'}</strong></div>
     <div class="room-center-row"><span>${t('roomCountdown')}</span><strong id="room-countdown-value">${esc(countdown)}</strong></div>
@@ -5880,7 +5901,7 @@ function addRoomSystemLog(game,text){
 }
 function centerMovesHtml(v){
   const felt='border:1px solid rgba(220,245,226,.34) !important;background:radial-gradient(circle at 24% 20%, rgba(170,230,190,.18), transparent 38%),radial-gradient(circle at 78% 74%, rgba(98,165,126,.16), transparent 40%),linear-gradient(165deg, #1f6b43 0%, #185938 58%, #12492f 100%) !important;box-shadow:inset 0 0 0 1px rgba(8,25,42,.45) !important;border-radius:12px !important;';
-  const roomMeta=(v?.mode==='room')?roomCenterMetaHtml(state.room.data):'';
+  const roomMeta='';
   return`<div class="table-center-grid-wrap" style="${felt}">${roomMeta}</div>`;
 }
 function seatShortByViewClass(cls){
@@ -6256,6 +6277,51 @@ function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
 let topbarDelegateBound=false;
+let roomTopMetaLayoutBound=false;
+let discardSizeObserver=null;
+function positionRoomTopMeta(){
+  const meta=document.querySelector('.room-top-meta');
+  if(!meta)return;
+  const actionStrip=document.querySelector('.action-strip');
+  const center=document.querySelector('.table-center-stack');
+  if(!actionStrip||!center)return;
+  const isPortrait=window.matchMedia?.('(orientation: portrait)')?.matches??(window.innerHeight>window.innerWidth);
+  const target=isPortrait?center:actionStrip;
+  if(meta.parentElement!==target){
+    target.appendChild(meta);
+  }
+  meta.classList.toggle('room-top-meta-center',isPortrait);
+  meta.classList.toggle('room-top-meta-panel',!isPortrait);
+}
+function bindRoomTopMetaLayout(){
+  if(roomTopMetaLayoutBound)return;
+  roomTopMetaLayoutBound=true;
+  window.addEventListener('resize',positionRoomTopMeta);
+  window.addEventListener('orientationchange',positionRoomTopMeta);
+}
+function syncDiscardSizeFromHand(){
+  if(state.screen!=='game')return;
+  const handCard=document.querySelector('.action-strip .hand .hand-card');
+  if(!(handCard instanceof HTMLElement))return;
+  const rect=handCard.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const root=document.documentElement;
+  root.style.setProperty('--discard-card-w',`${rect.width.toFixed(2)}px`);
+  root.style.setProperty('--discard-card-h',`${rect.height.toFixed(2)}px`);
+}
+function bindDiscardSizeObserver(){
+  if(discardSizeObserver)return;
+  if(!('ResizeObserver' in window))return;
+  discardSizeObserver=new ResizeObserver(()=>{syncDiscardSizeFromHand();});
+}
+function observeDiscardSize(){
+  bindDiscardSizeObserver();
+  const hand=document.querySelector('.action-strip .hand');
+  if(!(hand instanceof HTMLElement))return;
+  discardSizeObserver?.observe(hand);
+  syncDiscardSizeFromHand();
+  window.setTimeout(syncDiscardSizeFromHand,120);
+}
 function handleGameTopbarClick(ev){
   if(state.screen!=='game')return;
   const t=ev.target;
@@ -6852,15 +6918,22 @@ function renderGame(){
   const self=arr.find((p)=>p.viewIndex===0);
   const youWin=Boolean(v.gameOver&&self&&self.count===0);
   const playTypeCall=currentPlayTypeCall(v);
-  const roomStatusPill=(v.mode==='room'&&state.room.data)
-    ?`<span class="room-status-pill">${esc(`${t('roomStatusLabel')}: ${(() => {
-      const status=String(state.room.data?.status||'');
-      if(status==='playing')return t('roomStatusPlaying');
-      if(status==='starting')return t('roomStarting');
-      if(status==='finished')return t('roomWaitingHost');
-      return roomIsHost?t('roomWaitingReady'):t('roomWaitingHost');
-    })()}`)}</span>`
-    :'';
+  const roomTopMeta=(()=>{
+    if(v.mode!=='room'||!state.room.data)return'';
+    const host=resolveRoomHostInfo(state.room.data);
+    const hostName=String(host.hostName||'').trim()||'-';
+    const baseRound=Number(state.room.data.roundCount||0);
+    const status=String(state.room.data.status||'');
+    const round=baseRound+(status==='playing'||status==='starting'?1:0);
+    const countdown=roomCountdownText(state.room.data);
+    return`<div class="room-top-meta">
+      <span class="room-top-item"><span>${t('roomHost')}</span><strong>${esc(hostName)}</strong></span>
+      <span class="room-top-item"><span>${t('roomRound')}</span><strong>${Number.isFinite(round)?round:'-'}</strong></span>
+      <span class="room-top-item"><span>${t('roomCountdown')}</span><strong id="room-countdown-value">${esc(countdown)}</strong></span>
+    </div>`;
+  })();
+  const roomTopMetaPanel=roomTopMeta?`<div class="room-top-meta-panel">${roomTopMeta}</div>`:'';
+  const roomTopMetaCenter=roomTopMeta?`<div class="room-top-meta-center">${roomTopMeta}</div>`:'';
   const playTypeFresh=Boolean(playTypeCallState.startedAt&&Date.now()-playTypeCallState.startedAt<260);
   const passCall=currentPassCall(v);
   const passCallFresh=Boolean(passCallState.startedAt&&Date.now()-passCallState.startedAt<260);
@@ -7004,7 +7077,10 @@ function renderGame(){
   const showAdHint=shouldOpenAdBeforeStartingNewGame();
   const showPostGameAdHint=shouldOpenAdForImmediateRestart();
   const emotePanel=state.emote.open?`<div class="emote-panel">${EMOTE_STICKERS.map((s)=>`<button class="emote-btn" data-emote-id="${s.id}" type="button"><img src="${withBase(`emotes/${s.file}`)}" alt="${s.id}"/><span class="emote-btn-label">${esc(t(`emoteLabel${s.id[0].toUpperCase()}${s.id.slice(1)}`))}</span></button>`).join('')}</div>`:'';
-  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><span class="game-logo-block"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/><img class="game-flag" src="${withBase('hk-flag-apple.png')}" alt="Hong Kong flag"/></span>${roomStatusPill}</div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="restart-btn" class="primary">${t('restart')}</button>`,'bottom'):`<button id="restart-btn" class="primary">${t('restart')}</button>`}</div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin,showPostGameAdHint)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr,showPostGameAdHint):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><span class="game-logo-block"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/><img class="game-flag" src="${withBase('hk-flag-apple.png')}" alt="Hong Kong flag"/></span>${roomTopMeta}</div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button>${showAdHint?adHintWrap(`<button id="restart-btn" class="primary">${t('restart')}</button>`,'bottom'):`<button id="restart-btn" class="primary">${t('restart')}</button>`}</div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin,showPostGameAdHint)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr,showPostGameAdHint):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  positionRoomTopMeta();
+  bindRoomTopMetaLayout();
+  observeDiscardSize();
   document.body.setAttribute('data-web-too-small','0');
   document.body.removeAttribute('data-web-too-small-msg');
   document.getElementById('web-too-small-overlay')?.remove();
@@ -7022,6 +7098,7 @@ function renderGame(){
   },{once:true});
   bindGameEvents(v,arr);
   requestAnimationFrame(()=>{
+    syncDiscardSizeFromHand();
     syncHandStackMode();
     retargetCalloutTails();
     setTimeout(retargetCalloutTails,80);
@@ -7574,6 +7651,7 @@ function syncViewport(){
     render();
     return;
   }
+  requestAnimationFrame(syncDiscardSizeFromHand);
   requestAnimationFrame(syncHandStackMode);
 }
 
