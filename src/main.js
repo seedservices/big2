@@ -275,7 +275,7 @@ const I18N={
     seatLabel:'座位 {{n}}',
     roomAvailable:'可加入',
     roomSeatOpen:'吉位',
-    roomActiveList:'可加入房間',
+    roomActiveList:'房間列表',
     roomActiveEmpty:'未有可加入房間。',
     roomActiveRefresh:'更新列表',
     roomStatusLabel:'房間狀態',

@@ -6571,6 +6571,16 @@ body[data-screen='game'] .center-last-east .seat-played.seat-played-fan .card.mi
 body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.mini + .card.mini {
   margin-left: calc(var(--card-w) * -0.94) !important;
 }
+@media (max-width: 860px) {
+  body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.mini + .card.mini {
+    margin-left: calc(var(--card-w) * -1.24) !important;
+  }
+}
 
 /* Discard size now driven by runtime hand size, avoid extra center overrides. */
 
@@ -7897,4 +7907,14 @@ body[data-screen='game'] .center-last-east .seat-played .card.discard-card.mini,
 body[data-screen='game'] .center-last-south .seat-played .card.discard-card.mini {
   width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
   height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
+}
+@media (max-width: 860px) {
+  body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-north .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-west .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-east .seat-played.seat-played-fan .card.mini + .card.mini,
+  body[data-screen='game'] .center-last-south .seat-played.seat-played-fan .card.mini + .card.mini {
+    margin-left: calc(var(--card-w) * -1.8) !important;
+  }
 }
