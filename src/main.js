@@ -2306,6 +2306,12 @@ async function joinRoomByCode(codeRaw){
   try{
     const doc=await findRoomByCode(code);
     if(!doc){setRoomError(t('roomNotFound'));return;}
+    const data=doc.data()??{};
+    const status=String(data.status||'');
+    if(status==='playing'){
+      setRoomError(t('roomStatusPlaying'));
+      return;
+    }
     if(state.room.id){
       const same=String(state.room.id)===String(doc.id);
       if(same){
@@ -6525,7 +6531,8 @@ function renderHome(){
         }
         const privateLabel=isPrivate?`<div class="room-active-private" title="${t('roomPrivate')}">🔑 ${t('roomPrivate')}</div>`:'';
         const displayPlayers=Number.isFinite(Number(r.displayPlayers))?Number(r.displayPlayers):Number(r.players||0);
-        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${isPrivate?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div></button>`;
+        const joinDisabled=isPrivate||r.status==='playing';
+        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}${statusLabel}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div></button>`;
       }).join('')
       :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
