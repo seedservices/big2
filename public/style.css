@@ -2880,6 +2880,11 @@ body[data-screen='game'] .table-center-stack {
   justify-items: center;
   padding: 6px;
 }
+@media (min-width: 861px) {
+  body[data-screen='game'] .table {
+    overflow: visible;
+  }
+}
 .seat {
   position: relative;
   display: grid;
@@ -3384,8 +3389,26 @@ body[data-screen='game'] .table-center-stack {
   transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: none;
 }
-.seat[data-seat-emote-active='1'] .emote-callout {
-  display: none !important;
+.emote-float {
+  --callout-size: 1.15;
+  position: absolute;
+  z-index: 2600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg));
+  animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
+}
+.emote-float .emote-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.emote-float .emote-icon img {
+  width: calc(96px * var(--callout-size, 1));
+  height: auto;
+  display: block;
 }
 .play-type-call .hk-inner,
 .last-card-call .hk-inner {

@@ -6989,9 +6989,8 @@ function renderGame(){
     }
     if(state.emote.active?.suppressCallout)return'';
     const seatClass='play-type-call-seat';
-    const tailDir=viewCls==='north'?'north':viewCls==='east'?'east':viewCls==='west'?'west':'south';
     const jitter=calloutJitterStyle(viewCls,`emote|${seat}|${activeEmote?.ts||0}|${emoteSticker.id}`);
-    return`<div class="emote-callout ${seatClass}" data-emote-seat="${seat}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="emote-icon">${emoteImageHtml}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+    return`<div class="emote-float ${seatClass}" data-emote-seat="${seat}" style="--player-color:${color};${jitter}"><span class="emote-icon">${emoteImageHtml}</span></div>`;
   };
   const emoteHtml=(emoteSticker&&Number.isInteger(v.selfSeat)&&emoteSeat===v.selfSeat)
     ?`<div class="table-emote emote-${emoteSticker.id}">${emoteImageHtml}</div>`
