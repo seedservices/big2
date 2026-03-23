@@ -929,14 +929,13 @@ body[data-screen='home'] .home-wrap {
   display: grid;
   gap: 6px;
 }
-.room-status-banner {
-  padding: 4px 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 209, 102, .35);
-  background: rgba(255, 209, 102, .12);
-  color: #ffd9b3;
-  font-size: .78rem;
-  font-weight: 700;
+.room-status-text {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 600;
 }
 .room-meta-row {
   display: flex;
@@ -1214,6 +1213,11 @@ body[data-screen='home'] .home-wrap {
   gap: 8px;
   font-size: .85rem;
   color: var(--muted);
+}
+.room-active-hidden {
+  margin-left: auto;
+  font-size: .78rem;
+  color: rgba(255,255,255,0.7);
 }
 .room-active-grid {
   display: grid;
@@ -3244,8 +3248,8 @@ body[data-screen='game'] .table-center-stack {
   overflow: visible;
 }
 .seat-played .card.mini {
-  width: calc(var(--card-w) * 1.24);
-  height: calc(var(--card-h) * 1.24);
+  width: auto;
+  height: auto;
   flex: 0 0 auto;
   transform: none;
 }
@@ -5211,11 +5215,11 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .center-last-west .seat-played .card.mini + .card.mini,
   .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.52);
+    margin-left: calc(var(--card-w) * -0.72);
   }
   .center-last-east .seat-played { flex-direction: row; justify-content: flex-end; }
   .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.52);
+    margin-left: calc(var(--card-w) * -0.72);
     margin-right: 0;
   }
   .action-strip .hand-hint {
@@ -5520,8 +5524,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .center-last-north .seat-played .card.mini,
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.08) !important;
-    height: calc(var(--card-h) * 1.08) !important;
+    width: auto !important;
+    height: auto !important;
   }
   body[data-screen='game'] .north .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini + .card.mini,
@@ -5529,7 +5533,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'] .center-last-north .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last-west .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.46) !important;
+    margin-left: calc(var(--card-w) * -0.72) !important;
   }
 }
 @media (max-width: 860px) and (orientation: portrait) {
@@ -7031,8 +7035,8 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-north .seat-played .card.mini,
   body[data-screen='game'] .center-last-west .seat-played .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini {
-    width: calc(var(--card-w) * 1.36) !important;
-    height: calc(var(--card-h) * 1.36) !important;
+    width: auto !important;
+    height: auto !important;
   }
   body[data-screen='game'] .north .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .west .seat-played .card.mini + .card.mini,
@@ -7040,7 +7044,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'] .center-last-north .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last-west .seat-played .card.mini + .card.mini,
   body[data-screen='game'] .center-last-east .seat-played .card.mini + .card.mini {
-    margin-left: calc(var(--card-w) * -0.58) !important;
+    margin-left: calc(var(--card-w) * -0.78) !important;
   }
   body[data-screen='game'] .side-zone:not(.log-collapsed) {
     max-height: 30dvh;
