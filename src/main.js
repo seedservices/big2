@@ -6797,34 +6797,7 @@ function renderHome(){
   });
 
   if(joinOpen){
-    const countdownTarget=15;
-    const existingCountdown=Number(state.room.joinOpenCountdown);
-    if(!Number.isFinite(existingCountdown)||existingCountdown<=0||existingCountdown>countdownTarget){
-      state.room.joinOpenCountdown=countdownTarget;
-    }
-    if(!state.room.lobbyRefreshTimer){
-      state.room.lobbyRefreshTimer=window.setInterval(()=>{
-        if(!state.room.joinOpen){
-          window.clearInterval(state.room.lobbyRefreshTimer);
-          state.room.lobbyRefreshTimer=0;
-          return;
-        }
-        if(document.hidden)return;
-        state.room.joinOpenCountdown-=1;
-        if(state.room.joinOpenCountdown<=0){
-          state.room.joinOpenCountdown=countdownTarget;
-          void loadActiveRooms();
-        }
-        render();
-      },1000);
-    }
-    if(!prevJoinOpen){
-      window.addEventListener('focus',()=>{
-        if(document.hidden||!state.room.joinOpen)return;
-        state.room.joinOpenCountdown=countdownTarget;
-        void loadActiveRooms();
-      },{once:true});
-    }
+    state.room.joinOpenCountdown=0;
   }
   document.getElementById('room-copy')?.addEventListener('click',async()=>{
     try{await navigator.clipboard?.writeText?.(String(state.room.code||''));}catch{}
