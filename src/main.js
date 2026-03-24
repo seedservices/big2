@@ -241,6 +241,7 @@ const I18N={
     roomLoginRequired:'請先登入才可以建立或加入房間。',
     roomFull:'房間已滿。',
     roomNotFound:'找不到房間。',
+    roomClosed:'房間已關閉。',
     roomJoinFail:'加入房間失敗。',
     roomCreateFail:'建立房間失敗。',
     roomAlreadyIn:'你已在其他房間，請先離開再加入。',
@@ -251,7 +252,7 @@ const I18N={
     roomPrivacy:'房間私隱',
     roomPrivate:'私人',
     roomPublic:'公開',
-    roomNeedPlayers:'最少需要 2 位玩家先可以開始。',
+    roomNeedPlayers:'最少需要 2 位玩家',
     roomRoomId:'房間代碼',
     roomRound:'回合',
     roomCountdown:'倒數',
@@ -459,6 +460,7 @@ const I18N={
     roomLoginRequired:'Please sign in to create or join rooms.',
     roomFull:'Room is full.',
     roomNotFound:'Room not found.',
+    roomClosed:'Room is closed.',
     roomJoinFail:'Failed to join table.',
     roomCreateFail:'Failed to create table.',
     roomAlreadyIn:'You are already in another room. Leave it before joining.',
@@ -588,7 +590,7 @@ const EMOTE_STICKERS=[
   {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -792,6 +794,7 @@ const calloutAudioCache=new Map();
 let iosSharedCalloutAudio=null;
 let mobileTapAt=0;
 let orientationBlockActive=false;
+let lastOrientation=null;
 const BOT_PROFILE_POOL=[
   {name:'志明',gender:'male'},
   {name:'俊傑',gender:'male'},
@@ -2172,28 +2175,29 @@ async function loadActiveRooms(attempt=0){
             picture:String(p.picture||''),
             uid:String(p.uid||''),
             ready:Boolean(p.ready),
-            lastSeen:Number(p.lastSeen)||0
+            lastSeen:Number(p.lastSeen)||0,
+            isBot:!isRoomPlayerHuman(p),
+            avatarColor:'#7aaed8'
           }));
         if(status!=='lobby'&&data.game&&Array.isArray(data.game.players)){
-          const seatMap=new Map(roster.map((p)=>[p.seat,p]));
-          data.game.players.forEach((p,idx)=>{
-            const seat=Number(p?.seat);
-            if(!Number.isFinite(seat)&&Number.isFinite(idx))return;
-            const seatId=Number.isFinite(seat)?seat:idx;
-            if(!p||p.isHuman)return;
-            const existing=seatMap.get(seatId);
-            if(existing&&!isBotRoomEntry(existing))return;
-            seatMap.set(seatId,{
-              seat:seatId,
-              name:String(p.name||`Bot ${seatId+1}`),
-              gender:String(p.gender||'male')==='female'?'female':'male',
-              picture:'',
-              uid:String(p.uid||`bot:${seatId}`),
+          const gameRoster=data.game.players.map((p,idx)=>{
+            const seat=Number.isFinite(Number(p?.seat))?Number(p.seat):idx;
+            const safeSeat=Number.isFinite(seat)&&seat>=0&&seat<=3?seat:idx;
+            const gender=String(p?.gender||'male')==='female'?'female':'male';
+            const isBot=!p?.isHuman;
+            return{
+              seat:safeSeat,
+              name:String(p?.name||`Bot ${safeSeat+1}`),
+              gender,
+              picture:String(p?.picture||''),
+              uid:String(p?.uid||`bot:${safeSeat}`),
               ready:true,
-              lastSeen:0
-            });
+              lastSeen:0,
+              isBot,
+              avatarColor:isBot?playerColorByViewClass(seatCls[safeSeat]||'south'):'#7aaed8'
+            };
           });
-          roster=[...seatMap.values()].sort((a,b)=>a.seat-b.seat);
+          roster=gameRoster.sort((a,b)=>a.seat-b.seat);
         }
         const displayPlayers=Math.max(activePlayers.length,roster.length);
           rows.push({
@@ -2312,6 +2316,10 @@ async function joinRoomByCode(codeRaw){
       setRoomError(t('roomStatusPlaying'));
       return;
     }
+    if(status&&status!=='lobby'&&status!=='starting'&&status!=='finished'){
+      setRoomError(t('roomClosed'));
+      return;
+    }
     if(state.room.id){
       const same=String(state.room.id)===String(doc.id);
       if(same){
@@ -2423,6 +2431,7 @@ async function joinRoomByCode(codeRaw){
   }catch(err){
     console.error('join room failed',err);
     if(String(err?.message??'').includes('full'))setRoomError(t('roomFull'));
+    else if(String(err?.message??'').includes('closed'))setRoomError(t('roomClosed'));
     else setRoomError(t('roomJoinFail'));
   }
 }
@@ -3236,6 +3245,16 @@ function applyRoomGameSnapshot(roomData){
     const key=`${state.room.id}:${String(roomData?.gameVersion??'')}`;
     if(state.room.recordedGameKey!==key){
       state.room.recordedGameKey=key;
+      const roster=Array.isArray(roomData?.players)?roomData.players:[];
+      const rosterByUid=new Map(roster.map((p)=>[String(p?.uid||''),p]));
+      state.room.lastResultPlayers=game.players.map((p)=>({
+        uid:String(p?.uid||''),
+        name:String(p?.name||''),
+        gender:String(p?.gender||'male'),
+        picture:String(p?.picture||rosterByUid.get(String(p?.uid||''))?.picture||'').trim(),
+        isHuman:!!p?.isHuman,
+        seat:Number(p?.seat)
+      }));
       const summary=game.roundSummary;
       const deductions=Array.isArray(summary?.deductions)?summary.deductions:[];
       const winnerSeat=Number(summary?.winnerSeat);
@@ -3252,6 +3271,7 @@ function applyRoomGameSnapshot(roomData){
     }
   }else{
     state.room.recordedGameKey='';
+    state.room.lastResultPlayers=null;
   }
   render();
   maybeRunRoomAi();
@@ -5915,14 +5935,11 @@ function roomCountdownText(roomData){
 }
 function roomCenterMetaHtml(roomData){
   if(!roomData)return'';
-  const host=resolveRoomHostInfo(roomData);
-  const hostName=String(host.hostName||'').trim();
   const baseRound=Number(roomData.roundCount||0);
   const status=String(roomData.status||'');
   const round=baseRound+(status==='playing'||status==='starting'?1:0);
   const countdown=roomCountdownText(roomData);
   return`<div class="room-center-meta">
-    <div class="room-center-row"><span>${t('roomHost')}</span><strong>${esc(hostName||'-')}</strong></div>
     <div class="room-center-row"><span>${t('roomRound')}</span><strong>${Number.isFinite(round)?round:'-'}</strong></div>
     <div class="room-center-row"><span>${t('roomCountdown')}</span><strong id="room-countdown-value">${esc(countdown)}</strong></div>
   </div>`;
@@ -6229,6 +6246,21 @@ function revealHtml(){return'';}
 function resultScreenHtml(v,arr){
   const isRoom=state.home.mode==='room';
   const isHost=isRoom&&roomIsHost();
+  const roomHumanCount=isRoom&&state.room.data
+    ?(Array.isArray(state.room.data.players)?state.room.data.players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:')).length:0)
+    :0;
+  const needsPlayers=isRoom&&roomHumanCount<2;
+  const hostSeat=(()=>{
+    if(!isRoom||!state.room.data)return null;
+    const hostId=String(state.room.data.hostId||'').trim();
+    if(!hostId)return null;
+    const players=Array.isArray(state.room.data.players)?state.room.data.players:[];
+    const host=players.find((p)=>String(p?.uid||'')===hostId);
+    const seat=Number(host?.seat);
+    return Number.isFinite(seat)?seat:null;
+  })();
+  const resultSnapshot=Array.isArray(state.room.lastResultPlayers)?state.room.lastResultPlayers:null;
+  const snapshotBySeat=resultSnapshot?new Map(resultSnapshot.map((p)=>[Number.isFinite(Number(p?.seat))?Number(p.seat):-1,p])):null;
   const winner=arr.find((p)=>p.count===0)??arr[0];
   const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
   const winnerLastDiscardCards=winnerLastPlay?.cards??[];
@@ -6238,6 +6270,12 @@ function resultScreenHtml(v,arr){
   const rows=arr.map((p)=>{
     const isWinner=p.seat===winner.seat;
     const color=playerColorByViewClass(p.cls);
+    const isHostSeat=hostSeat!==null&&hostSeat===p.seat;
+    const hostBadgeHtml=isHostSeat?`<span class="lobby-seat-host-badge">🚩</span>`:'';
+    const snapshot=snapshotBySeat?snapshotBySeat.get(p.seat)||null:null;
+    const snapName=String(snapshot?.name||p.name||'');
+    const snapGender=String(snapshot?.gender||p.gender||'male')==='female'?'female':'male';
+    const snapPicture=String(snapshot?.picture||'').trim();
     const remain=(v.revealedHands?.[p.seat]??[]);
     const detail=detailBySeat[p.seat]??{remain:remain.length,base:0,multiplier:1,deduction:Number(deductions[p.seat])||0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''};
     const delta=isWinner?winnerGain:-(Number(deductions[p.seat])||0);
@@ -6252,9 +6290,9 @@ function resultScreenHtml(v,arr){
       ?`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreGain')} +${winnerGain}</div>`
       :`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreBase')} ${detail.base} x ${detail.multiplier} · ${t('scoreDeduct')} ${detail.deduction}${mulTags?` · ${t('scorePenaltyBoost')}: ${mulTags}`:''}</div>`;
     const isSelf=p.seat===v.selfSeat;
-    const avatarSrc=isSelf
-      ?(p.picture?authPictureUrlFrom(p.picture):selfAvatarDataUri(p.name,color,p.gender))
-      :(p.picture?authPictureUrlFrom(p.picture):avatarDataUri(p.name,color,p.gender,p.isBot));
+    const avatarSrc=snapPicture
+      ?authPictureUrlFrom(snapPicture)
+      :avatarDataUri(snapName,color,snapGender,Boolean(p.isBot));
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
     const winnerLastDiscardHtml=isWinner
       ?`<div class="result-card-block"><div class="result-block-title">${t('resultLastDiscard')}</div><div class="result-cards" aria-label="${t('resultLastDiscard')}">${winnerLastDiscardCards.length?winnerLastDiscardCards.map((c)=>renderStaticCard(c,true)).join(''):`<span class="hint">-</span>`}</div></div>`
@@ -6265,7 +6303,7 @@ function resultScreenHtml(v,arr){
     const rightColHtml=`<div class="result-side">${winnerLastDiscardHtml}${remainBlockHtml}</div>`;
     return`<div class="result-row ${isWinner?'winner':''}" style="--winner-color:${color};">
       <div class="result-main">
-        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap" style="--avatar-seat-color:${color};"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/></span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🏅</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
+        <div class="result-head"><span class="player-color-chip" style="--player-color:${color};"></span><span class="result-avatar-wrap" style="--avatar-seat-color:${color};"><img class="result-avatar" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${hostBadgeHtml}</span><span class="result-player-name"><strong>${esc(p.name)}</strong>${isWinner?`<span class="result-winner-medal" aria-hidden="true">🏅</span>`:''}</span>${isWinner?`<span class="result-winner-tag">${t('resultWinner')}</span>`:''}</div>
         <div class="result-meta">${t('resultDelta')}: ${delta>=0?`+${delta}`:`${delta}`} · ${t('score')}: ${total}</div>
         ${detailLine}
       </div>
@@ -6277,11 +6315,13 @@ function resultScreenHtml(v,arr){
       <h2 class="title-with-icon"><span class="title-icon title-icon-result" aria-hidden="true"></span><span>${t('resultTitle')}</span></h2>
       <div class="hint">${esc(uiStatus(v.status))}</div>
       <div class="result-list">${rows}</div>
+      ${needsPlayers?`<div class="hint">${t('roomNeedPlayers')}</div>`:''}
       <div class="control-row">
-        <button id="result-home" class="secondary">${t('home')}</button>
-        ${(!isRoom||isHost)
+        <button id="result-home" class="secondary">${isRoom?t('roomLeave'):t('home')}</button>
+        ${(!isRoom||(!needsPlayers&&isHost))
     ?`<button id="result-again" class="primary">${t('again')}</button>`
-    :`<span class="hint">${t('roomWaitingHost')}</span>`}
+    :(!isRoom?'':
+      needsPlayers?``:`<span class="hint">${t('roomWaitingHost')}</span>`)}
       </div>
     </div>
   </section>`;
@@ -6417,6 +6457,13 @@ function renderHome(){
   const signedIn=signedInForPlay();
   const diffIndex=difficultyIndex(state.home.aiDifficulty);
   const inRoom=Boolean(state.room.id);
+  const joinOpen=Boolean(state.room.joinOpen);
+  const prevJoinOpen=Boolean(state.room.joinOpenWasOpen);
+  if(!joinOpen&&state.room.lobbyRefreshTimer){
+    window.clearInterval(state.room.lobbyRefreshTimer);
+    state.room.lobbyRefreshTimer=0;
+  }
+  state.room.joinOpenWasOpen=joinOpen;
   const roomData=state.room.data;
   if(inRoom&&roomData&&String(roomData.status)==='playing'&&roomData.game){
     applyRoomGameSnapshot(roomData);
@@ -6434,6 +6481,10 @@ function renderHome(){
   const roomPrivate=Boolean(roomData?.isPrivate);
   const roomStatus=String(roomData?.status??'');
   const roomStarting=roomStatus==='starting';
+  const roomGamePlayers=(roomStatus==='finished'&&Array.isArray(roomData?.game?.players))?roomData.game.players:null;
+  const roomSeatMap=new Map(roomPlayers.map((p)=>[Number(p.seat),p]));
+  const gameSeatMap=roomGamePlayers?new Map(roomGamePlayers.map((p,i)=>[Number.isFinite(Number(p?.seat))?Number(p.seat):i,p])):null;
+  const useGameRoster=roomStatus==='finished'&&Boolean(gameSeatMap);
   const roomReadyPending=Boolean(state.room.pendingReady);
   const roomStartPending=Boolean(state.room.pendingStart);
   const readyCountText=roomHumanPlayers.length
@@ -6445,7 +6496,7 @@ function renderHome(){
     if(roomStatus==='finished')return t('roomWaitingHost');
     return roomIsHost?t('roomWaitingReady'):t('roomWaitingHost');
   })();
-  const roomStatusLine=`${t('roomStatusLabel')}: ${roomStatusText}${readyCountText?` · ${readyCountText}`:''}`;
+  const roomStatusLine=`${roomStatusText}${readyCountText?` · ${readyCountText}`:''}`;
   const roomStatusBanner=`<div class="room-status-text">${esc(roomStatusLine)}</div>`;
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
@@ -6461,32 +6512,41 @@ function renderHome(){
   const roomButtonsHtml=inRoom?'':`<button id="room-lobby-open" class="secondary royal-room-btn" ${signedIn?'':'disabled'}>${t('roomEnter')}</button>`;
   const roomSeats=[0,1,2,3].map((seat)=>{
     const seatLabel=t('seatLabel').replace('{{n}}',String(seat+1));
-    const entry=roomPlayers.find((p)=>Number(p.seat)===seat);
+    const roomEntry=roomSeatMap.get(seat)||null;
+    const gameEntry=gameSeatMap?gameSeatMap.get(seat)||null:null;
+    const entry=useGameRoster?(gameEntry||roomEntry):roomEntry;
     if(!entry){
       return`<div class="lobby-seat empty"><div class="lobby-seat-avatar empty">+</div><div class="lobby-seat-name">${t('roomSeatOpen')}</div><div class="lobby-seat-label">${seatLabel}</div></div>`;
     }
-    const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
-    const isHost=String(entry.uid)===String(derivedHostId)||entry.isHost===true;
+    const entryName=String(entry.name||'');
+    const entryGender=String(entry.gender||(useGameRoster?null:roomEntry?.gender)||'male')==='female'?'female':'male';
+    const entryPicture=String(useGameRoster?entry.picture:(entry.picture||roomEntry?.picture)||'').trim();
+    const isBot=useGameRoster?(!entry.isHuman):(!roomEntry?false:!isRoomPlayerHuman(roomEntry));
+    const avatarColor=isBot?playerColorByViewClass(seatCls[seat]||'south'):'#7aaed8';
+    const avatarSrc=entryPicture?authPictureUrlFrom(entryPicture):avatarDataUri(entryName,avatarColor,entryGender,isBot);
+    const isHost=String(entry.uid)===String(derivedHostId)||entry.isHost===true||String(roomEntry?.uid||'')===String(derivedHostId);
     const hostTag='';
-    const lastSeen=Number(entry.lastSeen)||0;
+    const lastSeen=Number(roomEntry?.lastSeen)||0;
     const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
-    const isSelf=String(entry.uid)===String(roomUid);
+    const isSelf=String(roomEntry?.uid||'')===String(roomUid);
     const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-    const readyText=entry.ready?t('roomReady'):t('roomWaiting');
+    const readyText=roomEntry?.ready?t('roomReady'):t('roomWaiting');
     const readyControl=isSelf
       ?`<div class="option-combo toggle-combo room-ready-toggle" id="room-ready-toggle">
-          <button class="combo-btn toggle-btn ${entry.ready?'active':''}" data-ready="1" ${roomReadyPending?'disabled':''}>${t('roomReady')}</button>
-          <button class="combo-btn toggle-btn ${entry.ready?'':'active'}" data-ready="0" ${roomReadyPending?'disabled':''}>${t('roomWaiting')}</button>
+          <button class="combo-btn toggle-btn ${roomEntry?.ready?'active':''}" data-ready="1" ${roomReadyPending?'disabled':''}>${t('roomReady')}</button>
+          <button class="combo-btn toggle-btn ${roomEntry?.ready?'':'active'}" data-ready="0" ${roomReadyPending?'disabled':''}>${t('roomWaiting')}</button>
         </div>`
-      :`<div class="lobby-seat-status">${readyText}</div>`;
-    return`<div class="lobby-seat ${entry.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
-      <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
-      <div class="lobby-seat-name">${esc(entry.name)}${hostTag}</div>
+      :(roomEntry?`<div class="lobby-seat-status">${readyText}</div>`:'');
+    const displayName=(roomStatus==='finished'?'':entryName);
+    const nameHtml=`<div class="lobby-seat-name">${displayName?esc(displayName):'&nbsp;'}</div>`;
+    return`<div class="lobby-seat ${roomEntry?.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
+      <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entryName)}"/>${hostBadge}</span>
+      ${nameHtml}
       ${readyControl}
       <div class="lobby-seat-label">${seatLabel}</div>
     </div>`;
   }).join('');
-  const roomHostLine=derivedHostName?`<div class="room-host-line"><span>${t('roomHost')}:</span><strong>${esc(derivedHostName)}</strong></div>`:'';
+  const roomHostLine='';
   const roomPrivacyRow=roomIsHost
     ?`<div class="room-privacy-row"><span>${t('roomPrivacy')}</span>
         <div class="option-combo toggle-combo" id="room-privacy-toggle">
@@ -6495,50 +6555,96 @@ function renderHome(){
         </div>
       </div>`
     :'';
+  const roomSeatFilledCount=[0,1,2,3].filter((seat)=>roomSeatMap.get(seat)).length;
+  const roomAllSeatsFilled=roomSeatFilledCount>=4;
   const roomStartControl=roomIsHost
     ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart||roomStartPending)?'disabled':''}>${t('roomStart')}</button>`}${roomStartPending?`<span class="hint">${t('roomSending')}</span>`:roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
-    :`<span class="hint">${roomStarting?t('roomStarting'):t('roomWaitingHost')}</span>`;
+    :`<span class="hint">${roomStarting?t('roomStarting'):(roomAllSeatsFilled?t('roomWaitingHost'):t('roomWelcomeJoin'))}</span>`;
   const roomPendingHint=(roomReadyPending&&!roomStartPending)?`<span class="hint">${t('roomSending')}</span>`:'';
   const roomTitle=t('roomTableTitle');
-  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}${roomStatusBanner}</div><div class="room-id-center"><span>${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card"><div class="room-head"><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span class="room-code">${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
   const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></button>`;
+  const maskRoomCode=(code)=>{
+    const raw=String(code||'');
+    if(!raw)return'';
+    if(raw.length<=2)return raw;
+    const chars=raw.split('');
+    const len=chars.length;
+    const maskCount=len<=4?Math.max(1,len-2):3;
+    const start=Math.floor((len-maskCount)/2);
+    for(let i=start;i<start+maskCount;i+=1){
+      chars[i]='*';
+    }
+    return chars.join('');
+  };
   const activeRoomsCards=activeRooms.length
     ?activeRooms.map((r)=>{
         const roster=Array.isArray(r.roster)?r.roster:[];
         const isPrivate=Boolean(r.isPrivate);
+        const displayCode=isPrivate?maskRoomCode(r.code):String(r.code||'').toUpperCase();
         const roomSeats=[0,1,2,3].map((seat)=>{
+          if(r.status==='finished'){
+            const entry=roster.find((p)=>Number(p.seat)===seat&& !Boolean(p.isBot));
+            if(!entry){
+              return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
+            }
+            const avatarColor=entry.avatarColor||'#7aaed8';
+            const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',false);
+            const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
+            const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
+            return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
+              <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
+              </div>`;
+          }
           const entry=roster.find((p)=>Number(p.seat)===seat);
           if(!entry){
             return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
-        }
-        const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,'#7aaed8',entry.gender??'male',false);
-        const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
-        const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-        return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
-          <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
-          </div>`;
+          }
+              const avatarColor=entry.avatarColor||'#7aaed8';
+              const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',Boolean(entry.isBot));
+              const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
+              const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
+          return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
+            <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
+            </div>`;
         }).join('');
         let statusLabel='';
         if(r.status==='playing'){
           const round=Number(r.roundCount||0)+1;
           const roundText=Number.isFinite(round)?round:'-';
-          statusLabel=`<div class="room-active-status">${t('roomStatusPlaying')} · ${t('roomRound')} ${roundText}</div>`;
+          statusLabel=`<div class="room-active-status">⚔️ ${t('roomStatusPlaying')} · ${t('roomRound')} ${roundText}</div>`;
+        }else if(r.status==='finished'){
+          statusLabel=`<div class="room-active-status">${t('roomWaitingHost')}</div>`;
         }else if(r.status==='lobby'||r.status==='starting'){
-          statusLabel=`<div class="room-active-status">${t('roomWelcomeJoin')}</div>`;
+          statusLabel=`<div class="room-active-status">${t('roomWaitingHost')}</div>`;
         }
-        const privateLabel=isPrivate?`<div class="room-active-private" title="${t('roomPrivate')}">🔑 ${t('roomPrivate')}</div>`:'';
+        const privateLabel='';
         const displayPlayers=Number.isFinite(Number(r.displayPlayers))?Number(r.displayPlayers):Number(r.players||0);
         const joinDisabled=isPrivate||r.status==='playing';
-        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}><div class="room-active-code">${esc(r.code)}</div><div class="room-active-table room-active-table-full">${roomSeats}</div><div class="room-active-info">${privateLabel}<div class="room-active-meta">${statusLabel}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div></div></button>`;
+        const bottomHint=isPrivate&&r.status!=='playing'
+          ?(state.language==='zh-HK'?'輸入房間代碼即可加入':'Enter room code to join.')
+          :'';
+        const statusText=(()=>{
+          if(r.status==='playing')return statusLabel.replace(/<[^>]+>/g,'');
+          if(isPrivate&&r.status!=='playing')return bottomHint;
+          const totalSeats=Number.isFinite(Number(r.maxPlayers))?Number(r.maxPlayers):4;
+          if(!isPrivate&&r.status!=='playing'&&displayPlayers<totalSeats)return t('roomWelcomeJoin');
+          return statusLabel?statusLabel.replace(/<[^>]+>/g,''):'';
+        })();
+        const bottomRow=`<div class="room-active-bottom">${statusText?`<div class="room-active-status-line">${esc(statusText)}</div>`:'<span></span>'}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div>`;
+        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}>${isPrivate?`<span class="room-active-private-inline">🔑 ${t('roomPrivate')}</span>`:''}<div class="room-active-code"><span class="room-active-code-text">${esc(displayCode)}</span></div><div class="room-active-table room-active-table-full">${roomSeats}</div>${bottomRow}</button>`;
       }).join('')
       :'';
   const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
   const hiddenCount=Number(state.home.activeRooms.hiddenCount)||0;
   const hiddenNote=hiddenCount?`<span class="room-active-hidden">Hidden: ${hiddenCount}</span>`:'';
-  const activeRoomsBlock=`<div class="room-active-block"><div class="room-active-head"><span>${t('roomActiveList')}</span>${hiddenNote}<button id="room-active-refresh" class="secondary">${t('roomActiveRefresh')}</button></div><div class="room-active-grid">${createTableCard}${activeRoomsCards}${activeRoomsEmpty}</div></div>`;
+  const refreshCountdownText=state.room.joinOpenCountdown&&state.room.joinOpenCountdown>0
+    ?`<span class="room-active-refresh-countdown">${state.room.joinOpenCountdown}s</span>`
+    :'';
+  const activeRoomsBlock=`<div class="room-active-block"><div class="room-active-head"><span>${t('roomActiveList')}</span>${hiddenNote}<button id="room-active-refresh" class="secondary"><span class="room-active-refresh-label">${state.language==='zh-HK'?'更新':'Refresh'}</span>${refreshCountdownText}</button></div><div class="room-active-grid">${createTableCard}${activeRoomsCards}${activeRoomsEmpty}</div></div>`;
   const roomJoinModal=(!inRoom&&state.room.joinOpen)?`<div class="room-overlay"><div class="room-card room-join-card"><div class="room-head"><h3>${t('roomLobby')}</h3></div><label class="field"><span>${t('roomCode')}</span><div class="room-code-row"><input id="room-code-input" class="room-input" maxlength="8" placeholder="ABC123"/><button id="room-join-confirm" class="primary">${t('roomJoin')}</button></div></label>${activeRoomsState?.loading?`<div class="hint">...</div>`:activeRoomsBlock}${roomErrorHtml}<div class="room-actions"><button id="room-join-cancel" class="secondary">${t('home')}</button></div></div></div>`:'';
   app.innerHTML=`<section class="home-wrap royal-home-wrap"><section class="home-panel royal-home-panel"><header class="royal-home-head"><div class="royal-head-actions"><button id="home-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="home-score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="home-lb-toggle" class="secondary">${t('lb')}</button>${allowOpponents?`<button id="home-opponents-toggle" class="secondary">${t('opponents')}</button>`:''}<button id="home-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div><div class="royal-title-wrap"><div class="home-logo-block"><img class="title-logo title-logo-home" src="${withBase('title-lockup-home.png')}" alt="鋤大D TRADITIONAL BIG TWO"/><img class="home-flag" src="${withBase('hk-flag-apple.png')}" alt="Hong Kong flag"/></div></div></header><section class="royal-home-body"><div class="home-form-grid"><div class="home-form-col home-form-left home-section"><h3 class="home-section-title">👾 ${t('playerSettings')}</h3><div class="home-profile-card"><div class="home-profile-avatar"><img id="home-avatar-img" src="${homeAvatarSrc}" alt="${esc(state.home.name||t('name'))}"/></div><div class="home-profile-fields"><label class="field field-compact"><span>${t('name')}</span><div class="name-with-google"><input id="name-input" value="${esc(state.home.name)}" maxlength="18"/><div id="google-name-inline"></div></div></label><label class="field field-compact"><div class="option-combo toggle-combo" id="gender-combo"><button class="combo-btn toggle-btn ${state.home.avatarChoice==='male'?'active':''}" data-value="male">${t('male')}</button><button class="combo-btn toggle-btn ${state.home.avatarChoice==='female'?'active':''}" data-value="female">${t('female')}</button></div></label></div></div>${aiFieldLeft}${cardBackLeft}</div><div class="home-form-col home-form-right home-section"><h3 class="home-section-title">⚙️ ${t('systemSettings')}</h3>${aiFieldRight}<label class="field field-sound"><span>${t('soundFx')}</span><div class="option-combo toggle-combo" id="sound-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'active':''}" data-value="on" aria-label="${t('soundOn')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${sound.enabled?'':'active'}" data-value="off" aria-label="${t('soundOff')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label><label class="field field-callout"><span>${t('calloutDisplay')}</span><div class="option-combo toggle-combo" id="callout-display-combo"><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'active':''}" data-value="on">${t('calloutDisplayOn')}</button><button class="combo-btn toggle-btn ${calloutDisplayEnabled?'':'active'}" data-value="off">${t('calloutDisplayOff')}</button></div></label><label class="field field-voice"><span>${t('voiceMode')}</span><div class="option-combo toggle-combo" id="voice-combo"><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='auto'?'active':''}" data-value="auto" aria-label="${t('voiceAuto')}"><svg class="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M15 9c1.6 1.2 1.6 4.8 0 6"></path><path d="M17.5 7c2.8 2.4 2.8 7.6 0 10"></path></svg></button><button class="combo-btn toggle-btn sound-toggle-btn ${calloutVoiceMode==='off'?'active':''}" data-value="off" aria-label="${t('voiceOff')}"><svg class="sound-icon" viewBox="0 0 24 24"><path d="M4 10v4h3l4 3V7l-4 3H4z"></path><path d="M16 8l4 8"></path><path d="M20 8l-4 8"></path></svg></button></div></label>${cardBackRight}</div></div><div class="action-row home-start-row"><button id="solo-start" class="primary royal-start-btn" ${signedIn?'':'disabled'}>${t('solo')}</button>${roomButtonsHtml}${signedIn?'':`<span class="hint">${t('loginToStart')}</span>`}</div></section></section>${mainPageLegalMiniHtml()}${roomLobbyHtml}${roomJoinModal}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}${state.showScoreGuide?scoreGuideModalHtml():''}</section>`;
 
@@ -6607,6 +6713,7 @@ function renderHome(){
     }
     state.room.joinOpen=true;
     state.room.error='';
+    state.room.joinOpenCountdown=15;
     render();
     void loadActiveRooms();
   });
@@ -6618,6 +6725,7 @@ function renderHome(){
   });
   document.getElementById('room-join-cancel')?.addEventListener('click',()=>{
     state.room.joinOpen=false;
+    state.room.joinOpenCountdown=0;
     state.room.error='';
     render();
   });
@@ -6626,6 +6734,10 @@ function renderHome(){
     await joinRoomByCode(code);
   });
   document.getElementById('room-active-refresh')?.addEventListener('click',async()=>{
+    if(state.room.joinOpen){
+      state.room.joinOpenCountdown=15;
+      render();
+    }
     await loadActiveRooms();
   });
   document.querySelectorAll('.room-active-card').forEach((card)=>card.addEventListener('click',()=>{
@@ -6642,6 +6754,37 @@ function renderHome(){
     const code=document.getElementById('room-code-input')?.value??'';
     await joinRoomByCode(code);
   });
+
+  if(joinOpen){
+    const countdownTarget=15;
+    const existingCountdown=Number(state.room.joinOpenCountdown);
+    if(!Number.isFinite(existingCountdown)||existingCountdown<=0||existingCountdown>countdownTarget){
+      state.room.joinOpenCountdown=countdownTarget;
+    }
+    if(!state.room.lobbyRefreshTimer){
+      state.room.lobbyRefreshTimer=window.setInterval(()=>{
+        if(!state.room.joinOpen){
+          window.clearInterval(state.room.lobbyRefreshTimer);
+          state.room.lobbyRefreshTimer=0;
+          return;
+        }
+        if(document.hidden)return;
+        state.room.joinOpenCountdown-=1;
+        if(state.room.joinOpenCountdown<=0){
+          state.room.joinOpenCountdown=countdownTarget;
+          void loadActiveRooms();
+        }
+        render();
+      },1000);
+    }
+    if(!prevJoinOpen){
+      window.addEventListener('focus',()=>{
+        if(document.hidden||!state.room.joinOpen)return;
+        state.room.joinOpenCountdown=countdownTarget;
+        void loadActiveRooms();
+      },{once:true});
+    }
+  }
   document.getElementById('room-copy')?.addEventListener('click',async()=>{
     try{await navigator.clipboard?.writeText?.(String(state.room.code||''));}catch{}
   });
@@ -6901,14 +7044,11 @@ function renderGame(){
   const playTypeCall=currentPlayTypeCall(v);
   const roomTopMeta=(()=>{
     if(v.mode!=='room'||!state.room.data)return'';
-    const host=resolveRoomHostInfo(state.room.data);
-    const hostName=String(host.hostName||'').trim()||'-';
     const baseRound=Number(state.room.data.roundCount||0);
     const status=String(state.room.data.status||'');
     const round=baseRound+(status==='playing'||status==='starting'?1:0);
     const countdown=roomCountdownText(state.room.data);
     return`<div class="room-top-meta">
-      <span class="room-top-item"><span>${t('roomHost')}</span><strong>${esc(hostName)}</strong></span>
       <span class="room-top-item"><span>${t('roomRound')}</span><strong>${Number.isFinite(round)?round:'-'}</strong></span>
       <span class="room-top-item"><span>${t('roomCountdown')}</span><strong id="room-countdown-value">${esc(countdown)}</strong></span>
     </div>`;
@@ -7007,10 +7147,22 @@ function renderGame(){
   const lastActions=lastActionBySeat(v.history);
   const playKey=v.lastPlay?`${v.lastPlay.seat}-${v.lastPlay.cards.map(cardId).join(',')}`:'';
   if(playKey&&state.playAnimKey!==playKey)state.playAnimKey=playKey;
+  const roomData=state.home.mode==='room'?state.room.data:null;
+  const hostSeat=(()=>{
+    if(!roomData)return null;
+    const hostId=String(roomData.hostId||'').trim();
+    if(!hostId)return null;
+    const players=Array.isArray(roomData.players)?roomData.players:[];
+    const host=players.find((p)=>String(p?.uid||'')===hostId);
+    const seat=Number(host?.seat);
+    return Number.isFinite(seat)?seat:null;
+  })();
   const seatHtml=arr.filter((p)=>p.viewIndex!==0).map((p)=>{
     const active=v.currentSeat===p.seat&&!v.gameOver;
     const pColor=playerColorByViewClass(p.cls);
     const dangerLast=Boolean(!v.gameOver&&p.count===1);
+    const isHostSeat=hostSeat!==null&&hostSeat===p.seat;
+    const hostBadgeHtml=isHostSeat?`<span class="lobby-seat-host-badge">🚩</span>`:'';
     const badgeHtml=dangerLast
       ?`<span class="avatar-status-badge warning ${active?'danger':''}" aria-label="${esc(t('lastCardCall'))}"></span>`
       :(active?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
@@ -7029,7 +7181,7 @@ function renderGame(){
       return `${raw}deg`;
     })();
     const namecardBtn=p.isBot?`<button type="button" class="seat-namecard" data-opponent-name="${esc(p.rawName||p.name)}" aria-label="${esc(t('profile'))}">🪪</button>`:'';
-    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${namecardBtn}${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
+    const labelName=`<div class="name"><span class="player-avatar-wrap player-avatar-wrap-opponent avatar-rim" style="--avatar-rim:${pColor};"><img class="player-avatar player-avatar-opponent ${avatarGenderClass(p.gender)}" style="--avatar-outline:${pColor};" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/>${hostBadgeHtml}${badgeHtml}</span><span class="seat-identity"><span class="seat-name-text">${esc(p.name)}</span><span class="seat-subline">${p.score??0}</span>${namecardBtn}${mottoText?`<span class="seat-motto-callout play-type-call" style="--player-color:${pColor};--motto-tilt:${mottoTilt};"><span class="hk-motto-box"><span class="${mottoClass}">${esc(mottoText)}</span>${hintText?`<span class="hk-chinese-sub">${esc(hintText)}</span>`:''}</span><span class="tail tail-north"></span></span>`:''}</span></div>`;
     const peekActive=isMobilePointer()&&state.mottoPeekName===String(p.rawName||p.name);
     const outerLabel=`<div class="seat-name-fixed${peekActive?' motto-peek':''}"${opponentAttr}>${labelName}</div>`;
     const calloutHtml=seatCalloutHtml(p.seat,p.cls,pColor,false);
@@ -7050,10 +7202,12 @@ function renderGame(){
   const useGoogleSelfAvatar=Boolean(state.home.google?.signedIn&&authPic&&selfAvatarSrc===authPic);
   const selfDangerLast=Boolean(!v.gameOver&&self&&self.count===1);
   const selfActive=Boolean(!v.gameOver&&self&&v.currentSeat===self.seat);
+  const selfIsHost=hostSeat!==null&&self&&hostSeat===self.seat;
+  const selfHostBadgeHtml=selfIsHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
   const selfBadgeHtml=selfDangerLast
     ?`<span class="avatar-status-badge warning ${selfActive?'danger':''}" aria-label="${esc(t('lastCardCall'))}"></span>`
     :(selfActive?`<span class="avatar-status-badge turn" aria-label="${esc(t('wait'))}"></span>`:'');
-  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfBadgeHtml}</span>`;
+  const selfAvatar=`<span class="player-avatar-wrap player-avatar-wrap-self avatar-rim" style="--avatar-rim:${selfSeatColor};"><img id="self-avatar-img" class="player-avatar player-avatar-self ${avatarGenderClass(selfGender)} ${useGoogleSelfAvatar?'player-avatar-google':''}" style="--avatar-outline:${selfSeatColor};" src="${selfAvatarSrc}" data-fallback="${selfGender==='female'?AVATAR_BASE_SRC.female:AVATAR_BASE_SRC.male}" alt="${esc(selfName)}"/>${selfHostBadgeHtml}${selfBadgeHtml}</span>`;
   let selfCalloutHtml=self?seatCalloutHtml(self.seat,'south',selfSeatColor,true):'';
   const selfEmoteHtml=self?seatEmoteHtml(self.seat,'south',selfSeatColor,true):'';
   if(selfEmoteHtml)selfCalloutHtml+=selfEmoteHtml;
@@ -7629,14 +7783,23 @@ function syncViewport(){
   const scale=Math.max(0.74,Math.min(1.1,short/520));
   root.style.setProperty('--card-scale',scale.toFixed(3));
   const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';
+  const orientationChanged=Boolean(lastOrientation)&&orientation!==lastOrientation;
+  lastOrientation=orientation;
   document.body.setAttribute('data-orientation',orientation);
   syncWebViewportGuardAttrs();
   root.style.setProperty('--table-tilt','0deg');
   const blocked=shouldBlockLandscapeMobile();
   if(blocked!==orientationBlockActive){
     orientationBlockActive=blocked;
+    if(orientationChanged&&state.screen==='game'){
+      state.logTouched=false;
+    }
     render();
     return;
+  }
+  if(orientationChanged&&state.screen==='game'){
+    state.logTouched=false;
+    render();
   }
   requestAnimationFrame(syncDiscardSizeFromHand);
   requestAnimationFrame(syncHandStackMode);

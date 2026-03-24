@@ -883,11 +883,31 @@ body[data-screen='home'] .home-wrap {
   border: 1px solid rgba(82, 210, 115, .35);
   color: #c8f0d3;
   font-weight: 800;
+  letter-spacing: normal;
+  text-transform: none;
+  flex-wrap: wrap;
+}
+.room-code {
   letter-spacing: .34em;
   text-transform: uppercase;
 }
 .room-id-center button {
   letter-spacing: normal;
+}
+.room-status-inline {
+  font-size: .82rem;
+  color: #f4fbff;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: none;
+  white-space: nowrap;
+  flex: 1 1 100%;
+  text-align: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(12, 28, 42, .55);
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
 }
 .room-privacy-row {
   display: flex;
@@ -966,7 +986,7 @@ body[data-screen='home'] .home-wrap {
 }
 .lobby-seat-host-badge {
   position: absolute;
-  right: -2px;
+  left: -2px;
   bottom: -2px;
   width: 22px;
   height: 22px;
@@ -1151,6 +1171,7 @@ body[data-screen='home'] .home-wrap {
   gap: 8px;
   transition: transform .2s ease, border-color .2s ease, background .2s ease;
   height: 100%;
+  position: relative;
 }
 .room-create-card {
   border-style: dashed;
@@ -1226,8 +1247,50 @@ body[data-screen='home'] .home-wrap {
   text-align: center;
 }
 .room-active-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-weight: 800;
   letter-spacing: .24em;
+  flex-wrap: wrap;
+}
+.room-active-code-text {
+  letter-spacing: .24em;
+}
+.room-active-status-line {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #e9f4ff;
+  background: rgba(12, 28, 42, .55);
+  border: 1px solid rgba(255,255,255,.22);
+  padding: 2px 6px;
+  border-radius: 999px;
+  text-transform: none;
+  width: fit-content;
+}
+.room-active-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.room-active-refresh-label {
+  font-weight: 700;
+}
+.room-active-refresh-countdown {
+  margin-left: 6px;
+  font-size: .72rem;
+  color: #d3e6ff;
+  opacity: .85;
+  font-variant-numeric: tabular-nums;
+}
+.room-active-hint {
+  font-size: .7rem;
+  color: var(--muted);
+  text-transform: none;
+  text-align: left;
 }
 .room-active-info {
   display: grid;
@@ -1252,6 +1315,8 @@ body[data-screen='home'] .home-wrap {
 }
 .room-active-count {
   justify-self: end;
+  margin-left: auto;
+  text-align: right;
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.18);
@@ -1266,6 +1331,21 @@ body[data-screen='home'] .home-wrap {
   border: 1px solid rgba(255, 164, 92, .38);
   background: rgba(255, 164, 92, .12);
   color: #ffd9b3;
+  font-size: .7rem;
+  font-weight: 700;
+}
+.room-active-private-inline {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 192, 255, .38);
+  background: rgba(124, 192, 255, .12);
+  color: #cfe9ff;
   font-size: .7rem;
   font-weight: 700;
 }
@@ -4732,6 +4812,34 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   .side-zone { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .history-list { max-height: 24vh; }
 }
+@media (max-width: 1080px) and (orientation: landscape) {
+  body[data-screen='game'] .game-shell {
+    --log-col-w: clamp(180px, 30vw, 240px);
+    grid-template-columns: minmax(0,1fr) var(--log-col-w);
+    grid-template-rows: minmax(0,1fr);
+  }
+  body[data-screen='game'] .side-zone,
+  body[data-screen='game'] .side-zone.log-collapsed {
+    width: var(--log-col-w);
+    min-width: var(--log-col-w);
+    max-width: var(--log-col-w);
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0,1fr);
+    align-content: stretch;
+    align-self: stretch;
+  }
+  body[data-screen='game'] .log-side-card,
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
+    height: 100%;
+    min-height: 0;
+  }
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .history-list,
+  body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed .log-status {
+    display: grid;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
 @media (max-width: 860px) {
   .opponent-gender-symbol::before,
   .opponent-gender-icon::before {
@@ -5458,6 +5566,12 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     align-items: flex-start;
     justify-content: center;
     padding: clamp(12px, 3vh, 24px) 8px 8px !important;
+  }
+  body[data-screen='home'] .home-logo-block .home-flag {
+    margin-left: -8px;
+    transform: translateX(-8px);
+    position: relative;
+    left: -8px;
   }
   body[data-screen='home'] .royal-home-wrap {
     margin: 0 !important;
@@ -6303,6 +6417,17 @@ body[data-screen='game'] .result-avatar {
   position: relative;
   z-index: 1;
 }
+body[data-screen='game'] .result-avatar-wrap .lobby-seat-host-badge {
+  left: -6px;
+  right: auto;
+  bottom: -6px;
+  top: auto;
+  width: 24px;
+  height: 24px;
+  font-size: 1.15rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+  z-index: 4;
+}
 body[data-screen='game'] .player-avatar {
   width: 34px !important;
   height: 34px !important;
@@ -6374,6 +6499,17 @@ body[data-screen='game'] .avatar-status-badge {
   box-shadow: 0 2px 8px rgba(0,0,0,.52);
   z-index: 3;
   pointer-events: none;
+}
+body[data-screen='game'] .player-avatar-wrap .lobby-seat-host-badge {
+  left: -6px;
+  right: auto;
+  bottom: -6px;
+  top: auto;
+  width: 24px;
+  height: 24px;
+  font-size: 1.15rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+  z-index: 4;
 }
 body[data-screen='game'] .avatar-status-badge.turn {
   background: #44cf67;
@@ -6736,13 +6872,15 @@ body[data-screen='game'] .center-last .seat-played {
 /* Fade bottom third of cards in game log and guide page. */
 .history-cards,
 .intro-hand-cards,
-.score-guide-cards {
+.score-guide-cards,
+.result-cards {
   position: relative;
 }
 /* Fade cards out to transparent at the bottom. */
 .history-cards,
 .intro-hand-cards,
-.score-guide-cards {
+.score-guide-cards,
+.result-cards {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   -webkit-mask-size: 100% 100%;
