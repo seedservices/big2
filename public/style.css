@@ -2736,14 +2736,14 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   overflow-x: auto;
 }
 .score-guide-card-art {
-  width: calc(var(--card-w) * 1.36);
-  height: calc(var(--card-h) * 0.91);
+  width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
+  height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
   object-fit: cover;
   object-position: top;
   border-radius: 4px;
 }
 .score-guide-card-art + .score-guide-card-art {
-  margin-left: calc(var(--card-w) * -0.86);
+  margin-left: calc(var(--guide-card-w, var(--card-w)) * -0.86);
 }
 .suit-red {
   color: #d9252a;
@@ -4810,8 +4810,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .history-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
+  object-fit: cover;
+  object-position: top;
 }
 .side-card ul { margin: 0; padding-left: 16px; color: var(--muted); line-height: 1.45; font-size: .82rem; }
 
@@ -5585,6 +5585,11 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     justify-content: center;
     padding: clamp(12px, 3vh, 24px) 8px 8px !important;
   }
+  body[data-screen='home'] .score-guide-modal,
+  body[data-screen='game'] .score-guide-modal {
+    --guide-card-w: clamp(36px, 6vmin, 52px);
+    --guide-card-h: calc(var(--guide-card-w) * 1.392857);
+  }
   body[data-screen='home'] .royal-home-wrap {
     margin: 0 !important;
     width: min(100%, 760px);
@@ -6186,12 +6191,8 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
 .result-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
-}
-.result-cards {
-  -webkit-mask-image: none;
-  mask-image: none;
+  object-fit: cover;
+  object-position: top;
 }
 .game-shell.game-over .action-strip .player-tag {
   display: none !important;
