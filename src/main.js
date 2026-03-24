@@ -785,6 +785,7 @@ let calloutResumePending=false;
 let calloutSpeakSeq=0;
 let calloutGateUntilPlay=false;
 let turnLockUntil=0;
+let lastNamecardTapAt=0;
 let calloutDisplayEnabled=true;
 let calloutVoiceMode='auto'; // auto | recorded | off
 let calloutStylePack='energetic'; // forced energetic
@@ -7722,15 +7723,24 @@ function bindGameEvents(v,arr){
     positionDragPopup(e.clientX,e.clientY);
   },{passive:true});
 
-  app.querySelectorAll('.seat-namecard').forEach((btn)=>btn.addEventListener('click',(ev)=>{
-    ev.preventDefault();
-    ev.stopPropagation();
+  const openNamecardProfile=(btn,ev)=>{
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    const now=Date.now();
+    if(now-lastNamecardTapAt<350)return;
+    lastNamecardTapAt=now;
     const name=btn.getAttribute('data-opponent-name')||btn.closest?.('[data-opponent-name]')?.getAttribute('data-opponent-name');
     if(!name)return;
     state.mottoPeekName='';
     state.opponentProfileName=name;
     render();
-  }));
+  };
+  app.querySelectorAll('.seat-namecard').forEach((btn)=>{
+    btn.addEventListener('click',(ev)=>openNamecardProfile(btn,ev));
+    btn.addEventListener('touchstart',(ev)=>openNamecardProfile(btn,ev),{passive:false});
+  });
 
   app.querySelectorAll('[data-opponent-name]').forEach((el)=>{
     const name=el.getAttribute('data-opponent-name');
