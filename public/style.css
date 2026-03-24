@@ -2790,11 +2790,18 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  border: 1px solid rgba(238, 207, 139, .4);
+  background: rgba(11, 31, 44, .42);
+  border-radius: 10px;
+  padding: 4px;
 }
 .name-with-google #name-input {
   flex: 1 1 auto;
   min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
 }
 #google-name-inline {
   display: inline-flex;
@@ -2802,9 +2809,11 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   align-items: center;
   gap: 6px;
   min-height: 36px;
-  width: 100%;
-  justify-content: flex-end;
+  width: auto;
+  justify-content: flex-start;
   flex: 0 0 auto;
+  padding-left: 6px;
+  border-left: 1px solid rgba(238, 207, 139, .28);
 }
 #google-login-slot {
   display: inline-flex;

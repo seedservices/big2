@@ -4256,7 +4256,7 @@ function renderGoogleInline(){
   if(hasGsi){
     if(gSlot){
       try{
-        window.google.accounts.id.renderButton(gSlot,{theme:'outline',size:'medium',text:'signin_with',shape:'pill'});
+        window.google.accounts.id.renderButton(gSlot,{theme:'filled_black',size:'medium',text:'signin_with',shape:'square',logo_alignment:'left',width:140});
       }catch{
         gSlot.innerHTML='';
       }
