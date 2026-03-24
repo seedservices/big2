@@ -771,6 +771,7 @@ function scheduleCalloutExpiry(until=0){
 let lastCardProcessedHistoryLen=0;
 let googleInlineRetryTimer=null;
 let googleIdentityInitialized=false;
+let googleScriptReloading=false;
 let firebaseApp=null;
 let firebaseAuth=null;
 let firebaseDb=null;
@@ -4138,6 +4139,27 @@ async function handleCredentialResponse(response){
   render();
 }
 function clearGoogleInlineRetry(){if(googleInlineRetryTimer){clearTimeout(googleInlineRetryTimer);googleInlineRetryTimer=null;}}
+function updateGoogleLocale(){
+  const lang=state.language==='en'?'en':'zh_HK';
+  const host=document.getElementById('g_id_onload');
+  if(host)host.setAttribute('data-locale',lang);
+}
+function reloadGoogleScriptForLocale(){
+  if(googleScriptReloading)return;
+  googleScriptReloading=true;
+  googleIdentityInitialized=false;
+  updateGoogleLocale();
+  try{window.google?.accounts?.id?.cancel?.();}catch{}
+  const existing=document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+  if(existing)existing.remove();
+  const lang=state.language==='en'?'en':'zh-HK';
+  const script=document.createElement('script');
+  script.src=`https://accounts.google.com/gsi/client?hl=${lang}`;
+  script.async=true;
+  script.onload=()=>{googleScriptReloading=false;renderGoogleInline();};
+  script.onerror=()=>{googleScriptReloading=false;};
+  document.head.appendChild(script);
+}
 function ensureGoogleIdentityInitialized(){
   if(googleIdentityInitialized)return true;
   const idApi=window.google?.accounts?.id;
@@ -4256,7 +4278,7 @@ function renderGoogleInline(){
   if(hasGsi){
     if(gSlot){
       try{
-        window.google.accounts.id.renderButton(gSlot,{theme:'filled_black',size:'medium',text:'signin_with',shape:'square',logo_alignment:'left',width:140});
+        window.google.accounts.id.renderButton(gSlot,{theme:'filled_blue',size:'medium',text:'signin_with',shape:'square',logo_alignment:'left',width:140});
       }catch{
         gSlot.innerHTML='';
       }
@@ -6683,7 +6705,12 @@ function renderHome(){
   document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   document.getElementById('lb-close')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
   document.getElementById('lb-backdrop')?.addEventListener('click',()=>{state.home.showLeaderboard=false;render();});
-  document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';relabelSoloBots();render();});
+  document.getElementById('home-lang-toggle')?.addEventListener('click',()=>{
+    state.language=state.language==='zh-HK'?'en':'zh-HK';
+    relabelSoloBots();
+    if(!state.home.google?.signedIn)reloadGoogleScriptForLocale();
+    render();
+  });
   document.getElementById('name-input')?.addEventListener('input',(e)=>{state.home.name=e.target.value;if(signedInWithEmail()){void syncLeaderboardProfile(currentLeaderboardIdentity());}});
   document.querySelectorAll('#gender-combo .combo-btn').forEach((btn)=>btn.addEventListener('click',()=>{
     const v=String(btn.getAttribute('data-value')??'');
@@ -6975,7 +7002,11 @@ function renderOpponents(){
   }).join('');
   app.innerHTML=`<section class="home-wrap opponent-wrap"><header class="topbar home-topbar"><div><h2>${t('opponents')}</h2></div><div class="topbar-right"><div class="control-row"><button id="opponents-back" class="secondary">${t('home')}</button><button id="opponents-lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button></div></div></header><section class="home-panel opponent-panel"><div class="opponent-grid">${cards}</div></section></section>`;
   document.getElementById('opponents-back')?.addEventListener('click',()=>{state.screen='home';render();});
-  document.getElementById('opponents-lang-toggle')?.addEventListener('click',()=>{state.language=state.language==='zh-HK'?'en':'zh-HK';render();});
+  document.getElementById('opponents-lang-toggle')?.addEventListener('click',()=>{
+    state.language=state.language==='zh-HK'?'en':'zh-HK';
+    if(!state.home.google?.signedIn)reloadGoogleScriptForLocale();
+    render();
+  });
 }
 function opponentProfileModalHtml(name){
   const langKey=state.language==='zh-HK'?'zh-HK':'en';

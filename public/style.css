@@ -2896,16 +2896,20 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   border: 1px solid rgba(255,255,255,.25);
   background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
   color: var(--text);
-  border-radius: 10px;
+  border-radius: 4px;
   min-height: 32px;
-  padding: 5px 9px;
-  font-size: .76rem;
+  height: 32px;
+  padding: 5px 10px;
+  font-size: .74rem;
   font-weight: 700;
   line-height: 1.2;
 }
 #google-name-inline .auth-btn-signout {
-  background: linear-gradient(145deg, rgba(239, 71, 111, .26), rgba(239, 71, 111, .14));
-  border-color: rgba(239, 71, 111, .55);
+  width: 140px;
+  justify-content: center;
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #fff;
 }
 #google-name-inline .auth-btn-google {
   background: linear-gradient(145deg, rgba(66, 133, 244, .28), rgba(66, 133, 244, .12));
