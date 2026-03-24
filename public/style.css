@@ -238,8 +238,8 @@ h1, h2, h3, p { margin: 0; }
 .game-logo-block .game-flag {
   position: absolute;
   left: 78%;
-  bottom: 3px;
-  transform: translateX(calc(-50% + 68px));
+  bottom: 5px;
+  transform: translateX(calc(-50% + 66px));
   width: 22px;
   height: 22px;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
@@ -5091,7 +5091,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     transform: translateX(-50%);
     width: min(94%, 560px);
     z-index: 8;
-    pointer-events: none;
+    pointer-events: auto;
   }
   .mobile-opponent-name {
     display: inline-flex;
@@ -5111,6 +5111,11 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     height: 18px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,.94);
+  }
+  .mobile-opponent-name .seat-namecard {
+    margin: 0 0 0 4px;
+    font-size: .9rem;
+    line-height: 1;
   }
   .mobile-opponent-name.active {
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--player-color, #ffd166) 56%, transparent);
@@ -5575,7 +5580,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     margin-bottom: 8px;
   }
   body[data-screen='game'] .game-logo-block .game-flag {
-    transform: translateX(calc(-50% + 58px));
+    transform: translateX(calc(-50% + 56px));
   }
   .royal-home-body .home-form-grid {
     grid-template-columns: 1fr !important;

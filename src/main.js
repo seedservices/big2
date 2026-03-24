@@ -5987,8 +5987,10 @@ function centerMobileOpponentNamesHtml(arr,currentSeat,gameOver){
   return`<div class="mobile-opponent-names">${others.map((p)=>{
     const avatarSrc=avatarDataUri(p.name,playerColorByViewClass(p.cls),p.gender,p.isBot);
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
-    const opponentAttr=p.isBot?` data-opponent-name="${esc(p.name)}"`:'';
-    return`<span class="mobile-opponent-name ${(!gameOver&&currentSeat===p.seat)?'active':''}" style="--player-color:${playerColorByViewClass(p.cls)};"${opponentAttr}><img class="player-avatar mini" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/><span class="seat-name-text">${esc(p.name)}</span><span class="mobile-seat-tag">${seatShortByViewClass(p.cls)}</span></span>`;
+    const opponentName=p.rawName||p.name;
+    const opponentAttr=p.isBot?` data-opponent-name="${esc(opponentName)}"`:'';
+    const namecardBtn=p.isBot?`<button type="button" class="seat-namecard" data-opponent-name="${esc(opponentName)}" aria-label="${esc(t('profile'))}">🪪</button>`:'';
+    return`<span class="mobile-opponent-name ${(!gameOver&&currentSeat===p.seat)?'active':''}" style="--player-color:${playerColorByViewClass(p.cls)};"${opponentAttr}><img class="player-avatar mini" src="${avatarSrc}" alt="${esc(p.name)}"${botNameAttr}/><span class="seat-name-text">${esc(p.name)}</span><span class="mobile-seat-tag">${seatShortByViewClass(p.cls)}</span>${namecardBtn}</span>`;
   }).join('')}</div>`;
 }
 function lastActionBySeat(h){
