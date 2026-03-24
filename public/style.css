@@ -2703,22 +2703,24 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   overflow-x: auto;
 }
 .intro-hand-cards .card.mini {
-  width: calc(var(--card-w) * 1.36);
-  height: calc(var(--card-h) * 0.91);
+  width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
+  height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
   overflow: hidden;
+  border-radius: 4px;
 }
 .intro-hand-cards .card.mini + .card.mini {
-  margin-left: calc(var(--card-w) * -0.86);
+  margin-left: calc(var(--guide-card-w, var(--card-w)) * -0.86);
 }
 .intro-hand-cards .card.mini .card-art {
   width: 100%;
-  height: calc(var(--card-h) * 1.36);
+  height: 100%;
+  object-fit: cover;
   object-position: top;
 }
 .intro-inline-card-art {
   display: inline-block;
-  width: calc(var(--card-w) * 1.36);
-  height: calc(var(--card-h) * 0.91);
+  width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
+  height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
   object-fit: cover;
   object-position: top;
   vertical-align: middle;
@@ -5669,11 +5671,13 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     justify-content: center;
     padding: clamp(12px, 3vh, 24px) 8px 8px !important;
   }
-  body[data-screen='home'] .score-guide-modal,
-  body[data-screen='game'] .score-guide-modal {
-    --guide-card-w: clamp(36px, 6vmin, 52px);
-    --guide-card-h: calc(var(--guide-card-w) * 1.392857);
-  }
+body[data-screen='home'] .score-guide-modal,
+body[data-screen='game'] .score-guide-modal,
+body[data-screen='home'] .intro-modal,
+body[data-screen='game'] .intro-modal {
+  --guide-card-w: clamp(36px, 6vmin, 52px);
+  --guide-card-h: calc(var(--guide-card-w) * 1.392857);
+}
   body[data-screen='home'] .royal-home-wrap {
     margin: 0 !important;
     width: min(100%, 760px);

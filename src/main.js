@@ -1479,8 +1479,8 @@ const introText=()=>state.language==='en'
     btnHide:'關閉',
     panelTitle:'玩法指南',
     panelSub:'提供核心規則、牌型次序、開局流程與實戰節奏的官方速覽。',
-    historyTitle:'歷史背景',
-    historyBody:'《鋤大D》（Big Two）為四人出清型撲克牌遊戲，使用標準52張牌（不含鬼牌），每位玩家派發13張。玩家的目標是在其他對手之前出清手牌。此遊戲特色在於回合節奏明確、決策密度高，並重視控場、保留關鍵牌與出牌時機的策略取捨。',
+    historyTitle:'背景',
+    historyBody:'《鋤大D》（Big Two）為四人出清型撲克牌遊戲，使用標準52張牌（不含鬼牌），每位玩家派發13張。玩家的目標是在其他對手之前出清手牌。此遊戲特色在於回合節奏明確、決策密度高，並重視控場、保留關鍵牌與出牌時機的策略取捨。\n\n在香港，《鋤大D》是非常普及的休閒紙牌遊戲，常見於家庭聚會、朋友聚餐及節日活動（例如農曆新年）。許多香港人自小便接觸此遊戲，並在社交場合中用作娛樂和聯誼。遊戲節奏快速且富競技性，因此深受年輕人及成年人歡迎，也逐漸發展出不同地方版本與玩法變化，成為香港流行文化的一部分。',
     playTitle:'玩法重點',
     playList:[
       '首圈開局第一手必須包含 {{3D}}。',
@@ -1569,7 +1569,12 @@ function introPanelHtml(){
     const howList=(it.guideHowList??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
     const androidList=(it.guideAndroidSteps??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
     const iosList=(it.guideIosSteps??[]).map((x)=>`<li>${esc(x)}</li>`).join('');
-    return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4><p>${colorizeSuitText(it.historyBody)}</p></article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.guideHowTitle)}</h4><p>${esc(it.guideHowIntro)}</p><ul>${howList}</ul></article><article class="intro-block"><h4>${esc(it.guideHomeTitle)}</h4><p>${esc(it.guideHomeIntro)}</p><p><strong>${esc(it.guideAndroidTitle)}</strong></p><ol>${androidList}</ol><p><strong>${esc(it.guideIosTitle)}</strong></p><ol>${iosList}</ol><p>${esc(it.guideHomeNotes)}</p></article></div></section></div>`;
+    const historyBlocks=String(it.historyBody??'')
+      .split(/\n\s*\n/)
+      .filter(Boolean)
+      .map((p)=>`<p>${colorizeSuitText(p)}</p>`)
+      .join('');
+    return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4>${historyBlocks}</article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.guideHowTitle)}</h4><p>${esc(it.guideHowIntro)}</p><ul>${howList}</ul></article><article class="intro-block"><h4>${esc(it.guideHomeTitle)}</h4><p>${esc(it.guideHomeIntro)}</p><p><strong>${esc(it.guideAndroidTitle)}</strong></p><ol>${androidList}</ol><p><strong>${esc(it.guideIosTitle)}</strong></p><ol>${iosList}</ol><p>${esc(it.guideHomeNotes)}</p></article></div></section></div>`;
   }
 function leaderboardModalHtml(){
   const closeLabel=state.language==='en'?'Close':'關閉';
@@ -5798,6 +5803,11 @@ function playSound(kind){
     }catch{}
     return;
   }
+  if(kind.startsWith('emote-')){
+    playTone(640,0.035,'sine',0.012);
+    playTone(880,0.03,'sine',0.008,0.03);
+    return;
+  }
   if(kind==='select')playTone(520,0.08,'triangle',0.02);
   if(kind==='play'){playTone(330,0.11,'square',0.03);playTone(490,0.12,'triangle',0.02,0.03);}
   if(kind==='pass')playTone(210,0.1,'sine',0.02);
@@ -5817,20 +5827,6 @@ function playSound(kind){
     playTone(1175,0.28,'triangle',0.044,0.46);
   }
   if(kind==='win'){playTone(392,0.13,'triangle',0.03);playTone(523,0.14,'triangle',0.03,0.06);playTone(659,0.2,'triangle',0.03,0.12);}
-  if(kind==='emote-cool'){playTone(520,0.09,'triangle',0.025);playTone(780,0.12,'triangle',0.02,0.05);}
-  if(kind==='emote-throw'){playTone(680,0.08,'square',0.03);playTone(240,0.12,'sine',0.025,0.06);}
-  if(kind==='emote-rude'){playTone(260,0.06,'square',0.035);playTone(260,0.06,'square',0.035,0.08);playTone(260,0.06,'square',0.035,0.16);}
-  if(kind==='emote-sweat'){playTone(420,0.1,'triangle',0.02);playTone(560,0.12,'triangle',0.02,0.06);}
-  if(kind==='emote-rage'){playTone(180,0.08,'sawtooth',0.04);playTone(160,0.1,'square',0.04,0.06);}
-  if(kind==='emote-smash'){playTone(140,0.12,'square',0.045);playTone(90,0.14,'sine',0.04,0.08);}
-  if(kind==='emote-fire'){playTone(720,0.06,'triangle',0.02);playTone(620,0.06,'triangle',0.02,0.07);playTone(820,0.08,'triangle',0.02,0.14);}
-  if(kind==='emote-think'){playTone(520,0.07,'triangle',0.02);playTone(390,0.09,'triangle',0.02,0.05);}
-  if(kind==='emote-cry'){playTone(320,0.12,'sine',0.025);playTone(260,0.14,'triangle',0.02,0.08);}
-  if(kind==='emote-cheers'){playTone(660,0.12,'triangle',0.03);playTone(880,0.12,'triangle',0.03,0.05);}
-  if(kind==='emote-thumbs'){playTone(520,0.08,'triangle',0.025);playTone(660,0.1,'triangle',0.02,0.06);}
-  if(kind==='emote-crack'){playTone(160,0.09,'square',0.04);playTone(120,0.1,'square',0.04,0.05);}
-  if(kind==='emote-sleep'){playTone(240,0.1,'sine',0.02);playTone(200,0.12,'sine',0.02,0.06);}
-  if(kind==='emote-love'){playTone(520,0.09,'triangle',0.02);playTone(620,0.11,'triangle',0.02,0.05);}
 }
 function playWinSfxThen(fn,delayFallback=2000){
   const seq=++winSfxSeq;
