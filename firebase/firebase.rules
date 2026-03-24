@@ -71,6 +71,7 @@ service cloud.firestore {
       'backColor',
       'soundEnabled',
       'calloutDisplayEnabled',
+      'emoteDisplayEnabled',
       'calloutVoiceMode',
       'calloutStylePack',
       'voiceMode',
@@ -137,6 +138,7 @@ service cloud.firestore {
       (!('backColor' in s) || (s.backColor is string && isValidBackColor(s.backColor))) &&
       (!('soundEnabled' in s) || s.soundEnabled is bool) &&
       (!('calloutDisplayEnabled' in s) || s.calloutDisplayEnabled is bool) &&
+      (!('emoteDisplayEnabled' in s) || s.emoteDisplayEnabled is bool) &&
       (!('calloutVoiceMode' in s) || (s.calloutVoiceMode is string && isValidVoiceMode(s.calloutVoiceMode))) &&
       (!('calloutStylePack' in s) || (s.calloutStylePack is string && isValidCalloutStylePack(s.calloutStylePack))) &&
       (!('voiceMode' in s) || (s.voiceMode is string && isValidVoiceMode(s.voiceMode))) &&
