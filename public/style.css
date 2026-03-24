@@ -238,8 +238,8 @@ h1, h2, h3, p { margin: 0; }
 .game-logo-block .game-flag {
   position: absolute;
   left: 78%;
-  bottom: 5px;
-  transform: translateX(calc(-50% + 66px));
+  bottom: 3px;
+  transform: translateX(calc(-50% + 64px));
   width: 22px;
   height: 22px;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
@@ -5580,7 +5580,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     margin-bottom: 8px;
   }
   body[data-screen='game'] .game-logo-block .game-flag {
-    transform: translateX(calc(-50% + 56px));
+    transform: translateX(calc(-50% + 54px));
   }
   .royal-home-body .home-form-grid {
     grid-template-columns: 1fr !important;

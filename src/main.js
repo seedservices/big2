@@ -7722,6 +7722,16 @@ function bindGameEvents(v,arr){
     positionDragPopup(e.clientX,e.clientY);
   },{passive:true});
 
+  app.querySelectorAll('.seat-namecard').forEach((btn)=>btn.addEventListener('click',(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    const name=btn.getAttribute('data-opponent-name')||btn.closest?.('[data-opponent-name]')?.getAttribute('data-opponent-name');
+    if(!name)return;
+    state.mottoPeekName='';
+    state.opponentProfileName=name;
+    render();
+  }));
+
   app.querySelectorAll('[data-opponent-name]').forEach((el)=>{
     const name=el.getAttribute('data-opponent-name');
     if(!name)return;
