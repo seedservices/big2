@@ -815,6 +815,40 @@ body[data-screen='home'] .home-wrap {
   flex: 0 0 auto;
   margin-left: 6px;
 }
+.locked-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.locked-btn .lock-badge {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font-size: .7rem;
+  opacity: .85;
+  pointer-events: none;
+}
+.locked-btn .locked-tip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(8, 24, 38, .92);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #e9f4ff;
+  font-size: .72rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+  z-index: 5;
+}
+.locked-btn:hover .locked-tip,
+.locked-btn.show-tip .locked-tip {
+  opacity: 1;
+}
 .home-room-row {
   justify-content: center;
   margin-top: 6px;
