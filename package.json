@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:cap": "cross-env CAPACITOR=1 vite build",
     "preview": "vite preview",
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
     "migrate:firestore": "node tools/firebase-firestore-migrate.mjs"
-  },
-  "devDependencies": {
-    "prettier": "^3.3.1",
-    "vite": "^5.1.6"
   },
   "description": "",
   "main": "index.js",
@@ -19,7 +19,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/core": "^7.0.0",
     "firebase-admin": "^13.0.2",
     "rg": "^0.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "cross-env": "^7.0.3",
+    "prettier": "^3.3.1",
+    "vite": "^5.1.6"
   }
 }

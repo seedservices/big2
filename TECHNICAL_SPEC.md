@@ -125,3 +125,39 @@
   - `npm run build`
 - Local preview:
   - `npm run preview`
+
+## 12. Mobile Packaging (Capacitor)
+- Wrapper: Capacitor (single web codebase for iOS + Android).
+- Config: `capacitor.config.json` with app name `Big2`, appId `com.seedservices.big2`, webDir `dist`.
+- Build for Capacitor (relative asset base):
+  - `npm run build:cap` (sets `CAPACITOR=1` so Vite base is `./`)
+- Sync native platforms after build:
+  - `npm run cap:sync`
+- Open native projects:
+  - `npm run cap:open:ios`
+  - `npm run cap:open:android`
+- iOS build requires Xcode + CocoaPods on macOS.
+- Native builds lock orientation to portrait only (landscape is disabled in iOS/Android wrappers).
+
+## 13. Mobile Behavior Test Checklist
+- Core targets:
+  - iPhone SE (2nd/3rd gen) portrait + landscape
+  - iPhone 14/15 (or 13) portrait + landscape
+  - iPad 9.7/10.2 portrait + landscape
+  - Android phone (Pixel 6/7) portrait + landscape
+  - Android tablet (10-11") portrait + landscape
+- Layout checks:
+  - Home screen: no overflow scrollbars; title/logo and settings panels stay within viewport.
+  - Game screen: table + action zone fit without vertical scroll; log panel placement matches breakpoint rules.
+  - Game log: header alignment consistent between expanded/collapsed.
+  - Result screen: card rows and avatars stay within viewport; cards remain legible.
+- Card sizing guards:
+  - `--card-w` clamps must remain in spec across all mobile breakpoints.
+  - iPhone Safari: hand/closed/discard cards stay compact with no overflow.
+- Interaction checks:
+  - Tap selection and drag thresholds work on touch devices.
+  - Emote panel opens/closes without layout jump.
+  - Sound toggle and callout display toggles behave as expected.
+- Orientation checks:
+  - Portrait: log defaults to collapsed under south panel on small widths.
+  - Landscape: right log column shows on eligible widths without overlapping topbar.
