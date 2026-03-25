@@ -254,7 +254,7 @@ const I18N={
     roomPrivacy:'房間私隱',
     roomPrivate:'私人',
     roomPublic:'公開',
-    roomNeedPlayers:'最少需要 2 位玩家',
+    roomNeedPlayers:'至少需要 1 位真人玩家加入才可開始',
     roomRoomId:'房間代碼',
     roomRound:'回合',
     roomCountdown:'倒數',
@@ -475,7 +475,7 @@ const I18N={
     roomPrivacy:'Room Privacy',
     roomPrivate:'Private',
     roomPublic:'Public',
-    roomNeedPlayers:'Need at least 2 players to start.',
+    roomNeedPlayers:'Need at least 1 other human player to start.',
     roomRoomId:'Room ID',
     roomRound:'Round',
     roomCountdown:'Countdown',
@@ -2835,15 +2835,20 @@ async function restartRoomGame(){
       if(!snap.exists)return;
       const data=snap.data()??{};
       if(String(data.hostId)!==uid)throw new Error('not host');
+      const players=Array.isArray(data.players)?data.players:[];
+      const humanPlayers=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
+      if(humanPlayers.length<2)throw new Error('need players');
         const now=Date.now();
         const game=buildRoomGameState(data);
-        const bumped=bumpRoomPlayerLastSeen(Array.isArray(data.players)?data.players:[],uid,now);
+        const bumped=bumpRoomPlayerLastSeen(players,uid,now);
         const nextPlayers=bumped.changed?bumped.players:data.players;
         tx.update(ref,{status:'playing',game,updatedAt:now,gameVersion:Number(data.gameVersion||0)+1,players:nextPlayers});
       });
   }catch(err){
     console.error('restart room failed',err);
-    setSoloStatus(t('roomReadyHint'));
+    const msg=String(err?.message??'');
+    if(msg.includes('need players'))setSoloStatus(t('roomNeedPlayers'));
+    else setSoloStatus(t('roomReadyHint'));
   }
 }
 
@@ -6677,7 +6682,7 @@ function renderHome(){
         const displayPlayers=Number.isFinite(Number(r.displayPlayers))?Number(r.displayPlayers):Number(r.players||0);
         const joinDisabled=isPrivate||r.status==='playing';
         const bottomHint=isPrivate&&r.status!=='playing'
-          ?(state.language==='zh-HK'?'輸入房間代碼即可加入':'Enter room code to join.')
+          ?(state.language==='zh-HK'?'輸入代碼即可加入':'Enter room code to join.')
           :'';
         const statusText=(()=>{
           if(r.status==='playing')return statusLabel.replace(/<[^>]+>/g,'');
