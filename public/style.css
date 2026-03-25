@@ -8206,6 +8206,17 @@ body[data-screen='game'] .center-last-south .seat-played .card.discard-card.mini
   width: var(--discard-card-w, calc(var(--card-w) * var(--hand-card-scale) * var(--card-scale))) !important;
   height: var(--discard-card-h, calc(var(--card-h) * var(--hand-card-scale) * var(--card-scale))) !important;
 }
+/* Discarded cards: match south hand size on all views (no gradient/extra scaling). */
+body[data-screen='game'] .seat-played .card.mini,
+body[data-screen='game'] .seat-last .card.mini,
+body[data-screen='game'] .center-last .seat-played .card.mini,
+body[data-screen='game'] .center-last-north .seat-played .card.mini,
+body[data-screen='game'] .center-last-west .seat-played .card.mini,
+body[data-screen='game'] .center-last-east .seat-played .card.mini,
+body[data-screen='game'] .center-last-south .seat-played .card.mini {
+  width: calc(var(--card-w) * var(--hand-card-scale, 1.14)) !important;
+  height: calc(var(--card-h) * var(--hand-card-scale, 1.14)) !important;
+}
 @media (max-width: 860px) {
   body[data-screen='game'] .seat-played.seat-played-fan .card.mini + .card.mini,
   body[data-screen='game'] .center-last .seat-played.seat-played-fan .card.mini + .card.mini,
