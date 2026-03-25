@@ -5668,7 +5668,7 @@ body[data-screen='home'] .score-guide-modal,
 body[data-screen='game'] .score-guide-modal,
 body[data-screen='home'] .intro-modal,
 body[data-screen='game'] .intro-modal {
-  --guide-card-w: calc(var(--card-w) * var(--hand-card-scale, 1.14) * var(--card-scale, 1) * 1.5);
+  --guide-card-w: calc(var(--card-w) * var(--hand-card-scale, 1.14) * var(--card-scale, 1) * 1.3);
   --guide-card-h: calc(var(--guide-card-w) * 1.392857);
 }
 @media (max-width: 860px) and (orientation: portrait) {
