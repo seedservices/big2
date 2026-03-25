@@ -2673,12 +2673,12 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 }
 .intro-hand-list {
   display: grid;
-  gap: 7px;
+  gap: 2px;
 }
 .intro-hand-row {
   display: grid;
-  gap: 5px;
-  padding: 6px;
+  gap: 2px;
+  padding: 3px;
   border-radius: 8px;
   background: rgba(255,255,255,.05);
   border: 1px solid var(--line-b);
@@ -4594,16 +4594,13 @@ body[data-screen='game'] .table-center-stack {
   animation: must3Pulse 1.2s ease-in-out infinite;
 }
 .hand-card.must3-highlight::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--card-radius);
-  background: rgba(255, 219, 120, .28);
-  box-shadow: inset 0 0 0 2px rgba(255, 232, 160, .9);
-  pointer-events: none;
+  content: none;
 }
 .hand-card.must3-highlight .card-art {
   filter: drop-shadow(0 0 12px rgba(255, 209, 102, .7));
+  box-shadow:
+    0 0 0 2px rgba(255, 232, 160, .9),
+    0 0 12px rgba(255, 209, 102, .45);
 }
 body[data-screen='game'] .hand.hand-stacked .hand-card.must3-highlight {
   box-shadow: none !important;
@@ -4838,11 +4835,11 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .history-detail-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   flex-wrap: wrap;
 }
 .history-detail-row .history-detail {
-  flex: 1 1 220px;
+  flex: 1 1 160px;
 }
 .history-detail-row .history-cards {
   flex: 0 0 auto;
@@ -4865,15 +4862,15 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 }
 .history-cards { display: flex; gap: 0; flex-wrap: nowrap; overflow-x: auto; min-width: 0; max-width: 100%; }
 .history-cards .card.mini {
-  width: calc(var(--card-w) * .96);
-  height: calc(var(--card-h) * .96);
+  width: var(--card-w);
+  height: var(--card-h);
   overflow: visible;
   flex: 0 0 auto;
   border-radius: 0;
   box-shadow: none;
 }
 .history-cards .card.mini + .card.mini {
-  margin-left: calc(var(--card-w) * -0.62);
+  margin-left: calc(var(--card-w) * -0.72);
 }
 .history-cards .card.mini .card-art {
   width: 100%;
@@ -5667,6 +5664,13 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     margin-left: calc(var(--card-w) * -0.72) !important;
   }
 }
+body[data-screen='home'] .score-guide-modal,
+body[data-screen='game'] .score-guide-modal,
+body[data-screen='home'] .intro-modal,
+body[data-screen='game'] .intro-modal {
+  --guide-card-w: calc(var(--card-w) * var(--hand-card-scale, 1.14) * var(--card-scale, 1) * 1.5);
+  --guide-card-h: calc(var(--guide-card-w) * 1.392857);
+}
 @media (max-width: 860px) and (orientation: portrait) {
   body[data-screen='home'] #app {
     min-height: 100dvh;
@@ -5675,13 +5679,6 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     justify-content: center;
     padding: clamp(12px, 3vh, 24px) 8px 8px !important;
   }
-body[data-screen='home'] .score-guide-modal,
-body[data-screen='game'] .score-guide-modal,
-body[data-screen='home'] .intro-modal,
-body[data-screen='game'] .intro-modal {
-  --guide-card-w: calc(var(--card-w) * var(--hand-card-scale, 1.14));
-  --guide-card-h: calc(var(--guide-card-w) * 1.392857);
-}
   body[data-screen='home'] .royal-home-wrap {
     margin: 0 !important;
     width: min(100%, 760px);
@@ -6308,15 +6305,15 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(214, 232, 222, .9) !important;
 }
 .result-cards .card.mini {
-  width: calc(var(--card-w) * .96);
-  height: calc(var(--card-h) * .96);
+  width: var(--card-w);
+  height: var(--card-h);
   overflow: visible;
   flex: 0 0 auto;
   border-radius: 0;
   box-shadow: none;
 }
 .result-cards .card.mini + .card.mini {
-  margin-left: calc(var(--card-w) * -0.62);
+  margin-left: calc(var(--card-w) * -0.8);
 }
 .result-cards .card.mini .card-art {
   width: 100%;
@@ -7030,8 +7027,8 @@ body[data-screen='game'] .reveal-cards {
 .score-guide-cards,
 .result-cards,
 body[data-screen='game'] .reveal-cards {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
