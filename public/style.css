@@ -7722,30 +7722,24 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 @media (min-width: 861px) {
   /* Desktop/tablet only: compact no-jump log row layout. */
   .history-detail-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 4px;
-    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
   }
   .history-detail-row .history-detail {
-    width: 100%;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1 1 160px;
   }
   .history-detail-row .history-cards {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow-x: hidden;
+    flex: 0 0 auto;
     justify-content: flex-start;
+    overflow-x: auto;
   }
   .history-cards {
     display: flex;
-    gap: 2px;
-    flex-wrap: wrap;
-    overflow-x: hidden;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     min-width: 0;
     max-width: 100%;
   }
