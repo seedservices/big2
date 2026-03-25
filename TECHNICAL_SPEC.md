@@ -11,7 +11,7 @@
   - Core application state
   - Rendering functions
   - Game logic and validation
-  - AI decision logic
+  - AI decision logic and recommendation
   - Input/event handling
   - Auth/session integration logic
 - `public/style.css`
@@ -22,22 +22,26 @@
 - `public/`
   - Card assets
   - Avatar assets
-  - Emote sticker assets (gameplay UI)
+  - Emote sticker assets
+  - Callout audio assets
   - Fonts and background assets
 
 ## 3. Application Architecture
 - Single-page client app with state-driven rendering.
 - Main state object stores:
   - UI state (screen, language, overlays, log)
-  - Home settings (name, gender/avatar, difficulty, card back, theme, sound)
-  - Session identity data
-  - Solo game runtime (players, turn, last play, history, score)
+  - Home settings (name, gender/avatar, difficulty, card back)
+  - System settings (sound, callout display, emote display)
+  - Session identity and Google sign-in data
+  - Solo game runtime
+  - Room state and snapshots
   - Emote UI state (picker open + active sticker timer)
 - Render pipeline:
   - `render()` dispatches to screen-specific renderers:
     - `renderHome()`
     - `renderConfig()`
     - `renderGame()`
+    - `renderOpponents()`
 - Hash route:
   - `#opponents` switches the screen to the opponents view.
   - Home menu hides the opponents button unless the hash is present.
@@ -50,7 +54,7 @@
 - Rule evaluation:
   - `evaluatePlay(cards)` validates play type and power
   - `canBeat(candidate, target)` compares legal responses
-  - First trick enforcement (`♦3`)
+  - First trick enforcement (`♦️3`)
   - Pass validity checks by lead state
 - Turn progression:
   - Human action and AI turns update shared game state
@@ -61,15 +65,14 @@
   - `chooseAiPlay(hand, game, diff)`
 - Difficulty modes:
   - `easy`, `normal`, `hard`
-- Strategy includes legal-play generation and mode-weighted decision behavior.
-- Recommendation feature reuses high-quality decision path logic.
+- Recommendation feature reuses the hard-tuned decision path plus scoring heuristics.
 - Detailed bot strategy documentation:
   - `GAME_BOT.md`
 
 ## 6. Input and Interaction Layer
 - Card interactions:
   - Click/tap selection
-  - Drag reorder where enabled
+  - Drag reorder (desktop)
 - Mobile-specific handling:
   - Pointer/touch movement thresholds
   - Tap de-duplication window
@@ -92,44 +95,30 @@
   - Interaction-blocking overlay in game screen
 
 ## 8. Authentication and Session
-- Provider-aware session model with profile identity abstraction.
-- Session persistence constraint:
-  - Local persistence for logged-in email restoration
-- Sign-in state impacts:
-  - Home UI provider badge/state
-  - Profile sync and leaderboard identity
+- Google Identity Services for sign-in UI.
+- Firebase Auth used when available (Google provider).
+- Session persistence:
+  - Local storage of signed-in email for session restoration
+  - Local storage of last room id when not signed in (room reconnect helper)
+- Sign-in is required to start solo or room games.
 
 ## 9. Data and Persistence
-- Local runtime store for leaderboard/profile cache behavior
-- Cloud persistence integration via Firebase/Firestore paths
-- Sync operations include:
-  - Profile hydration
-  - Round-result updates
-  - Leaderboard refresh/sorting/period filtering
+- In-memory runtime store for leaderboard/profile cache behavior.
+- Cloud persistence via Firebase/Firestore:
+  - Leaderboard profiles
+  - Room documents and game logs
+- REST fallback is used for leaderboard writes if SDK auth is unavailable.
 
 ## 10. Audio and Speech Subsystem
-- Sound engine via Web Audio API context
-- Runtime unlock on first user interaction
-- Callouts use recorded audio clips only (no TTS path).
-- Audio lookup supports variant clip keys for pass/last/play/winner lines.
-- Callouts are gated until the first play of a new round.
-- Emote stickers trigger short Web Audio SFX tone sequences.
+- Sound engine via Web Audio API context.
+- Runtime unlock on first user interaction.
+- Callouts:
+  - Prefer recorded MP3 clips when available.
+  - Fallback to Web Speech; if unavailable, use tone fallback.
+  - Callout display is independently toggleable from sound.
+- Emote SFX are short Web Audio tone sequences.
 
-- Trigger path connected to start/restart new-game interactions
-
-## 12. Security and Integrity Considerations
-- UI-level guardrails for illegal moves and invalid actions
-- Leaderboard/profile writes use identity-based document keys
-- Client-side app: authoritative anti-cheat guarantees are limited by architecture
-
-## 13. Operational Constraints
-- Browser capability variability (audio, speech, font rendering, pointer model)
-- Device and viewport diversity requires conditional CSS and runtime guards
-- Performance sensitivity:
-  - Frequent re-rendering and event rebinding
-  - Asset-heavy card/table UI
-
-## 14. Build and Run
+## 11. Build and Run
 - Development:
   - `npm run dev`
 - Production build:

@@ -5,7 +5,7 @@
 - Prevent changing code which is not related to the ask
 
 ## Login session
-- NEVER store any runtime data in local cache, except the logged-in email address
+- Local cache is limited to the logged-in email address and (when not signed in) the last room id for reconnect
 - Once logged in, retrieve the setting from firebase and default in main screen, alongside the score; if none retrieved just default
 - After clicking start game button, save the settings into firebase
 - After every game finished, save the record into firebase

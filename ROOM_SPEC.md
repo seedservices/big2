@@ -7,7 +7,6 @@ This document describes the room (lobby + multiplayer) implementation.
 Rooms are stored in Firestore collection `big2Rooms`. Rules live in `firebase/firebase.rules`.
 
 Room document schema (current):
-
 - `hostId`: string (current room host id)
 - `hostName`: string
 - `code`: string (join code)
@@ -15,19 +14,18 @@ Room document schema (current):
 - `createdAt`: int (ms)
 - `updatedAt`: int (ms)
 - `expiresAt`: int (ms; TTL cleanup target)
-- `maxPlayers`: int (2..4)
+- `maxPlayers`: int (fixed to 4)
 - `isPrivate`: boolean (host-only toggle)
 - `players`: list of player entries
 - `playerIds`: list of unique player ids (for membership lookups)
-- `settings`: game settings snapshot at create time
+- `settings`: game settings snapshot at create/start
 - `totals`: list[4] of cumulative scores for the room
 - `roundCount`: int (completed rounds)
-- `game`: game state (present when playing)
+- `game`: game state (present when playing/finished)
 - `gameVersion`: int (increments on every game update)
 
 Player entry schema (in `players` list):
-
-- `uid`: string (room identity; `uid:<firebase uid>` or `guest:<random>`)
+- `uid`: string (`uid:<firebase uid>` or `guest:<session>`; bots use `bot:<seat>:<name>`)
 - `name`: string
 - `gender`: string (`male` | `female`)
 - `picture`: string (photo URL if available)
@@ -36,119 +34,113 @@ Player entry schema (in `players` list):
 - `seat`: int (0..3)
 - `lastSeen`: int (ms; presence ping)
 
-User pointer (signed-in only):
+Settings snapshot (`settings`):
+- `language`: `en` | `zh-HK`
+- `aiDifficulty`: `easy` | `normal` | `hard`
+- `backColor`: card back choice
+- `soundEnabled`: boolean
+- `calloutDisplayEnabled`: boolean
+- `emoteDisplayEnabled`: boolean
+- `calloutVoiceMode`: `auto` | `off`
+- `calloutStylePack`: `classic` | `energetic` | `minimal` (stored even though UI is fixed)
+- `gender`: `male` | `female`
+- `avatarChoice`: `male` | `female` | `google`
+- `turnTimeout`: int (ms; default 20000; clamped 5000..60000)
 
-Collection `big2Users/{uid}`:
-- `currentRoomId`: string
-- `updatedAt`: int (ms)
+User pointer (signed-in only):
+- Collection `big2Users/{uid}`:
+  - `currentRoomId`: string
+  - `updatedAt`: int (ms)
+
+Game logs:
+- Collection `big2GameLogs/{roomId_gameVersion}` stores round history, players, totals, settings, and summary.
 
 ## Flow
 
 Create room:
-
 1. `createRoom()` generates a code and writes a new room doc with host in `players`.
 2. Host is `ready` by default.
-3. `expiresAt` is set to now + 2 hours (for TTL cleanup).
+3. `expiresAt` is set to now + 2 hours.
 4. `totals` is initialized to `[5000,5000,5000,5000]` and `roundCount` to `0`.
+5. `settings` is a snapshot of `collectMainSettings()`.
 
-Join room (login required):
+Join room (sign-in required):
+1. `joinRoomByCode()` validates status (`lobby` | `starting` | `finished`).
+2. Seat is assigned to the lowest available seat (0..3).
+3. New joiners are `ready` by default.
+4. Guest reconnection: if a guest with matching name/gender/picture is active, it reuses that entry.
+5. If the room was `finished`, `gameVersion` is bumped on join.
 
-1. `joinRoomByCode()` transaction adds player entry, assigns seat 0..3.
-2. `subscribeRoom()` listens to doc updates.
-3. Join modal shows a live list of tables. Each card shows table code, host, seat avatars, and can be clicked to join. A "Create Table" card is shown first.
-   - Tables already in `playing` status are shown with an "In Game / 戰鬥中" badge.
-
-Lobby (login required):
-
+Lobby (sign-in required):
 - `roomReady` toggles player ready state.
-- Host presses `roomStart` -> `startRoom()` builds and writes `game`.
-  - `settings.turnTimeout` is included in the room settings (default 20000ms).
-- Status flows: `lobby` -> `starting` -> `playing`.
-- Table lobby highlights the current host.
-- Ready toggle appears under the local player's seat.
+- Host can toggle `isPrivate`.
+- Host presses `roomStart` to begin:
+  - Requires at least 2 human players.
+  - All human players must be ready (host is allowed to start even if not ready).
+- Status flows: `lobby` -> `starting` -> `playing` (finalized after ~200ms).
 - Leave button is disabled while `status=starting`.
-- Start requires at least 2 human players and both must be ready.
-- Users must be logged in to access lobby/rooms (solo + room).
-- Signed-in users can only be in one room at a time (enforced via `big2Users.currentRoomId`).
+- Signed-in users can only be in one room at a time (`big2Users.currentRoomId`).
 
 Game start:
-
 - `buildRoomGameState()` creates a full game state with 4 seats.
-- Any missing seats become bots.
+- Missing seats become bots.
 - `gameVersion` increments with every game update.
 - `game.turnStartedAt` is set when a turn begins.
 - `game.lastMove` stores the most recent move for UI sync.
 - `game.playerActionLog` stores the last action per seat.
 - `game.handCount` stores remaining card counts per seat.
 
-Game sync:
-
-- All clients listen with `subscribeRoom()`.
-- When `status=playing` or `status=finished`, `applyRoomGameSnapshot()` replaces local state.
-
 Gameplay:
-
 - `roomSubmitPlay()` and `roomSubmitPass()` are the only writers.
 - Each move is applied via Firestore transaction on the shared `game`.
 - Bots are driven by `maybeRunRoomAi()` on any client.
-- If a human exceeds `turnTimeout`, any client can force a pass for that seat.
-- UI uses a `turnTimeout + 2s` grace window before timing out.
-- If a human times out while leading (no lastPlay), a small legal play is auto-fired.
-- `lastMove.ts` is used for near-real-time UI animations (1s window).
-- Clients trigger local SFX based on `lastMove.type` (play/pass/win).
-- When a room game ends, the room doc updates `totals` and increments `roundCount`.
-- If a player joins or leaves during `playing`, a system log entry is appended to the game log.
+- Turn timeout uses `settings.turnTimeout` + 2s grace.
+  - If timed out while leading, the client attempts the weakest legal play.
+  - If timed out while responding, the client attempts a pass.
+- Room emotes are stored in `game.emote` and synced to all clients.
 
-## Presence and Replacement
+Game end:
+- Room status is set to `finished`.
+- `expiresAt` becomes now + 10 minutes.
+- `totals` is updated and `roundCount` increments.
+- A game log snapshot is written to `big2GameLogs/{roomId_gameVersion}`.
+
+## Presence, Prune, and Host Migration
 
 Presence:
+- `startRoomPresencePing()` updates `lastSeen` every 5s.
+- Offline indicator triggers when `lastSeen` is older than 15s (playing only).
 
-- `startRoomPresencePing()` updates `lastSeen` every 15s.
-- Players are marked offline after 15s without a ping.
-- Players are pruned after 180s without a ping.
+Prune:
+- Lobby/starting: players inactive for 5 minutes are pruned.
+- Playing: players inactive for 30s are pruned.
+- Stale room detection uses `updatedAt` (30s threshold) to display a stale warning.
+
+Host migration:
+- While not playing, host is reassigned if missing or stale (>45s).
+- Candidate must be an active human seen within 20s.
+- While playing, if host leaves, host is migrated to the first active human.
+- If no human players remain, the room is deleted.
 
 Replacement:
-
-- On each room snapshot, `syncRoomGameRoster()` removes players with
-  `lastSeen` older than 180s (only during `playing`) and replaces them with bots.
-- Removed entries are also pruned from the `players` list.
-- If the host times out, host is migrated to the first active player.
-- If the host leaves, host is migrated to the next remaining player (no auto-delete).
-- If a player leaves during an active game, their seat is converted to a bot immediately.
-- If the host leaves and no human players remain, the room is deleted.
-- If a room has no human players (lobby/starting/playing), it is deleted.
-
-## Score / Leaderboard
-
-At game end:
-
-- `applyRoomGameSnapshot()` records the local player's delta to the leaderboard.
-- This happens once per game using `roomId + gameVersion` as a guard.
-- Room status is set to `finished` and `expiresAt` becomes now + 10 minutes.
-- A game log snapshot is written to `big2GameLogs/{roomId_gameVersion}`.
+- During `playing`, pruned or leaving players are replaced with bots.
+- A system log entry is appended when a player joins/leaves during active play.
 
 ## UI
 
 Room UI is rendered in `renderHome()`:
-
 - Room buttons in "Room Settings"
 - Lobby overlay when `status=lobby` or `status=starting`
 - Join modal for code entry
-- Table code is displayed in a centered brown label
-- Host is highlighted in the table seats
-- Offline players are shown dimmed
-- In-game center panel shows room code, host name, round number, and countdown
+- Active room list (up to 4 entries) with status, round, seat avatars, and private lock
+- Private rooms are listed with a lock and are not joinable without code
 
-Room avatars:
-
-- Lobby list shows player photo if available
-- In-game opponent avatars use `picture` from room `game.players`
+In-game:
+- Center panel shows room code, host name, round number, and countdown.
+- Host is highlighted in the lobby seats.
+- Offline players are shown dimmed during play.
 
 Rematch:
 - In room mode, the result "Continue" button:
   - Host calls `restartRoomGame()` (starts a new round with the same players).
   - Joiners set ready and wait for host.
-
-Zombie room handling (recommended):
-- If all players are offline, a scheduled Cloud Function can advance AI turns.
-- TTL cleanup uses `expiresAt` for automatic deletion.

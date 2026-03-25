@@ -48,6 +48,7 @@
   --line-b: rgba(126, 177, 215, .35);
   --center-a: rgba(19, 88, 49, .92);
   --center-b: rgba(12, 63, 35, .9);
+  --retro-gold: #c9a66b;
   --card-w: clamp(36px, 5.7vw, 58px);
   --card-h: calc(var(--card-w) * 1.392857);
   --side-box-h: calc(var(--card-h) * 4.8);
@@ -244,6 +245,9 @@ h1, h2, h3, p { margin: 0; }
   height: 22px;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
   pointer-events: none;
+}
+.game-logo-block .game-flag {
+  display: none;
 }
 .title-logo-picture {
   display: inline-block;
@@ -473,6 +477,9 @@ body[data-screen='home'] .home-wrap {
   display: block;
   margin-top: 0;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
+}
+.home-logo-block .home-flag {
+  display: none;
 }
 .royal-crown {
   position: absolute;

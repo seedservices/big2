@@ -110,7 +110,8 @@ No inserted gap between stitched segments.
 
 ## Runtime Requirement
 
-- `src/main.js` for `zh-HK` must load MP3 files only.
+- `src/main.js` prefers MP3 files for `zh-HK` callouts when available.
+- If a clip is missing or voice is unavailable, callouts may fall back to Web Speech or tone.
 - Fallback clip must be `audio/callout/zh-HK/pass.mp3`.
 - Emote SFX are generated at runtime via Web Audio tones and do not use the callout MP3 pipeline.
 
