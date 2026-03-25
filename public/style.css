@@ -7013,14 +7013,18 @@ body[data-screen='game'] .center-last .seat-played {
 .history-cards,
 .intro-hand-cards,
 .score-guide-cards,
-.result-cards {
+.result-cards,
+body[data-screen='game'] .seat-played,
+body[data-screen='game'] .reveal-cards {
   position: relative;
 }
 /* Fade cards out to transparent at the bottom. */
 .history-cards,
 .intro-hand-cards,
 .score-guide-cards,
-.result-cards {
+.result-cards,
+body[data-screen='game'] .seat-played,
+body[data-screen='game'] .reveal-cards {
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
   -webkit-mask-size: 100% 100%;
