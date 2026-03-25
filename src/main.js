@@ -2013,6 +2013,10 @@ async function ensureSingleRoomMembership(targetRoomId=''){
   const status=String(data.status||'');
   const players=Array.isArray(data.players)?data.players:[];
   const entry=players.find((p)=>String(p.uid)===String(playerId));
+  if(!entry){
+    await dropSelfFromRoom(existing,playerId);
+    return{ok:true,cleared:true};
+  }
   const lastSeen=Number(entry?.lastSeen)||0;
   const now=Date.now();
   const stale=(status==='lobby'||status==='starting')&&lastSeen>0&&(now-lastSeen>roomPruneMs(status));
@@ -2036,6 +2040,22 @@ async function gateUserRoomAccess(targetRoomId=''){
     const roomRef=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(active);
     const roomSnap=await roomRef.get();
     if(!roomSnap.exists){
+      await ref.set({currentRoomId:'',updatedAt:Date.now()},{merge:true});
+      return{ok:true,cleared:true};
+    }
+    const roomData=roomSnap.data()??{};
+    const roomStatus=String(roomData.status||'');
+    const roomPlayers=Array.isArray(roomData.players)?roomData.players:[];
+    const playerId=baseRoomPlayerId();
+    const entry=roomPlayers.find((p)=>String(p.uid)===String(playerId));
+    if(!entry){
+      await ref.set({currentRoomId:'',updatedAt:Date.now()},{merge:true});
+      return{ok:true,cleared:true};
+    }
+    const lastSeen=Number(entry?.lastSeen)||0;
+    const now=Date.now();
+    const stale=(roomStatus==='lobby'||roomStatus==='starting')&&lastSeen>0&&(now-lastSeen>roomPruneMs(roomStatus));
+    if(stale){
       await ref.set({currentRoomId:'',updatedAt:Date.now()},{merge:true});
       return{ok:true,cleared:true};
     }
