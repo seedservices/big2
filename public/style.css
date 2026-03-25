@@ -8167,9 +8167,9 @@ body[data-screen='game'] .seat.east.active::before {
   transform: translateX(-50%);
 }
 /* Discarded cards: match the actual south hand size. */
-body[data-screen='game'] { --hand-card-scale: 1.14; }
+body { --hand-card-scale: 1.14; }
 @media (min-width: 861px) {
-  body[data-screen='game'] { --hand-card-scale: 1.2; }
+  body { --hand-card-scale: 1.2; }
 }
 body[data-screen='game'] .seat-played .card.mini,
 body[data-screen='game'] .seat-last .card.mini,
