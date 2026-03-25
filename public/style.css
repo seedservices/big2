@@ -2706,7 +2706,8 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
   height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 0;
+  box-shadow: none;
 }
 .intro-hand-cards .card.mini + .card.mini {
   margin-left: calc(var(--guide-card-w, var(--card-w)) * -0.86);
@@ -2714,18 +2715,19 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .intro-hand-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: top;
+  border-radius: 0;
 }
 .intro-inline-card-art {
   display: inline-block;
   width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
   height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
-  object-fit: cover;
+  object-fit: contain;
   object-position: top;
   vertical-align: middle;
   margin: 0 2px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .intro-image {
   width: 100%;
@@ -2790,9 +2792,9 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
 .score-guide-card-art {
   width: calc(var(--guide-card-w, var(--card-w)) * 1.36);
   height: calc(var(--guide-card-h, var(--card-h)) * 0.91);
-  object-fit: cover;
+  object-fit: contain;
   object-position: top;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .score-guide-card-art + .score-guide-card-art {
   margin-left: calc(var(--guide-card-w, var(--card-w)) * -0.86);
@@ -4560,11 +4562,9 @@ body[data-screen='game'] .table-center-stack {
   padding: 0 !important;
   margin: 0 !important;
   border: 0 !important;
-  border-radius: var(--card-radius) !important;
+  border-radius: 0 !important;
   background: transparent !important;
-  box-shadow:
-    0 0 0 1px rgba(7, 16, 24, .95),
-    0 2px 6px rgba(0,0,0,.34) !important;
+  box-shadow: none !important;
   line-height: 0;
   font-size: 0;
 }
@@ -4577,7 +4577,7 @@ body[data-screen='game'] .table-center-stack {
   display: block;
   object-fit: contain;
   transform: none;
-  border-radius: inherit !important;
+  border-radius: 0 !important;
   clip-path: none !important;
   box-shadow: none;
 }
@@ -4869,6 +4869,8 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   height: calc(var(--card-h) * .96);
   overflow: visible;
   flex: 0 0 auto;
+  border-radius: 0;
+  box-shadow: none;
 }
 .history-cards .card.mini + .card.mini {
   margin-left: calc(var(--card-w) * -0.62);
@@ -4876,8 +4878,9 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 .history-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: top;
+  border-radius: 0;
 }
 .side-card ul { margin: 0; padding-left: 16px; color: var(--muted); line-height: 1.45; font-size: .82rem; }
 
@@ -5676,7 +5679,7 @@ body[data-screen='home'] .score-guide-modal,
 body[data-screen='game'] .score-guide-modal,
 body[data-screen='home'] .intro-modal,
 body[data-screen='game'] .intro-modal {
-  --guide-card-w: clamp(36px, 6vmin, 52px);
+  --guide-card-w: calc(var(--card-w) * var(--hand-card-scale, 1.14));
   --guide-card-h: calc(var(--guide-card-w) * 1.392857);
 }
   body[data-screen='home'] .royal-home-wrap {
@@ -6309,6 +6312,8 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
   height: calc(var(--card-h) * .96);
   overflow: visible;
   flex: 0 0 auto;
+  border-radius: 0;
+  box-shadow: none;
 }
 .result-cards .card.mini + .card.mini {
   margin-left: calc(var(--card-w) * -0.62);
@@ -6316,8 +6321,9 @@ body[data-screen='game'] .action-strip .player-tag .seat-subline {
 .result-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: top;
+  border-radius: 0;
 }
 .game-shell.game-over .action-strip .player-tag {
   display: none !important;
@@ -8190,12 +8196,10 @@ body[data-screen='game'] .seat-last .card.face.mini .card-art {
 body[data-screen='game'] .seat-played .card.face.mini,
 body[data-screen='game'] .center-last .seat-played .card.face.mini,
 body[data-screen='game'] .seat-last .card.face.mini {
-  border-radius: var(--card-radius) !important;
+  border-radius: 0 !important;
   overflow: hidden;
   background: transparent !important;
-  box-shadow:
-    0 0 0 1px rgba(7, 16, 24, .95),
-    0 2px 6px rgba(0,0,0,.34) !important;
+  box-shadow: none !important;
 }
 body[data-screen='game'] .seat-played .card.discard-card.mini,
 body[data-screen='game'] .center-last .seat-played .card.discard-card.mini,
