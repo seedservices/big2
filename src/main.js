@@ -1,4 +1,4 @@
-﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+﻿﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'♦️',red:true},
   {symbol:'♣️',red:false},
@@ -1024,11 +1024,11 @@ const OPPONENT_PROFILE_BY_NAME={
   }
 };
 const BACK_OPTIONS=[
-  {value:'blue',file:'back-blue-clean.png',label:{'zh-HK':'藍色',en:'Blue'}},
-  {value:'red',file:'back-red-clean2.png',label:{'zh-HK':'紅色',en:'Red'}},
-  {value:'green',file:'back-green-clean.png',label:{'zh-HK':'綠色',en:'Green'}},
-  {value:'gold',file:'back-gold-clean.png',label:{'zh-HK':'金色',en:'Gold'}},
-  {value:'purple',file:'back-purple-clean2.png',label:{'zh-HK':'紫色',en:'Purple'}}
+  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue'}},
+  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red'}},
+  {value:'green',file:'back-green.png',label:{'zh-HK':'綠色',en:'Green'}},
+  {value:'gold',file:'back-gold.png',label:{'zh-HK':'金色',en:'Gold'}},
+  {value:'purple',file:'back-purple.png',label:{'zh-HK':'紫色',en:'Purple'}}
 ];
 const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
 const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
@@ -6393,7 +6393,7 @@ function markComboActive(comboId,value){
 }
 function backAssetFile(value){
   const found=BACK_OPTIONS.find((x)=>x.value===value);
-  return found?.file??'back-red-clean2.png';
+  return found?.file??'back-red.png';
 }
 function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
