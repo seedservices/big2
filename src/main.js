@@ -8045,7 +8045,7 @@ function syncViewport(){
   const short=Math.min(window.innerWidth,window.innerHeight);
   const scale=Math.max(0.74,Math.min(1.1,short/520));
   root.style.setProperty('--card-scale',scale.toFixed(3));
-  const orientation=window.matchMedia('(orientation: portrait)').matches?'portrait':'landscape';
+  const orientation=isPortraitMode()?'portrait':'landscape';
   const orientationChanged=Boolean(lastOrientation)&&orientation!==lastOrientation;
   lastOrientation=orientation;
   document.body.setAttribute('data-orientation',orientation);
