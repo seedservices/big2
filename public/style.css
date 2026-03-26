@@ -4715,6 +4715,7 @@ body[data-screen='game'] .side-zone.log-collapsed {
 .game-log-toggle { display: none; }
 body[data-screen='game'][data-orientation='portrait'] .game-log-toggle { display: inline-flex; }
 body[data-screen='game'][data-orientation='portrait'] .side-zone { display: none !important; }
+body[data-log-sheet='1'] .mobile-discard-panel { display: none !important; }
 body[data-screen='game'] .log-side-card {
   position: relative;
   background: transparent;

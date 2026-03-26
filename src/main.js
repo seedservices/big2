@@ -7885,6 +7885,7 @@ function render(){
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-is-mobile',isMobilePointer()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
+  document.body.setAttribute('data-log-sheet',state.screen==='game'&&logSheetOpen?'1':'0');
   syncWebViewportGuardAttrs();
   syncRoomCountdownTicker();
   if(shouldBlockLandscapeMobile()){
