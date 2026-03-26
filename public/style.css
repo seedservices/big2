@@ -4709,6 +4709,11 @@ body[data-screen='game'] .side-zone.log-collapsed {
   padding-bottom: 0 !important;
 }
 .side-card { border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: var(--panel-2); padding: 9px; display: grid; gap: 7px; }
+body[data-screen='game'] .log-side-card {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+}
 .side-card h3 { font-size: .96rem; }
 .log-toggle-title {
   cursor: pointer;
@@ -5947,7 +5952,9 @@ body[data-screen='game'] .result-screen {
   overflow-x: hidden;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,.2);
-  background: linear-gradient(160deg, rgba(16, 45, 72, .95), rgba(8, 30, 49, .95));
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(145deg, var(--panel-2), var(--bg-b));
   box-shadow: 0 12px 28px rgba(0,0,0,.3);
   padding: 8px;
   display: grid;
