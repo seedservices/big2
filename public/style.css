@@ -39,6 +39,9 @@
   --ok: #52d273;
   --panel: rgba(255, 255, 255, 0.08);
   --panel-2: rgba(7, 22, 34, 0.62);
+  --ui-card-grad:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(145deg, var(--panel-2), var(--bg-b));
   --table-a: #17334f;
   --table-b: #1f4468;
   --table-c: #1c4262;
@@ -4710,9 +4713,7 @@ body[data-screen='game'] .side-zone.log-collapsed {
 }
 .side-card { border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: var(--panel-2); padding: 9px; display: grid; gap: 7px; }
 body[data-screen='game'] .log-side-card {
-  background:
-    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  background: var(--ui-card-grad);
 }
 body[data-ios='1'] .log-side-card {
   position: relative;
@@ -4723,9 +4724,7 @@ body[data-ios='1'] .log-side-card::before {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  background: var(--ui-card-grad);
   pointer-events: none;
   z-index: 0;
 }
@@ -5259,9 +5258,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     padding: 8px;
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,.16);
-    background:
-      radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-      linear-gradient(145deg, var(--panel-2), var(--bg-b));
+    background: var(--ui-card-grad);
     overflow: auto;
     max-height: 30vh;
     margin-bottom: 4px;
@@ -5275,9 +5272,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background:
-      radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-      linear-gradient(145deg, var(--panel-2), var(--bg-b));
+    background: var(--ui-card-grad);
     pointer-events: none;
     z-index: 0;
   }
@@ -5992,9 +5987,7 @@ body[data-screen='game'] .result-screen {
   overflow-x: hidden;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,.2);
-  background:
-    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  background: var(--ui-card-grad);
   box-shadow: 0 12px 28px rgba(0,0,0,.3);
   padding: 8px;
   display: grid;
@@ -6009,9 +6002,7 @@ body[data-ios='1'] .result-card::before {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  background: var(--ui-card-grad);
   pointer-events: none;
   z-index: 0;
 }
