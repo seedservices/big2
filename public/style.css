@@ -5239,8 +5239,10 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     pointer-events: auto;
     padding: 8px;
     border-radius: 10px;
-    border: 0;
-    background: transparent;
+    border: 1px solid rgba(255,255,255,.16);
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+      linear-gradient(145deg, var(--panel-2), var(--bg-b));
     overflow: auto;
     max-height: 30vh;
     margin-bottom: 4px;
@@ -5959,6 +5961,11 @@ body[data-screen='game'] .result-screen {
   padding: 8px;
   display: grid;
   gap: 6px;
+}
+body[data-ios='1'] .result-card {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(145deg, var(--panel-2), var(--bg-b)) !important;
 }
 .result-list {
   display: grid;
