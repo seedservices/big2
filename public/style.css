@@ -4735,6 +4735,8 @@ body[data-screen='game'][data-orientation='portrait'] .side-zone { display: none
 }
 .game-log-fab:active { cursor: grabbing; }
 .game-log-fab .title-icon { width: 18px; height: 18px; }
+body[data-screen='game'][data-orientation='landscape'] .game-log-fab { display: none; }
+body[data-screen='game'][data-orientation='portrait'] .game-log-fab { display: inline-flex; }
 body[data-log-sheet='1'] .mobile-discard-panel { display: none !important; }
 body[data-log-sheet='1'] .side-zone { display: none !important; }
 body[data-log-sheet='1'] .log-side-card { display: none !important; }
