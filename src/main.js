@@ -2247,6 +2247,21 @@ async function loadActiveRooms(attempt=0){
       }
     state.home.activeRooms.rows=rows.slice(0,4);
     state.home.activeRooms.hiddenCount=hiddenRooms;
+    if(hiddenRooms){
+      const shownIds=new Set(rows.map((r)=>r.id));
+      const hiddenDetails=snap.docs
+        .filter((doc)=>!shownIds.has(doc.id))
+        .map((doc)=>doc.data()??{});
+      console.warn('Hidden rooms', hiddenDetails.map((data)=>({
+        id:String(data.id||''),
+        code:String(data.code||''),
+        status:String(data.status||''),
+        updatedAt:Number(data.updatedAt)||0,
+        maxPlayers:Number(data.maxPlayers||0),
+        players:Array.isArray(data.players)?data.players.length:0,
+        playerIds:Array.isArray(data.playerIds)?data.playerIds.length:0
+      })));
+    }
     state.home.activeRooms.loadedAt=Date.now();
   }catch{
     state.home.activeRooms.error='load';
@@ -5692,30 +5707,29 @@ function maybeRunSoloAi(){
 }
 
 function unlockAudio(){
+  if(!sound.enabled)return;
   try{
-    if(sound.enabled){
-      const AudioCtx=window.AudioContext||window.webkitAudioContext;
-      if(AudioCtx){
-        if(!sound.ctx){
-          sound.ctx=new AudioCtx();
-        }
-        if(sound.ctx?.state==='suspended'){
-          sound.ctx.resume?.().catch(()=>{});
-        }
-        // iOS Safari often needs a real node start/stop in a user gesture to unlock playback.
-        if(sound.ctx?.state==='running'){
-          try{
-            const c=sound.ctx;
-            const o=c.createOscillator();
-            const g=c.createGain();
-            g.gain.value=0.00001;
-            o.connect(g);
-            g.connect(c.destination);
-            const t=c.currentTime;
-            o.start(t);
-            o.stop(t+0.01);
-          }catch{}
-        }
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(AudioCtx){
+      if(!sound.ctx){
+        sound.ctx=new AudioCtx();
+      }
+      if(sound.ctx?.state==='suspended'){
+        sound.ctx.resume?.().catch(()=>{});
+      }
+      // iOS Safari often needs a real node start/stop in a user gesture to unlock playback.
+      if(sound.ctx?.state==='running'){
+        try{
+          const c=sound.ctx;
+          const o=c.createOscillator();
+          const g=c.createGain();
+          g.gain.value=0.00001;
+          o.connect(g);
+          g.connect(c.destination);
+          const t=c.currentTime;
+          o.start(t);
+          o.stop(t+0.01);
+        }catch{}
       }
     }
     // iOS Safari: prime a single HTMLAudio element during user gesture so recorded clips can play later.
@@ -7882,7 +7896,7 @@ function syncViewport(){
 
 window.addEventListener('resize',syncViewport);
 window.addEventListener('orientationchange',syncViewport);
-const bootstrapAudioAndSpeech=()=>{unlockAudio();primeSpeech();};
+const bootstrapAudioAndSpeech=()=>{if(!sound.enabled)return;unlockAudio();primeSpeech();};
 document.addEventListener('pointerdown',bootstrapAudioAndSpeech,{once:true});
 document.addEventListener('touchstart',bootstrapAudioAndSpeech,{once:true,passive:true});
 document.addEventListener('click',bootstrapAudioAndSpeech,{once:true});
