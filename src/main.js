@@ -7275,8 +7275,7 @@ function renderGame(){
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
-  const portraitLogSheet=window.matchMedia('(max-width: 860px) and (orientation: portrait)').matches;
-  const logSheetOpen=Boolean(portraitLogSheet&&state.showLogSheet);
+  const logSheetOpen=isPortraitLogSheetOpen();
   const logToggleStateIcon=state.showLog?'▾':'▸';
   const logToggleStateText=state.showLog?(state.language==='zh-HK'?'收起':'Collapse'):(state.language==='zh-HK'?'展開':'Expand');
   const logSheetHtml=logSheetOpen?`<div class="log-sheet" id="log-sheet"><button class="log-sheet-backdrop" id="log-sheet-backdrop" aria-label="close"></button><section class="log-sheet-panel"><header class="log-sheet-head"><h3 class="title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><button id="log-sheet-close" class="secondary">${state.language==='zh-HK'?'關閉':'Close'}</button></header><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></div>`:'';
@@ -7875,6 +7874,10 @@ function bindGameEvents(v,arr){
   document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));void runPlay(cards);});
 }
 
+function isPortraitLogSheetOpen(){
+  if(state.screen!=='game'||!state.showLogSheet)return false;
+  return window.matchMedia('(max-width: 860px) and (orientation: portrait)').matches;
+}
 function render(){
   if(state.screen==='home'&&location.hash==='#opponents'){
     state.screen='opponents';
@@ -7885,7 +7888,7 @@ function render(){
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-is-mobile',isMobilePointer()?'1':'0');
   document.body.setAttribute('data-log-open',state.screen==='game'&&state.showLog?'1':'0');
-  document.body.setAttribute('data-log-sheet',state.screen==='game'&&logSheetOpen?'1':'0');
+  document.body.setAttribute('data-log-sheet',isPortraitLogSheetOpen()?'1':'0');
   syncWebViewportGuardAttrs();
   syncRoomCountdownTicker();
   if(shouldBlockLandscapeMobile()){
