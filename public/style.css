@@ -4713,9 +4713,31 @@ body[data-screen='game'] .side-zone.log-collapsed {
 }
 .side-card { border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: var(--panel-2); padding: 9px; display: grid; gap: 7px; }
 .game-log-toggle { display: none; }
-body[data-screen='game'][data-orientation='portrait'] .game-log-toggle { display: inline-flex; }
 body[data-screen='game'][data-orientation='portrait'] .side-zone { display: none !important; }
+.game-log-fab {
+  position: fixed;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 11000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: linear-gradient(140deg, rgba(20, 58, 86, .92), rgba(8, 30, 50, .9));
+  color: #e9f4ff;
+  font-weight: 700;
+  font-size: .8rem;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28);
+  cursor: grab;
+  touch-action: none;
+}
+.game-log-fab:active { cursor: grabbing; }
+.game-log-fab .title-icon { width: 18px; height: 18px; }
 body[data-log-sheet='1'] .mobile-discard-panel { display: none !important; }
+body[data-log-sheet='1'] .side-zone { display: none !important; }
+body[data-log-sheet='1'] .log-side-card { display: none !important; }
 body[data-screen='game'] .log-side-card {
   position: relative;
   background: transparent;

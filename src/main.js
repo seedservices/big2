@@ -594,7 +594,7 @@ const EMOTE_STICKERS=[
   {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',logFab:{x:null,y:null},home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -6472,12 +6472,20 @@ function handleGameTopbarClick(ev){
   if(state.screen!=='game')return;
   const t=ev.target;
   if(!(t instanceof Element))return;
-  const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle,#game-log-toggle');
+  const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle,#game-log-fab');
   if(!btn)return;
   if(btn.id==='game-intro-toggle'){state.home.showIntro=true;render();return;}
   if(btn.id==='score-guide-toggle'){state.showScoreGuide=true;render();return;}
   if(btn.id==='game-lb-toggle'){state.home.showLeaderboard=true;refreshLeaderboard(true);render();return;}
-  if(btn.id==='game-log-toggle'){state.showLogSheet=!state.showLogSheet;render();return;}
+  if(btn.id==='game-log-fab'){
+    if(btn.getAttribute('data-ignore-click')==='1'){
+      btn.setAttribute('data-ignore-click','0');
+      return;
+    }
+    state.showLogSheet=!state.showLogSheet;
+    render();
+    return;
+  }
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function setSoundEnabled(on){
@@ -7288,31 +7296,43 @@ function renderGame(){
   const emotePanel=state.emote.open?`<div class="emote-panel">${EMOTE_STICKERS.map((s)=>`<button class="emote-btn" data-emote-id="${s.id}" type="button"><img src="${withBase(`emotes/${s.file}`)}" alt="${s.id}"/><span class="emote-btn-label">${esc(t(`emoteLabel${s.id[0].toUpperCase()}${s.id.slice(1)}`))}</span></button>`).join('')}</div>`:'';
   const sideZoneHtml=portraitMode?'':`<aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>`;
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><span class="game-logo-block"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></span>${roomTopMeta}</div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.980 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.980-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div>${sideZoneHtml}${v.gameOver?resultScreenHtml(v,arr):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
-  const topbarRow=document.querySelector('.topbar-right .control-row');
-  const logToggleBtn=document.getElementById('game-log-toggle');
-  if(portraitMode){
-    if(topbarRow && !logToggleBtn){
-      const btn=document.createElement('button');
-      btn.id='game-log-toggle';
-      btn.type='button';
-      btn.className='secondary game-log-toggle';
-      btn.textContent=t('log');
-      const homeBtn=document.getElementById('home-btn');
-      if(homeBtn && homeBtn.parentElement===topbarRow){
-        topbarRow.insertBefore(btn,homeBtn);
-      }else{
-        topbarRow.appendChild(btn);
-      }
-    }
-  }else if(logToggleBtn){
-    logToggleBtn.remove();
-  }
   const appEl=document.getElementById('app');
+  const logFab=document.getElementById('game-log-fab');
+  if(portraitMode){
+    if(!logFab && appEl){
+      const btn=document.createElement('button');
+      btn.id='game-log-fab';
+      btn.type='button';
+      btn.className='game-log-fab';
+      btn.setAttribute('aria-label',t('log'));
+      btn.innerHTML=`<span class="title-icon title-icon-log" aria-hidden="true"></span><span class="game-log-fab-text">${t('log')}</span>`;
+      btn.setAttribute('data-ignore-click','0');
+      appEl.appendChild(btn);
+    }
+  }else if(logFab){
+    logFab.remove();
+  }
   if(appEl){
     const existingSheet=appEl.querySelector('#log-sheet');
     if(existingSheet)existingSheet.remove();
     if(logSheetOpen){
       appEl.insertAdjacentHTML('beforeend',logSheetHtml);
+    }
+    const fab=appEl.querySelector('#game-log-fab');
+    if(fab instanceof HTMLElement){
+      const x=state.logFab?.x;
+      const y=state.logFab?.y;
+      if(Number.isFinite(x)&&Number.isFinite(y)){
+        fab.style.left=`${x}px`;
+        fab.style.top=`${y}px`;
+        fab.style.right='auto';
+        fab.style.bottom='auto';
+      }else{
+        fab.style.removeProperty('left');
+        fab.style.removeProperty('top');
+        fab.style.removeProperty('right');
+        fab.style.removeProperty('bottom');
+      }
     }
   }
   positionRoomTopMeta();
@@ -7618,6 +7638,74 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('log-sheet-close')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
   document.getElementById('log-sheet-backdrop')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
+  const logFab=document.getElementById('game-log-fab');
+  if(logFab){
+    let dragActive=false;
+    let moved=false;
+    let startX=0;
+    let startY=0;
+    let originX=0;
+    let originY=0;
+    const clamp=(val,min,max)=>Math.max(min,Math.min(max,val));
+    const setFabPos=(x,y)=>{
+      const maxX=Math.max(0,window.innerWidth-logFab.offsetWidth);
+      const maxY=Math.max(0,window.innerHeight-logFab.offsetHeight);
+      const nx=clamp(x,8,maxX-8);
+      const ny=clamp(y,8,maxY-8);
+      state.logFab.x=nx;
+      state.logFab.y=ny;
+      logFab.style.left=`${nx}px`;
+      logFab.style.top=`${ny}px`;
+      logFab.style.right='auto';
+      logFab.style.bottom='auto';
+    };
+    const startDrag=(clientX,clientY)=>{
+      dragActive=true;
+      moved=false;
+      startX=clientX;
+      startY=clientY;
+      const rect=logFab.getBoundingClientRect();
+      originX=rect.left;
+      originY=rect.top;
+    };
+    const moveDrag=(clientX,clientY)=>{
+      if(!dragActive)return;
+      const dx=clientX-startX;
+      const dy=clientY-startY;
+      if(!moved && Math.hypot(dx,dy)>6){
+        moved=true;
+        logFab.setAttribute('data-ignore-click','1');
+      }
+      if(moved)setFabPos(originX+dx,originY+dy);
+    };
+    const endDrag=()=>{
+      dragActive=false;
+    };
+    logFab.addEventListener('pointerdown',(ev)=>{
+      if(ev.pointerType==='mouse')return;
+      startDrag(ev.clientX,ev.clientY);
+    },{passive:true});
+    logFab.addEventListener('pointermove',(ev)=>{
+      if(ev.pointerType==='mouse')return;
+      moveDrag(ev.clientX,ev.clientY);
+    },{passive:true});
+    logFab.addEventListener('pointerup',endDrag,{passive:true});
+    logFab.addEventListener('pointercancel',endDrag,{passive:true});
+    if(!window.PointerEvent){
+      logFab.addEventListener('touchstart',(ev)=>{
+        const t=ev.changedTouches?.[0];
+        if(!t)return;
+        startDrag(t.clientX,t.clientY);
+      },{passive:true});
+      logFab.addEventListener('touchmove',(ev)=>{
+        const t=ev.changedTouches?.[0];
+        if(!t)return;
+        moveDrag(t.clientX,t.clientY);
+      },{passive:true});
+      logFab.addEventListener('touchend',endDrag,{passive:true});
+      logFab.addEventListener('touchcancel',endDrag,{passive:true});
+    }
+  }
   if(!logSheetSwipeBound){
     const table=document.querySelector('.table');
     if(table){
