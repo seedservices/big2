@@ -4714,6 +4714,25 @@ body[data-screen='game'] .log-side-card {
     radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
     linear-gradient(145deg, var(--panel-2), var(--bg-b));
 }
+body[data-ios='1'] .log-side-card {
+  position: relative;
+  background: transparent !important;
+}
+body[data-ios='1'] .log-side-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  pointer-events: none;
+  z-index: 0;
+}
+body[data-ios='1'] .log-side-card > * {
+  position: relative;
+  z-index: 1;
+}
 .side-card h3 { font-size: .96rem; }
 .log-toggle-title {
   cursor: pointer;
@@ -5246,6 +5265,25 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     overflow: auto;
     max-height: 30vh;
     margin-bottom: 4px;
+  }
+  body[data-ios='1'] .mobile-discard-panel {
+    position: relative;
+    background: transparent !important;
+  }
+  body[data-ios='1'] .mobile-discard-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
+      linear-gradient(145deg, var(--panel-2), var(--bg-b));
+    pointer-events: none;
+    z-index: 0;
+  }
+  body[data-ios='1'] .mobile-discard-panel > * {
+    position: relative;
+    z-index: 1;
   }
   .mobile-discard-title {
     display: inline-flex;
@@ -5963,9 +6001,23 @@ body[data-screen='game'] .result-screen {
   gap: 6px;
 }
 body[data-ios='1'] .result-card {
+  position: relative;
+  background: transparent !important;
+}
+body[data-ios='1'] .result-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background:
     radial-gradient(circle at 15% 10%, rgba(255,255,255,.08), transparent 42%),
-    linear-gradient(145deg, var(--panel-2), var(--bg-b)) !important;
+    linear-gradient(145deg, var(--panel-2), var(--bg-b));
+  pointer-events: none;
+  z-index: 0;
+}
+body[data-ios='1'] .result-card > * {
+  position: relative;
+  z-index: 1;
 }
 .result-list {
   display: grid;
