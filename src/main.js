@@ -594,7 +594,7 @@ const EMOTE_STICKERS=[
   {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -3286,6 +3286,7 @@ function applyRoomGameSnapshot(roomData){
   state.opponentProfileName='';
   state.logTouched=false;
   state.showLog=false;
+  state.showLogSheet=false;
   state.recommendation=null;
   setRecommendHint('');
   const selfSeat=Number.isInteger(state.room.selfSeat)?state.room.selfSeat:0;
@@ -5568,7 +5569,7 @@ function triggerMust3LeadCallout(game,selfSeat=0){
   scheduleCalloutExpiry(must3CallState.until);
   speakCallout(text,pick.player?.gender??'male',{seat:pick.seat,force:true,clipKey:'line-must3'});
 }
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.showLogSheet=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
 function startRoomLocalGame(roomData){
   randomizeNpcColors();
   const uid=currentRoomPlayerId();
@@ -5597,6 +5598,7 @@ function startRoomLocalGame(roomData){
   state.recommendation=null;
   state.logTouched=false;
   state.showLog=false;
+  state.showLogSheet=false;
   state.screen='game';
   state.home.mode='room';
   state.home.showIntro=false;
@@ -6469,11 +6471,12 @@ function handleGameTopbarClick(ev){
   if(state.screen!=='game')return;
   const t=ev.target;
   if(!(t instanceof Element))return;
-  const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle');
+  const btn=t.closest?.('#game-intro-toggle,#score-guide-toggle,#game-lb-toggle,#game-log-toggle');
   if(!btn)return;
   if(btn.id==='game-intro-toggle'){state.home.showIntro=true;render();return;}
   if(btn.id==='score-guide-toggle'){state.showScoreGuide=true;render();return;}
   if(btn.id==='game-lb-toggle'){state.home.showLeaderboard=true;refreshLeaderboard(true);render();return;}
+  if(btn.id==='game-log-toggle'){state.showLogSheet=!state.showLogSheet;render();return;}
 }
 const waitMs=(ms)=>new Promise((resolve)=>setTimeout(resolve,ms));
 function setSoundEnabled(on){
@@ -7272,14 +7275,39 @@ function renderGame(){
   const isMobile=isMobilePointer();
   const mobileNamesHtml='';
   const mobileDiscardHtml='';
+  const portraitLogSheet=window.matchMedia('(max-width: 860px) and (orientation: portrait)').matches;
+  const logSheetOpen=Boolean(portraitLogSheet&&state.showLogSheet);
   const logToggleStateIcon=state.showLog?'▾':'▸';
   const logToggleStateText=state.showLog?(state.language==='zh-HK'?'收起':'Collapse'):(state.language==='zh-HK'?'展開':'Expand');
+  const logSheetHtml=logSheetOpen?`<div class="log-sheet" id="log-sheet"><button class="log-sheet-backdrop" id="log-sheet-backdrop" aria-label="close"></button><section class="log-sheet-panel"><header class="log-sheet-head"><h3 class="title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><button id="log-sheet-close" class="secondary">${state.language==='zh-HK'?'關閉':'Close'}</button></header><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></div>`:'';
   const isRecPass=state.recommendHint===t('recPass');
   const isRecEmpty=state.recommendHint===t('noSuggest');
   const showRecommendHint=Boolean(state.recommendHint)&&!isRecPass;
   const isRecPlay=state.recommendation?.action==='play';
   const emotePanel=state.emote.open?`<div class="emote-panel">${EMOTE_STICKERS.map((s)=>`<button class="emote-btn" data-emote-id="${s.id}" type="button"><img src="${withBase(`emotes/${s.file}`)}" alt="${s.id}"/><span class="emote-btn-label">${esc(t(`emoteLabel${s.id[0].toUpperCase()}${s.id.slice(1)}`))}</span></button>`).join('')}</div>`:'';
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><span class="game-logo-block"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></span>${roomTopMeta}</div><div class="topbar-right"><div class="control-row"><button id="lang-toggle" class="secondary">${state.language==='zh-HK'?'EN':'中'}</button><button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.980 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.980-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div><aside class="side-zone ${state.showLog?'':'log-collapsed'}"><section class="side-card log-side-card ${state.showLog?'':'collapsed'}"><h3 id="log-toggle" class="log-toggle-title title-with-icon" aria-expanded="${state.showLog?'true':'false'}" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span><span class="log-toggle-state" aria-hidden="true">${logToggleStateIcon}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>${v.gameOver?resultScreenHtml(v,arr):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  const topbarRow=document.querySelector('.topbar-right .control-row');
+  if(topbarRow && !document.getElementById('game-log-toggle')){
+    const btn=document.createElement('button');
+    btn.id='game-log-toggle';
+    btn.type='button';
+    btn.className='secondary game-log-toggle';
+    btn.textContent=t('log');
+    const homeBtn=document.getElementById('home-btn');
+    if(homeBtn && homeBtn.parentElement===topbarRow){
+      topbarRow.insertBefore(btn,homeBtn);
+    }else{
+      topbarRow.appendChild(btn);
+    }
+  }
+  const appEl=document.getElementById('app');
+  if(appEl){
+    const existingSheet=appEl.querySelector('#log-sheet');
+    if(existingSheet)existingSheet.remove();
+    if(logSheetOpen){
+      appEl.insertAdjacentHTML('beforeend',logSheetHtml);
+    }
+  }
   positionRoomTopMeta();
   bindRoomTopMetaLayout();
   observeDiscardSize();
@@ -7581,6 +7609,8 @@ function bindGameEvents(v,arr){
     requestAnimationFrame(restore);
     setTimeout(restore,0);
   });
+  document.getElementById('log-sheet-close')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
+  document.getElementById('log-sheet-backdrop')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
