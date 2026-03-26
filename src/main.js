@@ -6416,6 +6416,7 @@ function renderBackCombo(){
 }
 let topbarDelegateBound=false;
 let roomTopMetaLayoutBound=false;
+let logSheetSwipeBound=false;
 let discardSizeObserver=null;
 function positionRoomTopMeta(){
   const meta=document.querySelector('.room-top-meta');
@@ -7617,6 +7618,49 @@ function bindGameEvents(v,arr){
   });
   document.getElementById('log-sheet-close')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
   document.getElementById('log-sheet-backdrop')?.addEventListener('click',()=>{state.showLogSheet=false;render();});
+  if(!logSheetSwipeBound){
+    const table=document.querySelector('.table');
+    if(table){
+      let swipeActive=false;
+      let startX=0;
+      let startY=0;
+      let startAt=0;
+      const shouldHandle=(target)=>{
+        if(!(target instanceof Element))return false;
+        if(target.closest('.log-sheet,.topbar,.action-zone,.hand,.game-cta-btn,.side-zone,.log-side-card'))return false;
+        return true;
+      };
+      table.addEventListener('touchstart',(ev)=>{
+        if(!isMobilePointer())return;
+        if(state.showLogSheet)return;
+        const portrait=window.matchMedia?.('(orientation: portrait)')?.matches ?? (window.innerHeight>window.innerWidth);
+        if(!portrait)return;
+        const t=ev.changedTouches?.[0];
+        if(!t||!shouldHandle(ev.target))return;
+        swipeActive=true;
+        startX=t.clientX;
+        startY=t.clientY;
+        startAt=Date.now();
+      },{passive:true});
+      table.addEventListener('touchend',(ev)=>{
+        if(!swipeActive)return;
+        swipeActive=false;
+        if(state.showLogSheet)return;
+        const t=ev.changedTouches?.[0];
+        if(!t)return;
+        const dt=Date.now()-startAt;
+        if(dt>600)return;
+        const dx=t.clientX-startX;
+        const dy=startY-t.clientY;
+        if(dy<60)return;
+        if(Math.abs(dx)>Math.max(24,dy*0.6))return;
+        state.showLogSheet=true;
+        render();
+      },{passive:true});
+      table.addEventListener('touchcancel',()=>{swipeActive=false;},{passive:true});
+      logSheetSwipeBound=true;
+    }
+  }
   document.getElementById('score-guide-close')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
