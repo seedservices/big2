@@ -7318,9 +7318,20 @@ function renderGame(){
     if(logFab instanceof HTMLElement){
       const x=state.logFab?.x;
       const y=state.logFab?.y;
+      const pad=8;
+      const viewW=Math.max(0,window.innerWidth||0);
+      const viewH=Math.max(0,window.innerHeight||0);
+      const fabW=Math.max(0,logFab.offsetWidth||0);
+      const fabH=Math.max(0,logFab.offsetHeight||0);
+      const maxX=Math.max(0,viewW-fabW-pad);
+      const maxY=Math.max(0,viewH-fabH-pad);
       if(Number.isFinite(x)&&Number.isFinite(y)){
-        logFab.style.left=`${x}px`;
-        logFab.style.top=`${y}px`;
+        const nx=Math.max(pad,Math.min(x,maxX));
+        const ny=Math.max(pad,Math.min(y,maxY));
+        state.logFab.x=nx;
+        state.logFab.y=ny;
+        logFab.style.left=`${nx}px`;
+        logFab.style.top=`${ny}px`;
         logFab.style.right='auto';
         logFab.style.bottom='auto';
       }else{
