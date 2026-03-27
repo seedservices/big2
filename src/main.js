@@ -6609,44 +6609,64 @@ function bindBackCarousel(comboId){
     }
     applyScaling();
   };
+  const getNextValue=(dir)=>{
+    const current=state.home.backColor;
+    const currentIndex=BACK_OPTIONS.findIndex((opt)=>opt.value===current);
+    if(currentIndex<0)return BACK_OPTIONS[0]?.value;
+    const delta=dir==='prev'?-1:1;
+    const nextIndex=(currentIndex+delta+optionCount)%optionCount;
+    return BACK_OPTIONS[nextIndex]?.value;
+  };
   let isSnapping=false;
+  let snapBehavior='smooth';
   let scrollTimer=null;
+  let lastScrollLeft=track.scrollLeft;
   const scheduleSettle=(behavior='smooth')=>{
     if(scrollTimer)clearTimeout(scrollTimer);
     scrollTimer=setTimeout(()=>{
-      updateSelectionFromScroll(true);
-      if(isSnapping){
-        centerOnValue(state.home.backColor,behavior);
-        isSnapping=false;
+      const idle=Math.abs(track.scrollLeft-lastScrollLeft)<0.5;
+      const canFocus=idle&&!dragActive;
+      const allowWrap=canFocus;
+      updateSelectionFromScroll(allowWrap);
+      if(canFocus){
+        const focusBehavior=isSnapping?snapBehavior:behavior;
+        centerOnValue(state.home.backColor,focusBehavior);
       }
+      if(isSnapping&&idle)isSnapping=false;
     },180);
   };
   track.addEventListener('scroll',()=>{
     applyScaling();
-    scheduleSettle('auto');
+    lastScrollLeft=track.scrollLeft;
+    scheduleSettle(isSnapping?snapBehavior:'auto');
   },{passive:true});
   const onRelease=()=>{
     isSnapping=true;
+    snapBehavior='smooth';
     scheduleSettle('smooth');
   };
   wrapper.querySelector('[data-carousel-dir="prev"]')?.addEventListener('click',()=>{
     if(isSnapping)return;
-    const step=measureStep();
-    if(!step)return;
-    const section=step*optionCount;
-    if(track.scrollLeft<section*0.5)track.scrollLeft+=section;
-    track.scrollBy({left:-step,behavior:'smooth'});
+    const nextValue=getNextValue('prev');
+    if(!nextValue)return;
+    state.home.backColor=nextValue;
+    markComboActive('back-combo-left',nextValue);
+    markComboActive('back-combo-right',nextValue);
+    markComboActive('config-back-combo',nextValue);
     isSnapping=true;
+    snapBehavior='smooth';
     scheduleSettle('smooth');
   });
   wrapper.querySelector('[data-carousel-dir="next"]')?.addEventListener('click',()=>{
     if(isSnapping)return;
-    const step=measureStep();
-    if(!step)return;
-    const section=step*optionCount;
-    if(track.scrollLeft>section*1.5)track.scrollLeft-=section;
-    track.scrollBy({left:step,behavior:'smooth'});
+    const nextValue=getNextValue('next');
+    if(!nextValue)return;
+    state.home.backColor=nextValue;
+    markComboActive('back-combo-left',nextValue);
+    markComboActive('back-combo-right',nextValue);
+    markComboActive('config-back-combo',nextValue);
     isSnapping=true;
+    snapBehavior='smooth';
     scheduleSettle('smooth');
   });
   let dragActive=false;
@@ -6685,6 +6705,7 @@ function bindBackCarousel(comboId){
     const index=buttons.indexOf(btn);
     if(index>=0){
       isSnapping=true;
+      snapBehavior='smooth';
       centerIndex(index);
       scheduleSettle('smooth');
     }
