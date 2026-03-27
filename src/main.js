@@ -598,7 +598,7 @@ const EMOTE_STICKERS=[
   {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',logFab:{x:null,y:null},home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:'',hiddenDetails:[]}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',logFab:{x:null,y:null},home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -2131,24 +2131,10 @@ async function loadActiveRooms(attempt=0){
       const now=Date.now();
       const rows=[];
       let hiddenRooms=0;
-      const hiddenDetails=[];
-      const pushHidden=(data,reason)=>{
-        hiddenDetails.push({
-          id:String(data?.id||''),
-          code:String(data?.code||''),
-          status:String(data?.status||''),
-          updatedAt:Number(data?.updatedAt)||0,
-          maxPlayers:Number(data?.maxPlayers||0),
-          players:Array.isArray(data?.players)?data.players.length:0,
-          playerIds:Array.isArray(data?.playerIds)?data.playerIds.length:0,
-          reason:String(reason||'')
-        });
-      };
       for(const doc of snap.docs){
         const data=doc.data()??{};
         const status=String(data.status||'');
         if(status!=='lobby'&&status!=='starting'&&status!=='playing'&&status!=='finished'){
-          pushHidden(data,'status');
           hiddenRooms+=1;
           continue;
         }
@@ -2158,13 +2144,11 @@ async function loadActiveRooms(attempt=0){
             const staleAge=now-updatedAt;
             if((status==='lobby'||status==='starting'||status==='finished')&&staleAge>ROOM_PRUNE_LOBBY_MS){
               void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-              pushHidden(data,'stale-lobby');
               hiddenRooms+=1;
               continue;
             }
             if(status==='playing'&&staleAge>ROOM_PRUNE_PLAYING_MS){
               void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-              pushHidden(data,'stale-playing');
               hiddenRooms+=1;
               continue;
             }
@@ -2179,7 +2163,6 @@ async function loadActiveRooms(attempt=0){
           if(!isPlaying&&activePlayers.length!==players.length){
             const activeHumans=activePlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
             if(!activeHumans.length){
-              pushHidden(data,'no-active-humans');
               hiddenRooms+=1;
               continue;
             }
@@ -2200,7 +2183,6 @@ async function loadActiveRooms(attempt=0){
           const humans=activePlayers.filter((p)=>isRoomPlayerHuman(p));
           if(!humans.length){
             void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-            pushHidden(data,'no-humans');
             hiddenRooms+=1;
             continue;
           }
@@ -2208,18 +2190,15 @@ async function loadActiveRooms(attempt=0){
         if(status!=='playing'&&!recentHumans.length){
           // Hide stale lobby rooms even if deletion fails.
           void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-          pushHidden(data,'no-recent-humans');
           hiddenRooms+=1;
           continue;
         }
         if(status==='playing'&&!recentHumans.length){
           void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
-          pushHidden(data,'no-recent-humans-playing');
           hiddenRooms+=1;
           continue;
         }
         if(status==='finished'&&humans.length>=Number(data.maxPlayers||4)){
-          pushHidden(data,'finished-full');
           hiddenRooms+=1;
           continue;
         }
@@ -2275,9 +2254,8 @@ async function loadActiveRooms(attempt=0){
       }
     state.home.activeRooms.rows=rows.slice(0,4);
     state.home.activeRooms.hiddenCount=hiddenRooms;
-    state.home.activeRooms.hiddenDetails=hiddenDetails;
     if(hiddenRooms){
-      console.warn('Hidden rooms',state.home.activeRooms.hiddenDetails);
+      console.warn('Hidden rooms',hiddenRooms);
     }
     state.home.activeRooms.loadedAt=Date.now();
   }catch{
@@ -7373,31 +7351,6 @@ function renderOpponents(){
   document.getElementById('opponents-back')?.addEventListener('click',()=>{state.screen='home';render();});
   bindLangMenu(document.querySelector('.topbar-right'),{reloadGoogle:!state.home.google?.signedIn});
 }
-function renderHidden(){
-  if(!state.home.activeRooms.loading&&!state.home.activeRooms.loadedAt){
-    void loadActiveRooms();
-  }
-  const hiddenCount=Number(state.home.activeRooms.hiddenCount)||0;
-  const details=Array.isArray(state.home.activeRooms.hiddenDetails)?state.home.activeRooms.hiddenDetails:[];
-  const activeRows=Array.isArray(state.home.activeRooms.rows)?state.home.activeRooms.rows:[];
-  const rows=details.length?details.map((d)=>{
-    const updated=d.updatedAt?new Date(d.updatedAt).toLocaleString(state.language==='zh-HK'?'zh-HK':'en-US'):'-';
-    const reason=d.reason?` · ${esc(d.reason)}`:'';
-    return`<div class="hidden-debug-row">
-      <div><strong>${esc(d.code||'-')}</strong> <span class="hint">${esc(d.id||'')}</span></div>
-      <div class="hidden-debug-meta">${esc(d.status||'-')} · ${d.players}/${d.maxPlayers} · ${esc(updated)}${reason}</div>
-    </div>`;
-  }).join(''):`<div class="hint">No hidden rooms.</div>`;
-  const activeList=activeRows.length?activeRows.map((r)=>{
-    return`<div class="hidden-debug-row">
-      <div><strong>${esc(r.code||'-')}</strong> <span class="hint">${esc(r.id||'')}</span></div>
-      <div class="hidden-debug-meta">${esc(r.status||'-')} · ${r.players}/${r.maxPlayers}</div>
-    </div>`;
-  }).join(''):`<div class="hint">No active rooms.</div>`;
-  app.innerHTML=`<section class="home-wrap hidden-wrap"><header class="topbar home-topbar"><div><h2>Hidden Rooms</h2></div><div class="topbar-right"><div class="control-row"><button id="hidden-back" class="secondary">${t('home')}</button>${renderLangMenu('hidden-lang-menu')}</div></div></header><section class="home-panel hidden-panel"><div class="hidden-debug-head"><span>Hidden: ${hiddenCount}</span></div><div class="hidden-debug-list">${rows}</div><div class="hidden-debug-head"><span>Active Rooms</span></div><div class="hidden-debug-list">${activeList}</div></section></section>`;
-  document.getElementById('hidden-back')?.addEventListener('click',()=>{state.screen='home';render();});
-  bindLangMenu(document.querySelector('.topbar-right'),{reloadGoogle:!state.home.google?.signedIn});
-}
 function opponentProfileModalHtml(name){
   const langKey=state.language==='zh-HK'?'zh-HK':'en';
   const profile=OPPONENT_PROFILE_BY_NAME[name]??{dob:'-',hobbies:{},profile:{},zodiac:{},motto:{}};
@@ -8413,9 +8366,6 @@ function render(){
   if(state.screen==='home'&&location.hash==='#opponents'){
     state.screen='opponents';
   }
-  if(state.screen==='home'&&location.hash==='#hidden'){
-    state.screen='hidden';
-  }
   applyTheme();
   document.title=EFFECTIVE_ENV==='PROD'?`${t('title')}`:`${t('title')} - ${EFFECTIVE_ENV}`;
   document.body.setAttribute('data-screen',state.screen);
@@ -8435,7 +8385,6 @@ function render(){
   if(state.screen==='home'){renderHome();return;}
   if(state.screen==='config'){renderConfig();return;}
   if(state.screen==='opponents'){renderOpponents();return;}
-  if(state.screen==='hidden'){renderHidden();return;}
   renderGame();
 }
 function syncViewport(){
