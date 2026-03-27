@@ -81,6 +81,9 @@ const I18N={
     lang:'語言 / Language',
     zh:'繁體中文',
     en:'English',
+    fr:'法文',
+    de:'德文',
+    es:'西班牙文',
     name:'玩家名稱',
     ai:'對手級數',
     gender:'性別',
@@ -302,6 +305,9 @@ const I18N={
     lang:'Language',
     zh:'Traditional Chinese',
     en:'English',
+    fr:'French',
+    de:'German',
+    es:'Spanish',
     name:'Player Name',
     ai:'Opponent Level',
     gender:'Gender',
@@ -516,16 +522,701 @@ const I18N={
     roomReadyCount:'Ready {{ready}}/{{total}}',
     roomSending:'Sending...',
     roomSendTimeout:'Connection issue — retry.'
+  },
+  fr:{
+    title:'Big Two',
+    sub:'',
+    lang:'Langue / Language',
+    zh:'Chinois traditionnel',
+    en:'Anglais',
+    fr:'Français',
+    de:'Allemand',
+    es:'Espagnol',
+    name:'Nom du joueur',
+    ai:'Niveau des adversaires',
+    gender:'Genre',
+    playerSettings:'Paramètres du joueur',
+    systemSettings:'Paramètres système',
+    male:'Homme',
+    female:'Femme',
+    easy:'Débutant',
+    normal:'Confirmé',
+    hard:'Expert',
+    solo:'Démarrer',
+    loginToStart:'Veuillez vous connecter',
+    config:'Configuration',
+    soundFx:'Effets sonores',
+    audioVoice:'Son & voix',
+    voiceMode:'Voix des annonces',
+    calloutDisplay:'Affichage des annonces',
+    calloutDisplayOn:'On',
+    calloutDisplayOff:'Off',
+    emoteDisplay:'Affichage des émoticônes',
+    voiceAuto:'Auto',    voiceOff:'Off',
+    voicePack:'Style de voix',
+    voicePackClassic:'Classique',
+    voicePackEnergetic:'Énergique',
+    voicePackMinimal:'Minimal',
+    soundOn:'On',
+    soundOff:'Off',
+    home:'Accueil',
+    again:'Rejouer',
+    restart:'Redémarrer',
+    play:'Jouer',
+    pass:'Passer',
+    autoSeq:'Trier les suites',
+    autoPattern:'Trier les combinaisons',
+    suggest:'Recommander',
+    score:'Score',
+    suggestCost:'',
+    cards:'Cartes',
+    log:'Historique',
+    nolog:'Aucun historique',
+    rules:'Règles clés',
+    ruleItems:[
+      'Toutes les combinaisons légales sont listées ci‑dessous :',
+      'Carte simple',
+      'Paire',
+      'Les paires suivent la règle de la carte simple : elles doivent battre la paire précédente. Ex. ♥️A♠️A bat ♥️K♠️K. À rang égal, comparer la couleur la plus haute.',
+      'Brelan (trois cartes du même rang)',
+      'Mains de cinq cartes',
+      'Suite : cinq rangs consécutifs. A‑2‑3‑4‑5 est la plus haute, 3‑4‑5‑6‑7 la plus basse. À égalité, comparer la couleur de la plus haute carte. Suites interdites : J‑Q‑K‑A‑2, Q‑K‑A‑2‑3, K‑A‑3‑4‑5.',
+      'Couleur : cinq cartes de même couleur non consécutives. Comparer par la plus haute carte, puis la suivante, etc. Enfin la couleur si encore égalité. Ex. ♠️2‑4‑5‑6‑8 bat ♥️A‑K‑Q‑10‑8.',
+      'Full : une paire + un brelan. Comparer par le brelan.',
+      'Carré : quatre cartes du même rang + une carte. Comparer par le rang du carré.',
+      'Quinte flush : suite de même couleur. La plus haute est ♠️A‑2‑3‑4‑5.',
+      'Ordre : Suite < Couleur < Full < Carré < Quinte flush.'
+    ],
+    wait:'En attente...',
+    free:'Pas de main active. Le joueur en tête peut jouer n’importe quel set valide.',
+    last:'Dernier',
+    recentCard:'Dernière carte',
+    reveal:'Dévoiler',
+    revealSub:'Vainqueur décidé. Cartes restantes révélées :',
+    drag:'Glissez pour réordonner votre main',
+    must3:'Le premier tour doit contenir le ♦️3.',
+    beat:'Votre sélection ne bat pas la dernière main.',
+    cantPass:'Impossible de passer quand vous êtes en tête.',
+    retake:'reprend la main.',
+    pick:'Sélectionnez d’abord des cartes.',
+    pair:'La paire doit avoir le même rang.',
+    triple:'Le brelan doit avoir le même rang.',
+    count:'Seulement 1, 2, 3 ou 5 cartes.',
+    five:'Main de cinq cartes invalide.',
+    illegal:'Coup invalide.',
+    penalty:'Pénalité',
+    aiTag:'(IA)',
+    wins:'gagne !',
+    congrats:'Félicitations ! Vous gagnez !',
+    resultTitle:'Résultat',
+    resultWinner:'Vainqueur',
+    resultRemain:'Cartes restantes',
+    resultLastDiscard:'Dernière carte jouée',
+    resultDelta:'Variation de score',
+    resultDetail:'Détail du score',
+    scoreBase:'Base',
+    scoreMul:'Multiplicateur',
+    scoreDeduct:'Déduction',
+    scoreGain:'Gain',
+    scoreAnyTwo:'Possède un 2',
+    scoreTopTwo:'Possède le ♠️2',
+    scoreChao2:'Chao deux',
+    scoreChao3:'Chao trois',
+    scoreChao4:'Chao quatre',
+    scoreChaoBig:'Grand chao',
+    scorePenaltyBoost:'Pénalités multiplicatrices',
+    lastCardCall:'Dernière carte',
+    noSuggest:'Aucune suggestion.',
+    needScore:'',
+    recPass:'Passer.',
+    recReady:'Déjà actif. Jouez ou passez d’abord.',
+    accept:'Accepter',
+    reject:'Refuser',
+    start:'commence.',
+    played:'a joué',
+    cardBack:'Dos des cartes',
+    blue:'Bleu',
+    red:'Rouge',
+    theme:'Thème',
+    themeOcean:'Bleu océan',
+    themeEmerald:'Vert émeraude',
+    themeSunset:'Orange coucher de soleil',
+    themeSlate:'Gris ardoise',
+    themeAurora:'Violet aurore',
+    themeSand:'Or sable',
+    themeCyber:'Nuit néon',
+    useGoogleName:'Utiliser le nom Google',
+    signOut:'Se déconnecter',
+    lb:'Classement',
+    opponents:'Adversaires',
+    dob:'Date de naissance',
+    hobbies:'Loisirs',
+    profile:'Profil',
+    zodiac:'Zodiaque',
+    motto:'Devise',
+    lbHeadingDesc:'Classement mis à jour selon l’écart de score, les victoires et le taux de victoire.',
+    lbRefresh:'Actualiser',
+    lbSort:'Trier',
+    lbPeriod:'Période',
+    lbNoData:'Aucune donnée',
+    lbTotalDelta:'Delta total',
+    lbWins:'Victoires',
+    lbGames:'Parties',
+    lbWinRate:'Taux de victoire',
+    lbAvgDelta:'Delta moyen',
+    lbAll:'Tout',
+    lb7d:'7 j',
+    lb30d:'30 j',
+    scoreGuide:'Barème',
+    clickProfile:'Cliquez sur la carte du nom',
+    scoreGuideTitle:'Méthode de score',
+    scoreGuideItems:[
+      'Tous les joueurs commencent à 5000 points.',
+      'La manche se termine quand un joueur n’a plus de cartes.',
+      'Score de base des perdants : 1‑9 cartes x1, 10‑12 cartes x2, 13 cartes x3.',
+      'Multiplicateurs : avoir un 2 applique x2 ; avoir le ♠️2 ajoute encore x2 ; ils se cumulent.',
+      'Règle de la dernière carte : si vous ne battez pas le joueur suivant à 1 carte et qu’il gagne, vous prenez aussi les pertes des deux autres.',
+      'Le total des pertes est ajouté au vainqueur.'
+    ],
+    roomLobby:'Hall',
+    roomTableTitle:'Table',
+    roomSettings:'Paramètres de salle',
+    roomCreate:'Créer une table',
+    roomJoin:'Rejoindre une table',
+    roomEnter:'Entrer dans le hall',
+    roomCode:'Code de table',
+    roomCopy:'Copier le code',
+    roomReady:'Prêt',
+    roomNotReady:'Pas prêt',
+    roomWaiting:'En attente',
+    roomStart:'Démarrer',
+    roomLeave:'Retour au hall',
+    roomLoginRequired:'Veuillez vous connecter pour créer ou rejoindre des salles.',
+    roomFull:'Salle pleine.',
+    roomNotFound:'Salle introuvable.',
+    roomClosed:'Salle fermée.',
+    roomJoinFail:'Échec de la connexion.',
+    roomCreateFail:'Échec de la création.',
+    roomAlreadyIn:'Vous êtes déjà dans une autre salle.',
+    roomReadyHint:'En attente du démarrage de l’hôte.',
+    roomDisconnected:'Vous avez quitté la salle. Rejoignez‑la.',
+    roomHost:'Hôte',
+    roomHostTag:'HÔTE',
+    roomPrivacy:'Confidentialité',
+    roomPrivate:'Privée',
+    roomPublic:'Publique',
+    roomNeedPlayers:'Au moins 1 joueur doit rejoindre pour commencer.',
+    roomRoomId:'ID de salle',
+    roomRound:'Manche',
+    roomCountdown:'Compte à rebours',
+    emote:'Émoticône',
+    emoteLabelCool:'Cool',
+    emoteLabelThrow:'Lancer',
+    emoteLabelRude:'Grossier',
+    emoteLabelSweat:'Plus de cartes',
+    emoteLabelRage:'Rage',
+    emoteLabelSmash:'Frapper',
+    emoteLabelFire:'Feu',
+    emoteLabelThink:'Réflexion',
+    emoteLabelCry:'Pleurer',
+    emoteLabelCheers:'Santé',
+    emoteLabelThumbs:'Pouce',
+    emoteLabelCrack:'Fissure',
+    emoteLabelSleep:'Sommeil',
+    emoteLabelLove:'Amour',
+    emoteLabelChampagne:'Champagne',
+    emoteLabelShock:'Choc',
+    seatLabel:'Siège {{n}}',
+    roomAvailable:'Disponible',
+    roomSeatOpen:'Siège libre',
+    roomActiveList:'Tables disponibles',
+    roomActiveEmpty:'Aucune table disponible.',
+    roomActiveRefresh:'Actualiser',
+    roomStatusLabel:'Statut de la salle',
+    roomStatusPlaying:'En jeu',
+    roomWaitingReady:'En attente des joueurs prêts',
+    roomStarted:'Partie en cours',
+    roomWelcomeJoin:'Bienvenue',
+    roomWaitingHost:'En attente de l’hôte...',
+    roomReconnecting:'Connexion perdue. Reconnexion...',
+    roomStale:'Salle obsolète. Revenez au hall.',
+    roomJoinLog:'{{name}} a rejoint la salle.',
+    roomLeaveLog:'{{name}} a quitté la salle.',
+    roomStarting:'La salle démarre...',
+    roomReadyCount:'Prêt {{ready}}/{{total}}',
+    roomSending:'Envoi...',
+    roomSendTimeout:'Problème de connexion — réessayez.'
+  },
+  de:{
+    title:'Big Two',
+    sub:'',
+    lang:'Sprache / Language',
+    zh:'Traditionelles Chinesisch',
+    en:'Englisch',
+    fr:'Französisch',
+    de:'Deutsch',
+    es:'Spanisch',
+    name:'Spielername',
+    ai:'Gegnerstufe',
+    gender:'Geschlecht',
+    playerSettings:'Spielereinstellungen',
+    systemSettings:'Systemeinstellungen',
+    male:'Männlich',
+    female:'Weiblich',
+    easy:'Anfänger',
+    normal:'Fortgeschritten',
+    hard:'Experte',
+    solo:'Start',
+    loginToStart:'Bitte anmelden',
+    config:'Einstellungen',
+    soundFx:'Soundeffekte',
+    audioVoice:'Sound & Stimme',
+    voiceMode:'Ansage‑Stimme',
+    calloutDisplay:'Ansagen anzeigen',
+    calloutDisplayOn:'An',
+    calloutDisplayOff:'Aus',
+    emoteDisplay:'Emotes anzeigen',
+    voiceAuto:'Auto',    voiceOff:'Aus',
+    voicePack:'Stimmstil',
+    voicePackClassic:'Klassisch',
+    voicePackEnergetic:'Energiegeladen',
+    voicePackMinimal:'Minimal',
+    soundOn:'An',
+    soundOff:'Aus',
+    home:'Start',
+    again:'Nochmal spielen',
+    restart:'Neustart',
+    play:'Ausspielen',
+    pass:'Passen',
+    autoSeq:'Straßen sortieren',
+    autoPattern:'Kombinationen sortieren',
+    suggest:'Empfehlung',
+    score:'Punkte',
+    suggestCost:'',
+    cards:'Karten',
+    log:'Spielprotokoll',
+    nolog:'Noch keine Historie',
+    rules:'Regel‑Highlights',
+    ruleItems:[
+      'Alle erlaubten Kombinationen:',
+      'Einzelkarte',
+      'Paar',
+      'Paare folgen der Einzelkarten‑Regel: müssen das vorige Paar schlagen. Beispiel: ♥️A♠️A schlägt ♥️K♠️K. Bei gleichem Rang zählt die höhere Farbe.',
+      'Drilling (drei Karten gleichen Rangs)',
+      'Fünf‑Karten‑Hände',
+      'Straße: fünf aufeinanderfolgende Ränge. A‑2‑3‑4‑5 ist die höchste, 3‑4‑5‑6‑7 die niedrigste. Bei Gleichstand zählt die Farbe der höchsten Karte. Verbotene Straßen: J‑Q‑K‑A‑2, Q‑K‑A‑2‑3, K‑A‑3‑4‑5.',
+      'Farbe: fünf Karten derselben Farbe ohne Folge. Vergleich nach höchster Karte, dann nächsthöchste usw., zuletzt nach Farbe. Beispiel: ♠️2‑4‑5‑6‑8 schlägt ♥️A‑K‑Q‑10‑8.',
+      'Full House: Paar + Drilling. Vergleich nach Drilling.',
+      'Vierling: vier Karten gleichen Rangs + eine Karte. Vergleich nach dem Vierlings‑Rang.',
+      'Straight Flush: Straße in derselben Farbe. Höchste Straight Flush ist ♠️A‑2‑3‑4‑5.',
+      'Reihenfolge: Straße < Farbe < Full House < Vierling < Straight Flush.'
+    ],
+    wait:'Warten...',
+    free:'Kein aktives Stich. Vorhand darf beliebig legen.',
+    last:'Letzte',
+    recentCard:'Letzte Karte',
+    reveal:'Aufdecken',
+    revealSub:'Sieger festgelegt. Restkarten werden gezeigt:',
+    drag:'Karten ziehen, um die Hand zu sortieren',
+    must3:'Erster Zug muss ♦️3 enthalten.',
+    beat:'Deine Auswahl schlägt den letzten Zug nicht.',
+    cantPass:'Als Vorhand kann man nicht passen.',
+    retake:'übernimmt den Stich.',
+    pick:'Bitte zuerst Karten wählen.',
+    pair:'Paar muss denselben Rang haben.',
+    triple:'Drilling muss denselben Rang haben.',
+    count:'Nur 1, 2, 3 oder 5 Karten.',
+    five:'Ungültige 5‑Karten‑Hand.',
+    illegal:'Ungültiger Zug.',
+    penalty:'Strafe',
+    aiTag:'(KI)',
+    wins:'gewinnt!',
+    congrats:'Glückwunsch! Du gewinnst!',
+    resultTitle:'Rundenergebnis',
+    resultWinner:'Sieger',
+    resultRemain:'Restkarten',
+    resultLastDiscard:'Letzte abgelegte Karte',
+    resultDelta:'Punkteänderung',
+    resultDetail:'Punktedetails',
+    scoreBase:'Basis',
+    scoreMul:'Multiplikator',
+    scoreDeduct:'Abzug',
+    scoreGain:'Gewinn',
+    scoreAnyTwo:'Hat eine 2',
+    scoreTopTwo:'Hat ♠️2',
+    scoreChao2:'Doppelt',
+    scoreChao3:'Dreifach',
+    scoreChao4:'Vierfach',
+    scoreChaoBig:'Groß',
+    scorePenaltyBoost:'Straf‑Multiplikator',
+    lastCardCall:'Letzte Karte',
+    noSuggest:'Keine Empfehlung.',
+    needScore:'',
+    recPass:'Passen.',
+    recReady:'Bereits aktiv. Erst spielen oder passen.',
+    accept:'Annehmen',
+    reject:'Ablehnen',
+    start:'beginnt.',
+    played:'spielte',
+    cardBack:'Kartenrücken',
+    blue:'Blau',
+    red:'Rot',
+    theme:'Thema',
+    themeOcean:'Ozeanblau',
+    themeEmerald:'Smaragdgrün',
+    themeSunset:'Sonnenuntergangsorange',
+    themeSlate:'Schiefergrau',
+    themeAurora:'Aurora‑Violett',
+    themeSand:'Sandgold',
+    themeCyber:'Neon‑Nacht',
+    useGoogleName:'Google‑Name verwenden',
+    signOut:'Abmelden',
+    lb:'Rangliste',
+    opponents:'Gegner',
+    dob:'Geburtsdatum',
+    hobbies:'Hobbys',
+    profile:'Profil',
+    zodiac:'Sternzeichen',
+    motto:'Motto',
+    lbHeadingDesc:'Live‑Ranking basierend auf Punktedifferenz, Siegen und Siegquote.',
+    lbRefresh:'Rangliste aktualisieren',
+    lbSort:'Sortieren',
+    lbPeriod:'Zeitraum',
+    lbNoData:'Keine Daten',
+    lbTotalDelta:'Gesamtdifferenz',
+    lbWins:'Siege',
+    lbGames:'Spiele',
+    lbWinRate:'Siegquote',
+    lbAvgDelta:'Ø‑Differenz',
+    lbAll:'Alle',
+    lb7d:'7 T',
+    lb30d:'30 T',
+    scoreGuide:'Punktetabelle',
+    clickProfile:'Name anklicken',
+    scoreGuideTitle:'Punktesystem',
+    scoreGuideItems:[
+      'Alle starten mit 5000 Punkten.',
+      'Eine Runde endet, wenn ein Spieler keine Karten mehr hat.',
+      'Basiswertung der Verlierer: 1‑9 Karten x1, 10‑12 Karten x2, 13 Karten x3.',
+      'Multiplikatoren: beliebige 2 = x2; ♠️2 = weiteres x2; Multiplikatoren stapeln.',
+      'Letzte‑Karte‑Regel: Wenn du die letzte Karte des nächsten Spielers nicht schlägst und er gewinnt, übernimmst du auch die Abzüge der anderen zwei.',
+      'Die Summe der Abzüge geht an den Gewinner.'
+    ],
+    roomLobby:'Lobby',
+    roomTableTitle:'Tisch',
+    roomSettings:'Raumeinstellungen',
+    roomCreate:'Tisch erstellen',
+    roomJoin:'Tisch beitreten',
+    roomEnter:'Lobby betreten',
+    roomCode:'Tisch‑Code',
+    roomCopy:'Code kopieren',
+    roomReady:'Bereit',
+    roomNotReady:'Nicht bereit',
+    roomWaiting:'Warten',
+    roomStart:'Start',
+    roomLeave:'Zur Lobby',
+    roomLoginRequired:'Bitte anmelden, um Räume zu erstellen oder beizutreten.',
+    roomFull:'Raum voll.',
+    roomNotFound:'Raum nicht gefunden.',
+    roomClosed:'Raum geschlossen.',
+    roomJoinFail:'Beitritt fehlgeschlagen.',
+    roomCreateFail:'Erstellen fehlgeschlagen.',
+    roomAlreadyIn:'Du bist bereits in einem anderen Raum.',
+    roomReadyHint:'Warte auf den Host.',
+    roomDisconnected:'Du hast den Raum verlassen. Bitte erneut beitreten.',
+    roomHost:'Host',
+    roomHostTag:'HOST',
+    roomPrivacy:'Privatsphäre',
+    roomPrivate:'Privat',
+    roomPublic:'Öffentlich',
+    roomNeedPlayers:'Mindestens 1 Spieler muss beitreten, um zu starten.',
+    roomRoomId:'Raum‑ID',
+    roomRound:'Runde',
+    roomCountdown:'Countdown',
+    emote:'Emote',
+    emoteLabelCool:'Cool',
+    emoteLabelThrow:'Werfen',
+    emoteLabelRude:'Unhöflich',
+    emoteLabelSweat:'Keine Karten',
+    emoteLabelRage:'Wut',
+    emoteLabelSmash:'Zerschmettern',
+    emoteLabelFire:'Feuer',
+    emoteLabelThink:'Denken',
+    emoteLabelCry:'Weinen',
+    emoteLabelCheers:'Prost',
+    emoteLabelThumbs:'Daumen',
+    emoteLabelCrack:'Riss',
+    emoteLabelSleep:'Müde',
+    emoteLabelLove:'Liebe',
+    emoteLabelChampagne:'Champagner',
+    emoteLabelShock:'Schock',
+    seatLabel:'Sitz {{n}}',
+    roomAvailable:'Verfügbar',
+    roomSeatOpen:'Freier Sitz',
+    roomActiveList:'Verfügbare Tische',
+    roomActiveEmpty:'Keine Tische verfügbar.',
+    roomActiveRefresh:'Aktualisieren',
+    roomStatusLabel:'Raumstatus',
+    roomStatusPlaying:'Im Spiel',
+    roomWaitingReady:'Warte auf bereit',
+    roomStarted:'Spiel läuft',
+    roomWelcomeJoin:'Willkommen',
+    roomWaitingHost:'Warte auf Host...',
+    roomReconnecting:'Verbindung verloren. Verbinde neu...',
+    roomStale:'Raum veraltet. Zur Lobby zurückkehren.',
+    roomJoinLog:'{{name}} ist dem Raum beigetreten.',
+    roomLeaveLog:'{{name}} hat den Raum verlassen.',
+    roomStarting:'Raum startet...',
+    roomReadyCount:'Bereit {{ready}}/{{total}}',
+    roomSending:'Sende...',
+    roomSendTimeout:'Verbindungsproblem — bitte erneut versuchen.'
+  },
+  es:{
+    title:'Big Two',
+    sub:'',
+    lang:'Idioma / Language',
+    zh:'Chino tradicional',
+    en:'Inglés',
+    fr:'Francés',
+    de:'Alemán',
+    es:'Español',
+    name:'Nombre del jugador',
+    ai:'Nivel de oponentes',
+    gender:'Género',
+    playerSettings:'Configuración del jugador',
+    systemSettings:'Configuración del sistema',
+    male:'Hombre',
+    female:'Mujer',
+    easy:'Principiante',
+    normal:'Intermedio',
+    hard:'Experto',
+    solo:'Iniciar',
+    loginToStart:'Por favor inicia sesión',
+    config:'Configuración',
+    soundFx:'Efectos de sonido',
+    audioVoice:'Sonido y voz',
+    voiceMode:'Voz de anuncios',
+    calloutDisplay:'Mostrar anuncios',
+    calloutDisplayOn:'On',
+    calloutDisplayOff:'Off',
+    emoteDisplay:'Mostrar emoticonos',
+    voiceAuto:'Auto',    voiceOff:'Off',
+    voicePack:'Estilo de voz',
+    voicePackClassic:'Clásico',
+    voicePackEnergetic:'Enérgico',
+    voicePackMinimal:'Minimal',
+    soundOn:'On',
+    soundOff:'Off',
+    home:'Inicio',
+    again:'Jugar de nuevo',
+    restart:'Reiniciar',
+    play:'Jugar',
+    pass:'Pasar',
+    autoSeq:'Ordenar escaleras',
+    autoPattern:'Ordenar combinaciones',
+    suggest:'Recomendar',
+    score:'Puntuación',
+    suggestCost:'',
+    cards:'Cartas',
+    log:'Registro',
+    nolog:'Sin historial',
+    rules:'Reglas clave',
+    ruleItems:[
+      'Todas las combinaciones legales están abajo:',
+      'Carta simple',
+      'Pareja',
+      'Las parejas siguen la regla de carta simple: deben vencer a la pareja anterior. Ej.: ♥️A♠️A vence a ♥️K♠️K. A igual rango, gana el palo más alto.',
+      'Trío (tres cartas del mismo rango)',
+      'Manos de cinco cartas',
+      'Escalera: cinco rangos consecutivos. A‑2‑3‑4‑5 es la más alta, 3‑4‑5‑6‑7 la más baja. En empate, compara el palo de la carta más alta. Escaleras prohibidas: J‑Q‑K‑A‑2, Q‑K‑A‑2‑3, K‑A‑3‑4‑5.',
+      'Color: cinco cartas del mismo palo no consecutivas. Se compara la carta más alta, luego la siguiente, etc.; finalmente el palo si persiste el empate. Ej.: ♠️2‑4‑5‑6‑8 vence a ♥️A‑K‑Q‑10‑8.',
+      'Full: pareja + trío. Se compara el trío.',
+      'Póker: cuatro cartas del mismo rango + una. Se compara el rango del póker.',
+      'Escalera de color: escalera del mismo palo. La más alta es ♠️A‑2‑3‑4‑5.',
+      'Orden: Escalera < Color < Full < Póker < Escalera de color.'
+    ],
+    wait:'Esperando...',
+    free:'Sin mano activa. El líder puede jugar cualquier set válido.',
+    last:'Último',
+    recentCard:'Carta reciente',
+    reveal:'Mostrar',
+    revealSub:'Ganador decidido. Cartas restantes:',
+    drag:'Arrastra para ordenar tu mano',
+    must3:'El primer turno debe incluir ♦️3.',
+    beat:'Tu selección no supera la última jugada.',
+    cantPass:'No puedes pasar si tienes la mano.',
+    retake:'retoma la mano.',
+    pick:'Selecciona cartas primero.',
+    pair:'La pareja debe ser del mismo rango.',
+    triple:'El trío debe ser del mismo rango.',
+    count:'Solo 1, 2, 3 o 5 cartas.',
+    five:'Mano de 5 cartas inválida.',
+    illegal:'Jugada inválida.',
+    penalty:'Penalización',
+    aiTag:'(IA)',
+    wins:'¡gana!',
+    congrats:'¡Felicidades! ¡Has ganado!',
+    resultTitle:'Resultado',
+    resultWinner:'Ganador',
+    resultRemain:'Cartas restantes',
+    resultLastDiscard:'Última carta jugada',
+    resultDelta:'Cambio de puntuación',
+    resultDetail:'Detalle de puntuación',
+    scoreBase:'Base',
+    scoreMul:'Multiplicador',
+    scoreDeduct:'Deducción',
+    scoreGain:'Ganancia',
+    scoreAnyTwo:'Tiene un 2',
+    scoreTopTwo:'Tiene el ♠️2',
+    scoreChao2:'Chao dos',
+    scoreChao3:'Chao tres',
+    scoreChao4:'Chao cuatro',
+    scoreChaoBig:'Chao grande',
+    scorePenaltyBoost:'Penalizaciones multiplicadoras',
+    lastCardCall:'Última carta',
+    noSuggest:'Sin sugerencias.',
+    needScore:'',
+    recPass:'Pasar.',
+    recReady:'Ya activo. Juega o pasa primero.',
+    accept:'Aceptar',
+    reject:'Rechazar',
+    start:'comienza.',
+    played:'jugó',
+    cardBack:'Reverso',
+    blue:'Azul',
+    red:'Rojo',
+    theme:'Tema',
+    themeOcean:'Azul océano',
+    themeEmerald:'Verde esmeralda',
+    themeSunset:'Naranja atardecer',
+    themeSlate:'Gris pizarra',
+    themeAurora:'Violeta aurora',
+    themeSand:'Oro arena',
+    themeCyber:'Noche neón',
+    useGoogleName:'Usar nombre de Google',
+    signOut:'Cerrar sesión',
+    lb:'Clasificación',
+    opponents:'Oponentes',
+    dob:'Fecha de nacimiento',
+    hobbies:'Pasatiempos',
+    profile:'Perfil',
+    zodiac:'Zodiaco',
+    motto:'Lema',
+    lbHeadingDesc:'Ranking en vivo basado en delta de puntos, victorias y tasa de victoria.',
+    lbRefresh:'Actualizar ranking',
+    lbSort:'Ordenar',
+    lbPeriod:'Periodo',
+    lbNoData:'Sin datos',
+    lbTotalDelta:'Delta total',
+    lbWins:'Victorias',
+    lbGames:'Partidas',
+    lbWinRate:'Tasa de victoria',
+    lbAvgDelta:'Delta medio',
+    lbAll:'Todo',
+    lb7d:'7 días',
+    lb30d:'30 días',
+    scoreGuide:'Puntuación',
+    clickProfile:'Haz clic en la tarjeta de nombre',
+    scoreGuideTitle:'Método de puntuación',
+    scoreGuideItems:[
+      'Todos comienzan con 5000 puntos.',
+      'La ronda termina cuando un jugador se queda sin cartas.',
+      'Puntuación base de los perdedores: 1‑9 cartas x1, 10‑12 cartas x2, 13 cartas x3.',
+      'Multiplicadores: tener cualquier 2 aplica x2; tener el ♠️2 aplica otro x2; se acumulan.',
+      'Regla de última carta: si no puedes superar al siguiente con 1 carta y gana, también absorbes las pérdidas de los otros dos.',
+      'La suma de pérdidas se añade al ganador.'
+    ],
+    roomLobby:'Lobby',
+    roomTableTitle:'Mesa',
+    roomSettings:'Configuración de sala',
+    roomCreate:'Crear mesa',
+    roomJoin:'Unirse a mesa',
+    roomEnter:'Entrar al lobby',
+    roomCode:'Código de mesa',
+    roomCopy:'Copiar código',
+    roomReady:'Listo',
+    roomNotReady:'No listo',
+    roomWaiting:'Esperando',
+    roomStart:'Iniciar',
+    roomLeave:'Volver al lobby',
+    roomLoginRequired:'Inicia sesión para crear o unirte a salas.',
+    roomFull:'Sala llena.',
+    roomNotFound:'Sala no encontrada.',
+    roomClosed:'Sala cerrada.',
+    roomJoinFail:'Error al unirse.',
+    roomCreateFail:'Error al crear.',
+    roomAlreadyIn:'Ya estás en otra sala.',
+    roomReadyHint:'Esperando al anfitrión.',
+    roomDisconnected:'Has salido de la sala. Vuelve a unirte.',
+    roomHost:'Anfitrión',
+    roomHostTag:'HOST',
+    roomPrivacy:'Privacidad',
+    roomPrivate:'Privada',
+    roomPublic:'Pública',
+    roomNeedPlayers:'Al menos 1 jugador debe unirse para empezar.',
+    roomRoomId:'ID de sala',
+    roomRound:'Ronda',
+    roomCountdown:'Cuenta atrás',
+    emote:'Emote',
+    emoteLabelCool:'Genial',
+    emoteLabelThrow:'Lanzar',
+    emoteLabelRude:'Grosero',
+    emoteLabelSweat:'Sin cartas',
+    emoteLabelRage:'Furia',
+    emoteLabelSmash:'Golpear',
+    emoteLabelFire:'Fuego',
+    emoteLabelThink:'Pensando',
+    emoteLabelCry:'Llorar',
+    emoteLabelCheers:'Salud',
+    emoteLabelThumbs:'Pulgar',
+    emoteLabelCrack:'Grieta',
+    emoteLabelSleep:'Sueño',
+    emoteLabelLove:'Amor',
+    emoteLabelChampagne:'Champán',
+    emoteLabelShock:'Shock',
+    seatLabel:'Asiento {{n}}',
+    roomAvailable:'Disponible',
+    roomSeatOpen:'Asiento libre',
+    roomActiveList:'Mesas disponibles',
+    roomActiveEmpty:'No hay mesas.',
+    roomActiveRefresh:'Actualizar',
+    roomStatusLabel:'Estado de sala',
+    roomStatusPlaying:'En juego',
+    roomWaitingReady:'Esperando jugadores listos',
+    roomStarted:'Partida en curso',
+    roomWelcomeJoin:'Bienvenido',
+    roomWaitingHost:'Esperando al anfitrión...',
+    roomReconnecting:'Conexión perdida. Reconectando...',
+    roomStale:'Sala desactualizada. Vuelve al lobby.',
+    roomJoinLog:'{{name}} se unió a la sala.',
+    roomLeaveLog:'{{name}} salió de la sala.',
+    roomStarting:'La sala está iniciando...',
+    roomReadyCount:'Listos {{ready}}/{{total}}',
+    roomSending:'Enviando...',
+    roomSendTimeout:'Problema de conexión — reintenta.'
   }
 };
 const KIND={
   'zh-HK':{single:'單張',pair:'一對',triple:'三條',straight:'蛇',flush:'花',fullhouse:'俘佬',fourofkind:'四條',straightflush:'同花順'},
-  en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'}
+  en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'},
+  fr:{single:'Carte',pair:'Paire',triple:'Brelan',straight:'Suite',flush:'Couleur',fullhouse:'Full',fourofkind:'Carré',straightflush:'Quinte flush'},
+  de:{single:'Einzel',pair:'Paar',triple:'Drilling',straight:'Straße',flush:'Farbe',fullhouse:'Full House',fourofkind:'Vierling',straightflush:'Straight Flush'},
+  es:{single:'Carta',pair:'Pareja',triple:'Trío',straight:'Escalera',flush:'Color',fullhouse:'Full',fourofkind:'Póker',straightflush:'Escalera de color'}
 };
 const LANGUAGE_OPTIONS=[
   {value:'zh-HK',labelKey:'zh'},
-  {value:'en',labelKey:'en'}
+  {value:'en',labelKey:'en'},
+  {value:'fr',labelKey:'fr'},
+  {value:'de',labelKey:'de'},
+  {value:'es',labelKey:'es'}
 ];
+const LANGUAGE_NATIVE_LABEL={
+  'zh-HK':'繁體中文',
+  en:'English',
+  fr:'Français',
+  de:'Deutsch',
+  es:'Español'
+};
 const CALLOUT_RESPONSE_TEXT = {
   'zh-HK': {
     pass: ['大', '唔跟', '唔去', '過', 'Pass!'],
@@ -577,6 +1268,51 @@ const CALLOUT_RESPONSE_TEXT = {
       'Lucky down to my toes.',
     ],
     winnerRepeat: 'Sorry, me again.',
+  },
+  fr: {
+    pass: ['Je passe', 'Passe', 'À toi'],
+    last: ['Dernière carte !', 'Une carte !'],
+    play: [
+      (kind) => `${kind} !`,
+      (kind) => `${kind}. À toi.`,
+      (kind) => `${kind}.`,
+    ],
+    winner: [
+      'Bien joué.',
+      'Coup de chance.',
+      'Cette manche est à moi !'
+    ],
+    winnerRepeat: 'Encore moi.',
+  },
+  de: {
+    pass: ['Ich passe', 'Passe', 'Du bist dran'],
+    last: ['Letzte Karte!', 'Nur noch eine!'],
+    play: [
+      (kind) => `${kind}!`,
+      (kind) => `${kind}. Dein Zug.`,
+      (kind) => `${kind}.`,
+    ],
+    winner: [
+      'Gut gespielt.',
+      'Glück gehabt.',
+      'Diese Runde gehört mir!'
+    ],
+    winnerRepeat: 'Schon wieder ich.',
+  },
+  es: {
+    pass: ['Paso', 'No voy', 'Te toca'],
+    last: ['¡Última carta!', '¡Una carta!'],
+    play: [
+      (kind) => `¡${kind}!`,
+      (kind) => `${kind}. Tu turno.`,
+      (kind) => `${kind}.`,
+    ],
+    winner: [
+      'Bien jugado.',
+      'Solo suerte.',
+      '¡Esta ronda es mía!'
+    ],
+    winnerRepeat: 'Otra vez yo.',
   },
 };
 const EMOTE_STICKERS=[
@@ -1028,12 +1764,12 @@ const OPPONENT_PROFILE_BY_NAME={
   }
 };
 const BACK_OPTIONS=[
-  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue'}},
-  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red'}},
-  {value:'green',file:'back-green.png',label:{'zh-HK':'綠色',en:'Green'}},
-  {value:'gold',file:'back-gold.png',label:{'zh-HK':'金色',en:'Gold'}},
-  {value:'silver',file:'back-silver.png',label:{'zh-HK':'銀色',en:'Silver'}},
-  {value:'purple',file:'back-purple.png',label:{'zh-HK':'紫色',en:'Purple'}}
+  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue',fr:'Bleu',de:'Blau',es:'Azul'}},
+  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red',fr:'Rouge',de:'Rot',es:'Rojo'}},
+  {value:'green',file:'back-green.png',label:{'zh-HK':'綠色',en:'Green',fr:'Vert',de:'Grün',es:'Verde'}},
+  {value:'gold',file:'back-gold.png',label:{'zh-HK':'金色',en:'Gold',fr:'Or',de:'Gold',es:'Oro'}},
+  {value:'silver',file:'back-silver.png',label:{'zh-HK':'銀色',en:'Silver',fr:'Argent',de:'Silber',es:'Plata'}},
+  {value:'purple',file:'back-purple.png',label:{'zh-HK':'紫色',en:'Purple',fr:'Violet',de:'Lila',es:'Morado'}}
 ];
 const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
 const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
@@ -1048,7 +1784,7 @@ const normalizeCalloutStylePack=(v)=>{
 };
 const winnerCalloutWinsByName=new Map();
 
-const t=(k)=>I18N[state.language][k]??k;
+const t=(k)=>I18N[state.language]?.[k]??I18N.en?.[k]??k;
 function formatHobbyList(hobbies){
   const list=Array.isArray(hobbies)?hobbies.map((x)=>String(x??'').trim()).filter(Boolean):[];
   if(!list.length)return'-';
@@ -1081,7 +1817,7 @@ function hashTextSeed(seed=''){
   return h;
 }
 function buildResponseCalloutText(type,kind='',seed='',meta={}){
-  const lang=state.language==='en'?'en':'zh-HK';
+  const lang=CALLOUT_RESPONSE_TEXT[state.language]?state.language:(CALLOUT_RESPONSE_TEXT.en?'en':'zh-HK');
   const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
   if(type==='pass'){
     const opts=bank.pass??[];
@@ -1118,7 +1854,7 @@ function buildResponseCalloutText(type,kind='',seed='',meta={}){
   return'';
 }
 function buildWinnerCalloutForSeat(game,seat){
-  const lang=state.language==='en'?'en':'zh-HK';
+  const lang=CALLOUT_RESPONSE_TEXT[state.language]?state.language:(CALLOUT_RESPONSE_TEXT.en?'en':'zh-HK');
   const bank=CALLOUT_RESPONSE_TEXT[lang]??CALLOUT_RESPONSE_TEXT['zh-HK'];
   const winnerLines=Array.isArray(bank.winner)?bank.winner:[];
   const winnerRepeat=String(bank.winnerRepeat??'').trim();
@@ -1199,10 +1935,15 @@ function deriveWinnerVariantClipKey(msg=''){
 async function playWinnerCallout(wc,gender='male',seat=0){
   if(!wc||!wc.text)return;
   if(calloutVoiceMode==='off')return;
+  const ttsOnlyLang=!(state.language==='zh-HK'||state.language==='en');
   const clipKey=wc.repeat?'winner-repeat':'winner';
+  if(ttsOnlyLang){
+    speakCallout(wc.text,gender,{clipKey,seat});
+    return;
+  }
   const speakSeq=++calloutSpeakSeq;
   const ok=await playRecordedCalloutClip(clipKey,gender,speakSeq);
-  if(!ok)speakCallout(wc.text,gender,{clipKey,seat});
+  if(!ok)return;
 }
 
 function deriveZhHkVariantClipKey(msg='',meta={}){
@@ -1299,7 +2040,7 @@ function deriveZhHkComposedClipKeys(variantClipKey='',clipKey=''){
   if(!tailKey)return[];
   return[baseClip,tailKey];
 }
-const kindLabel=(k)=>KIND[state.language][k]??k;
+const kindLabel=(k)=> (KIND[state.language]??KIND.en??KIND['zh-HK'])?.[k] ?? k;
 function setSoloStatus(message,{appendLog=true}={}){
   const g=state.solo;
   if(!g)return;
@@ -1423,24 +2164,25 @@ function legalMiniCopy(){
     const legal=legalMiniCopy();
     return`<section class="legal-mini" id="legal-mini"><div class="legal-mini-links"><button type="button" class="legal-mini-link" data-legal="privacy">${legal.labels.privacy}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="about">${legal.labels.about}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="contact">${legal.labels.contact}</button><span class="legal-mini-sep">◦</span><button type="button" class="legal-mini-link" data-legal="terms">${legal.labels.terms}</button></div><div class="intro-modal legal-modal" id="legal-modal"><button class="intro-backdrop" id="legal-backdrop" aria-label="close"></button><section class="intro-sheet legal-sheet"><header class="intro-head"><div><h3 id="legal-modal-title"></h3></div><button id="legal-close" class="secondary">${legal.closeLabel}</button></header><div class="legal-modal-body" id="legal-modal-body"></div></section></div></section>`;
   }
-const introText=()=>state.language==='en'
-  ?{
-    btnShow:'Guide',
-    btnHide:'Close',
-    panelTitle:'Guide',
-    panelSub:'Official quick reference covering core rules, hand hierarchy, opening flow, and practical table strategy.',
-    historyTitle:'Background',
-    historyBody:'Big Two (Cho Dai Di) is a four-player shedding card game using a standard 52-card deck without jokers. Each player receives 13 cards, and the objective is to empty your hand before all opponents. The game is known for high decision density, compact round duration, and strong strategic interaction between tempo control, hand preservation, and timing of power cards.',
-    playTitle:'Gameplay Highlights',
-    playList:[
-      'Opening lead of the first round must contain {{3D}}.',
-      'Follow play must match card count: single, pair, triple, or 5-card hand.',
-      'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
-      'For equal ranks, suit order is ♦️ < ♣️ < ♥️ < ♠️.',
-      'Single-card order: 2 > A > K > ... > 3 (highest: ♠️Spade 2, lowest: ♦️3).',
-      'After three consecutive passes, initiative returns to the last successful player.',
-      'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
-    ],
+const introText=()=>{
+  if(state.language==='en'){
+    return{
+      btnShow:'Guide',
+      btnHide:'Close',
+      panelTitle:'Guide',
+      panelSub:'Official quick reference covering core rules, hand hierarchy, opening flow, and practical table strategy.',
+      historyTitle:'Background',
+      historyBody:'Big Two (Cho Dai Di) is a four-player shedding card game using a standard 52-card deck without jokers. Each player receives 13 cards, and the objective is to empty your hand before all opponents. The game is known for high decision density, compact round duration, and strong strategic interaction between tempo control, hand preservation, and timing of power cards.',
+      playTitle:'Gameplay Highlights',
+      playList:[
+        'Opening lead of the first round must contain {{3D}}.',
+        'Follow play must match card count: single, pair, triple, or 5-card hand.',
+        'Five-card hierarchy: Straight < Flush < Full House < Four of a Kind < Straight Flush.',
+        'For equal ranks, suit order is ♦️ < ♣️ < ♥️ < ♠️.',
+        'Single-card order: 2 > A > K > ... > 3 (highest: ♠️Spade 2, lowest: ♦️3).',
+        'After three consecutive passes, initiative returns to the last successful player.',
+        'When you hold initiative, choose a tempo that preserves control and blocks opponent exits.'
+      ],
       flowTitle:'Opening Flow',
       flowList:[
         'Deal 13 cards to each of the 4 players.',
@@ -1478,8 +2220,180 @@ const introText=()=>state.language==='en'
       howTitle:'Hand Types',
       howBody:'To follow, card count must match the active play. For 5-card contests, compare hand category first, then compare the relevant high cards and suits under game rules.',
       howList:[]
-    }
-  :{
+    };
+  }
+  if(state.language==='fr'){
+    return{
+      btnShow:'Guide',
+      btnHide:'Fermer',
+      panelTitle:'Guide',
+      panelSub:'Référence rapide officielle : règles clés, hiérarchie des mains, ouverture et stratégie de table.',
+      historyTitle:'Contexte',
+      historyBody:'Big Two (Cho Dai Di) est un jeu de défausse à 4 joueurs, joué avec un jeu standard de 52 cartes sans jokers. Chaque joueur reçoit 13 cartes et l’objectif est de vider sa main avant les autres. Le jeu est connu pour sa densité de décisions, ses manches rapides et l’interaction stratégique entre le contrôle du tempo, la conservation des cartes fortes et le timing.',
+      playTitle:'Points clés',
+      playList:[
+        'La première sortie du premier tour doit contenir {{3D}}.',
+        'Pour suivre, le nombre de cartes doit correspondre : simple, paire, brelan ou 5 cartes.',
+        'Hiérarchie des 5 cartes : Suite < Couleur < Full House < Carré < Quinte flush.',
+        'À rang égal, l’ordre des couleurs est ♦️ < ♣️ < ♥️ < ♠️.',
+        'Ordre des cartes simples : 2 > A > K > ... > 3 (max : ♠️2, min : ♦️3).',
+        'Après trois passes consécutives, l’initiative revient au dernier joueur ayant joué.',
+        'Avec l’initiative, choisissez un tempo qui garde le contrôle et bloque les sorties adverses.'
+      ],
+      flowTitle:'Déroulement initial',
+      flowList:[
+        'Distribuer 13 cartes à chacun des 4 joueurs.',
+        'Le joueur qui a {{3D}} ouvre la première levée.',
+        'Les autres jouent la même quantité ou passent.',
+        'Après trois passes, le dernier jeu valide reprend la main.',
+        'La manche se termine quand un joueur n’a plus de cartes.'
+      ],
+      guideHowTitle:'Comment jouer',
+      guideHowIntro:'Étapes rapides pour démarrer :',
+      guideHowList:[
+        'Connectez-vous pour activer les salles et le classement.',
+        'Depuis l’accueil, choisissez Solo ou entrez dans le Lobby pour créer/rejoindre.',
+        'Dans une salle, appuyez sur Prêt ; l’hôte lance dès que 2 joueurs sont prêts.',
+        'À votre tour, sélectionnez des cartes puis Jouer ; Passez si autorisé.',
+        'Utilisez Suggestion et triez/drag pour organiser votre main.'
+      ],
+      guideHomeTitle:'Ajouter à l’écran d’accueil',
+      guideHomeIntro:'Ajoutez l’app pour un lancement plein écran, comme une application.',
+      guideAndroidTitle:'Android (Chrome)',
+      guideAndroidSteps:[
+        'Ouvrez ce site dans Chrome.',
+        'Appuyez sur le menu à trois points.',
+        'Choisissez Ajouter à l’écran d’accueil.',
+        'Confirmez le nom puis Ajouter.'
+      ],
+      guideIosTitle:'iPhone / iPad (Safari)',
+      guideIosSteps:[
+        'Ouvrez ce site dans Safari.',
+        'Appuyez sur Partager (carré avec flèche).',
+        'Choisissez Sur l’écran d’accueil.',
+        'Confirmez le nom puis Ajouter.'
+      ],
+      guideHomeNotes:'Si l’option n’apparaît pas, utilisez Safari/Chrome plutôt qu’un navigateur intégré.',
+      howTitle:'Types de mains',
+      howBody:'Pour suivre, le nombre de cartes doit correspondre. En 5 cartes, comparez d’abord la catégorie, puis les cartes hautes et la couleur.',
+      howList:[]
+    };
+  }
+  if(state.language==='de'){
+    return{
+      btnShow:'Guide',
+      btnHide:'Schließen',
+      panelTitle:'Guide',
+      panelSub:'Offizielle Kurzübersicht: Regeln, Hand-Rangfolge, Startablauf und Taktik.',
+      historyTitle:'Hintergrund',
+      historyBody:'Big Two (Cho Dai Di) ist ein 4‑Spieler‑Ausstiegsspiel mit einem 52‑Karten‑Deck ohne Joker. Jeder erhält 13 Karten; Ziel ist, die eigene Hand zuerst zu leeren. Das Spiel ist bekannt für hohe Entscheidungsdichte, kurze Runden und starke strategische Wechselwirkung zwischen Tempo, Kartenmanagement und Timing starker Karten.',
+      playTitle:'Spiel-Highlights',
+      playList:[
+        'Der Eröffnungszug der ersten Runde muss {{3D}} enthalten.',
+        'Nachspielen muss die Kartenanzahl treffen: Einzel, Paar, Drilling oder 5‑Karten‑Hand.',
+        '5‑Karten‑Hierarchie: Straße < Farbe < Full House < Vierling < Straight Flush.',
+        'Bei gleichem Rang gilt die Farb-Reihenfolge ♦️ < ♣️ < ♥️ < ♠️.',
+        'Einzelkarten-Rang: 2 > A > K > ... > 3 (höchste: ♠️2, niedrigste: ♦️3).',
+        'Nach drei Pässen in Folge geht die Initiative an den letzten Gewinner zurück.',
+        'Mit Initiative wähle ein Tempo, das Kontrolle hält und Ausstiege blockiert.'
+      ],
+      flowTitle:'Startablauf',
+      flowList:[
+        '13 Karten an jeden der 4 Spieler verteilen.',
+        'Der Spieler mit {{3D}} eröffnet den ersten Stich.',
+        'Andere überbieten mit gleicher Kartenanzahl oder passen.',
+        'Nach drei Pässen setzt der letzte gültige Zug die Führung fort.',
+        'Die Runde endet sofort, wenn ein Spieler alle Karten gespielt hat.'
+      ],
+      guideHowTitle:'So spielst du',
+      guideHowIntro:'Schnellstart in 5 Schritten:',
+      guideHowList:[
+        'Anmelden, um Räume und Rangliste zu aktivieren.',
+        'Im Home Solo wählen oder Lobby öffnen, um Raum zu erstellen/beitreten.',
+        'Im Raum auf Bereit tippen; der Host startet bei mindestens 2 Bereiten.',
+        'Im Zug Karten wählen und Spielen; Passen, wenn erlaubt.',
+        'Vorschlag nutzen und per Sortieren/Drag die Hand ordnen.'
+      ],
+      guideHomeTitle:'Zum Startbildschirm hinzufügen',
+      guideHomeIntro:'Füge es zum Startbildschirm hinzu für einen Vollbild‑App‑Start.',
+      guideAndroidTitle:'Android (Chrome)',
+      guideAndroidSteps:[
+        'Diese Seite in Chrome öffnen.',
+        'Drei‑Punkte‑Menü tippen.',
+        'Zum Startbildschirm hinzufügen auswählen.',
+        'Name bestätigen und Hinzufügen.'
+      ],
+      guideIosTitle:'iPhone / iPad (Safari)',
+      guideIosSteps:[
+        'Diese Seite in Safari öffnen.',
+        'Teilen tippen (Quadrat mit Pfeil).',
+        'Zum Home‑Bildschirm wählen.',
+        'Name bestätigen und Hinzufügen.'
+      ],
+      guideHomeNotes:'Falls die Option fehlt, nutze Safari/Chrome statt In‑App‑Browser.',
+      howTitle:'Handtypen',
+      howBody:'Beim Nachspielen muss die Kartenanzahl passen. Bei 5 Karten zuerst die Kategorie, dann hohe Karten und Farben vergleichen.',
+      howList:[]
+    };
+  }
+  if(state.language==='es'){
+    return{
+      btnShow:'Guía',
+      btnHide:'Cerrar',
+      panelTitle:'Guía',
+      panelSub:'Referencia rápida oficial: reglas clave, jerarquía de manos, apertura y estrategia.',
+      historyTitle:'Contexto',
+      historyBody:'Big Two (Cho Dai Di) es un juego de descarte para 4 jugadores con una baraja estándar de 52 cartas sin comodines. Cada jugador recibe 13 cartas y el objetivo es vaciar la mano antes que los demás. Es un juego de alta densidad de decisiones, rondas rápidas y gran interacción estratégica entre control del ritmo, conservación de cartas fuertes y timing.',
+      playTitle:'Puntos clave',
+      playList:[
+        'La primera jugada de la primera ronda debe incluir {{3D}}.',
+        'Para responder, la cantidad de cartas debe coincidir: simple, pareja, trío o 5 cartas.',
+        'Jerarquía de 5 cartas: Escalera < Color < Full House < Póker < Escalera de color.',
+        'A igual rango, el orden de palos es ♦️ < ♣️ < ♥️ < ♠️.',
+        'Orden de cartas simples: 2 > A > K > ... > 3 (máxima: ♠️2, mínima: ♦️3).',
+        'Tras tres pases seguidos, la iniciativa vuelve al último que jugó.',
+        'Con la iniciativa, elige un ritmo que mantenga el control y bloquee salidas.'
+      ],
+      flowTitle:'Flujo de apertura',
+      flowList:[
+        'Repartir 13 cartas a cada uno de los 4 jugadores.',
+        'El jugador con {{3D}} debe abrir la primera baza.',
+        'Los demás superan con la misma cantidad o pasan.',
+        'Tras tres pases, el último juego válido reinicia el turno.',
+        'La ronda termina en cuanto alguien se queda sin cartas.'
+      ],
+      guideHowTitle:'Cómo jugar',
+      guideHowIntro:'Pasos rápidos para empezar:',
+      guideHowList:[
+        'Inicia sesión para habilitar salas y ranking.',
+        'En Inicio, elige Solo o entra al Lobby para crear/unirte.',
+        'En una sala, pulsa Listo; el anfitrión inicia con al menos 2 listos.',
+        'En tu turno, selecciona cartas y pulsa Jugar; Pasa si está permitido.',
+        'Usa Sugerir y ordena/arrastra para organizar la mano.'
+      ],
+      guideHomeTitle:'Añadir a la pantalla de inicio',
+      guideHomeIntro:'Añádelo a Inicio para abrirlo a pantalla completa como app.',
+      guideAndroidTitle:'Android (Chrome)',
+      guideAndroidSteps:[
+        'Abre este sitio en Chrome.',
+        'Toca el menú de tres puntos.',
+        'Selecciona Añadir a pantalla de inicio.',
+        'Confirma el nombre y pulsa Añadir.'
+      ],
+      guideIosTitle:'iPhone / iPad (Safari)',
+      guideIosSteps:[
+        'Abre este sitio en Safari.',
+        'Toca Compartir (cuadrado con flecha).',
+        'Elige Añadir a pantalla de inicio.',
+        'Confirma el nombre y pulsa Añadir.'
+      ],
+      guideHomeNotes:'Si no aparece la opción, usa Safari/Chrome en lugar de un navegador integrado.',
+      howTitle:'Tipos de manos',
+      howBody:'Para responder, la cantidad de cartas debe coincidir. En 5 cartas, compara primero la categoría y luego las cartas altas y palos.',
+      howList:[]
+    };
+  }
+  return{
     btnShow:'玩法指南',
     btnHide:'關閉',
     panelTitle:'玩法指南',
@@ -1534,6 +2448,7 @@ const introText=()=>state.language==='en'
       howBody:'跟牌時必須符合相同張數。若為五張牌對比，先比較牌型等級，再按規則比較相關主牌點數與花色。',
       howList:[]
     };
+};
 function introHandSamples(){
   const card=(rank,suit)=>{
     const r=RANKS.indexOf(rank);
@@ -1550,6 +2465,42 @@ function introHandSamples(){
       {name:'Full House',desc:'Triple + Pair',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
       {name:'Four of a Kind',desc:'4 same rank + kicker',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
       {name:'Straight Flush',desc:'Same suit + consecutive',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
+    ];
+  }
+  if(state.language==='fr'){
+    return[
+      {name:'Carte',desc:'1 carte',cards:[card('A','♠️')]},
+      {name:'Paire',desc:'2 même rang',cards:[card('9','♦️'),card('9','♣️')]},
+      {name:'Brelan',desc:'3 même rang',cards:[card('7','♦️'),card('7','♣️'),card('7','♠️')]},
+      {name:'Suite',desc:'5 rangs consécutifs',cards:[card('6','♦️'),card('7','♣️'),card('8','♥️'),card('9','♠️'),card('10','♣️')]},
+      {name:'Couleur',desc:'5 même couleur',cards:[card('3','♥️'),card('7','♥️'),card('9','♥️'),card('J','♥️'),card('A','♥️')]},
+      {name:'Full House',desc:'Brelan + Paire',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
+      {name:'Carré',desc:'4 même rang + kicker',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
+      {name:'Quinte flush',desc:'Même couleur + suite',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
+    ];
+  }
+  if(state.language==='de'){
+    return[
+      {name:'Einzel',desc:'1 Karte',cards:[card('A','♠️')]},
+      {name:'Paar',desc:'2 gleiche Ränge',cards:[card('9','♦️'),card('9','♣️')]},
+      {name:'Drilling',desc:'3 gleiche Ränge',cards:[card('7','♦️'),card('7','♣️'),card('7','♠️')]},
+      {name:'Straße',desc:'5 aufeinanderfolgende Ränge',cards:[card('6','♦️'),card('7','♣️'),card('8','♥️'),card('9','♠️'),card('10','♣️')]},
+      {name:'Farbe',desc:'5 gleiche Farbe',cards:[card('3','♥️'),card('7','♥️'),card('9','♥️'),card('J','♥️'),card('A','♥️')]},
+      {name:'Full House',desc:'Drilling + Paar',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
+      {name:'Vierling',desc:'4 gleiche Ränge + Beikarte',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
+      {name:'Straight Flush',desc:'Gleiche Farbe + Straße',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
+    ];
+  }
+  if(state.language==='es'){
+    return[
+      {name:'Carta',desc:'1 carta',cards:[card('A','♠️')]},
+      {name:'Pareja',desc:'2 del mismo rango',cards:[card('9','♦️'),card('9','♣️')]},
+      {name:'Trío',desc:'3 del mismo rango',cards:[card('7','♦️'),card('7','♣️'),card('7','♠️')]},
+      {name:'Escalera',desc:'5 rangos consecutivos',cards:[card('6','♦️'),card('7','♣️'),card('8','♥️'),card('9','♠️'),card('10','♣️')]},
+      {name:'Color',desc:'5 del mismo palo',cards:[card('3','♥️'),card('7','♥️'),card('9','♥️'),card('J','♥️'),card('A','♥️')]},
+      {name:'Full House',desc:'Trío + Pareja',cards:[card('Q','♣️'),card('Q','♦️'),card('Q','♠️'),card('5','♥️'),card('5','♣️')]},
+      {name:'Póker',desc:'4 del mismo rango + kicker',cards:[card('8','♦️'),card('8','♣️'),card('8','♥️'),card('8','♠️'),card('2','♣️')]},
+      {name:'Escalera de color',desc:'Mismo palo + escalera',cards:[card('5','♠️'),card('6','♠️'),card('7','♠️'),card('8','♠️'),card('9','♠️')]}
     ];
   }
   return[
@@ -3827,7 +4778,8 @@ async function playRecordedCalloutClip(clipKey='',gender='male',seq=0,opts={}){
   if(!key)return false;
   const holdResume=Boolean(opts?.holdResume);
   const waitForEnd=Boolean(opts?.waitForEnd);
-  const lang=state.language==='en'?'en':'zh-HK';
+  const lang=state.language==='en'?'en':state.language==='zh-HK'?'zh-HK':'';
+  if(!lang)return false;
   const g=String(gender??'male')==='female'?'female':'male';
   const pack=normalizeCalloutStylePack(calloutStylePack);
   const cacheKey=`${lang}|${key}|${g}`;
@@ -3996,8 +4948,9 @@ function speakCallout(text,gender='male',meta={}){
       return playRecordedCalloutClip(effectiveClipKey,g,speakSeq);
     };
     const forceExactTts=Boolean(meta?.forceExactTts);
-    const useTts=Boolean(meta?.forceTts);
-    const useRecorded=(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
+    const ttsOnlyLang=!(state.language==='zh-HK'||state.language==='en');
+    const useTts=Boolean(meta?.forceTts)||ttsOnlyLang;
+    const useRecorded=!ttsOnlyLang&&(calloutVoiceMode==='auto'||calloutVoiceMode==='recorded');
     const recordedMatchesText=Boolean(variantClipKey)||Boolean(composedClipKeys.length)||isCanonicalRecordedCalloutText(msg,clipKey);
     if(!useTts){
       if(useRecorded){
@@ -4027,6 +4980,13 @@ function speakCallout(text,gender='male',meta={}){
     const isFemaleVoice=(v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v));
     const isMaleVoice=(v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v));
     const byLangPrefixes=(voices,prefixes)=>voices.filter((v)=>prefixes.some((p)=>String(v.lang??'').toLowerCase().startsWith(p)));
+    const speechLangMeta=(()=>{
+      if(state.language==='fr')return{tts:'fr-FR',prefixes:['fr']};
+      if(state.language==='de')return{tts:'de-DE',prefixes:['de']};
+      if(state.language==='es')return{tts:'es-ES',prefixes:['es']};
+      if(state.language==='en')return{tts:'en-US',prefixes:['en']};
+      return{tts:'yue-HK',prefixes:['yue','zh-hk','zh-hant-hk']};
+    })();
     const isCantoneseVoice=(v)=>{
       const meta=voiceMeta(v).toLowerCase();
       const lang=String(v?.lang??'').toLowerCase();
@@ -4042,9 +5002,9 @@ function speakCallout(text,gender='male',meta={}){
     const chooseVoice=(voices)=>{
       const source=voices??[];
       if(!source.length)return null;
-      const langPool=state.language==='en'
-        ?byLangPrefixes(source,['en'])
-        :source.filter((v)=>isCantoneseVoice(v)&&!isMandarinVoice(v));
+      const langPool=state.language==='zh-HK'
+        ?source.filter((v)=>isCantoneseVoice(v)&&!isMandarinVoice(v))
+        :byLangPrefixes(source,speechLangMeta.prefixes);
       const set=langPool.filter((v)=>!isMandarinVoice(v));
       if(!set.length)return null;
       if(g==='female')return set.find(isFemaleVoice) ?? null;
@@ -4054,6 +5014,18 @@ function speakCallout(text,gender='male',meta={}){
       const source=voices??[];
       const set=source.filter((v)=>isCantoneseVoice(v)&&!isMandarinVoice(v));
       return set[0]??null;
+    };
+    const chooseFallbackVoice=(voices)=>{
+      const source=voices??[];
+      if(!source.length)return null;
+      if(state.language==='zh-HK'){
+        const cantonese=source.find((v)=>isCantoneseVoice(v));
+        if(cantonese)return cantonese;
+        const mandarin=source.find((v)=>isMandarinVoice(v));
+        if(mandarin)return mandarin;
+      }
+      const locale=source.find((v)=>byLangPrefixes([v],speechLangMeta.prefixes).length);
+      return locale??source[0]??null;
     };
     const speakNow=()=>{
       if(speakSeq!==calloutSpeakSeq)return;
@@ -4078,23 +5050,22 @@ function speakCallout(text,gender='male',meta={}){
       let voice=chooseVoice(voices);
       // If browser does not expose gender metadata, keep Cantonese-only and bias by pitch.
       if(!voice&&g==='female'){
-        voice=chooseAnyCantonese(voices);
+        if(state.language==='zh-HK'){
+          voice=chooseAnyCantonese(voices);
+        }else{
+          voice=byLangPrefixes(voices,speechLangMeta.prefixes)[0]??null;
+        }
         if(!voice&&state.language==='en'&&isIOSDevice())voice=voices[0]??null;
+        if(!voice)voice=chooseFallbackVoice(voices);
         if(!voice){playCalloutToneFallback();return;}
         u.pitch=Math.max(u.pitch,1.18);
       }else if(!voice){
-        if(state.language!=='en'){
-          voice=chooseAnyCantonese(voices);
-        }
+        if(state.language==='zh-HK')voice=chooseAnyCantonese(voices);
         if(isIOSDevice()){
-          const localeVoice=state.language==='en'
-            ?voices.find((v)=>String(v?.lang??'').toLowerCase().startsWith('en'))
-            :voices.find((v)=>{
-              const lang=String(v?.lang??'').toLowerCase();
-              return /^yue(-|$)/.test(lang) || /^zh[-_]?hk(-|$)/.test(lang);
-            });
+          const localeVoice=voices.find((v)=>byLangPrefixes([v],speechLangMeta.prefixes).length);
           if(!voice)voice=localeVoice??(state.language==='en'?(voices[0]??null):null);
         }
+        if(!voice)voice=chooseFallbackVoice(voices);
         if(!voice){playCalloutToneFallback();return;}
       }
       const estimatedMs=Math.max(120,Math.min(420,Math.round((msg.length*62)/Math.max(0.55,u.rate))));
@@ -4103,7 +5074,7 @@ function speakCallout(text,gender='male',meta={}){
       u.onend=()=>{if(speakSeq!==calloutSpeakSeq)return;calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
       u.onerror=()=>{if(speakSeq!==calloutSpeakSeq)return;calloutSpeechActive=false;calloutSpeechUntil=0;calloutSpeechEndedAt=Date.now();calloutResumePending=true;maybeRunSoloAi();};
       u.voice=voice;
-      u.lang=String(voice.lang|| (state.language==='en'?'en-US':'yue-HK'));
+      u.lang=String(voice.lang||speechLangMeta.tts);
       synth.resume?.();
       synth.speak(u);
     };
@@ -6413,11 +7384,11 @@ function markComboActive(comboId,value){
 }
 function renderLangMenu(id){
   const items=LANGUAGE_OPTIONS.map((opt)=>{
-    const label=I18N[state.language]?.[opt.labelKey]??opt.value;
+    const label=LANGUAGE_NATIVE_LABEL[opt.value]??I18N[state.language]?.[opt.labelKey]??opt.value;
     const selected=state.language===opt.value;
     return `<button class="lang-menu-item" type="button" role="option" data-lang="${opt.value}" aria-selected="${selected?'true':'false'}">${label}</button>`;
   }).join('');
-  const shortLabel=state.language==='zh-HK'?'中':'EN';
+  const shortLabel=state.language==='zh-HK'?'中':state.language==='fr'?'FR':state.language==='de'?'DE':state.language==='es'?'ES':'EN';
   const globeSvg=`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.7 9h-3.2a15.8 15.8 0 0 0-1.1-5.1 8.03 8.03 0 0 1 4.3 5.1Zm-7.7-7a13.6 13.6 0 0 1 1.8 6H10.2a13.6 13.6 0 0 1 1.8-6Zm-5.4 7h-3.2a8.03 8.03 0 0 1 4.3-5.1 15.8 15.8 0 0 0-1.1 5.1Zm0 2a15.8 15.8 0 0 0 1.1 5.1A8.03 8.03 0 0 1 3.4 13h3.2Zm5.4 7a13.6 13.6 0 0 1-1.8-6h3.6a13.6 13.6 0 0 1-1.8 6Zm3.6-7h3.2a8.03 8.03 0 0 1-4.3 5.1 15.8 15.8 0 0 0 1.1-5.1Z"/></svg>`;
   return `<div class="lang-menu" data-lang-menu="1" data-lang-menu-id="${id}"><button id="${id}" class="lang-menu-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="${t('lang')}"><span class="lang-icon" aria-hidden="true">${globeSvg}</span><span class="lang-short">${shortLabel}</span></button><div class="lang-menu-pop" role="listbox" aria-label="${t('lang')}" data-lang-menu-owner="${id}">${items}</div></div>`;
 }
