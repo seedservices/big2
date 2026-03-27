@@ -7313,6 +7313,9 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
     padding-top: 16px !important;
     min-height: calc(var(--card-h) * 1.34 + 34px) !important;
   }
+  body[data-screen='game'][data-ios='1'] .action-strip .control-row {
+    overflow-y: visible !important;
+  }
   body[data-screen='game'][data-ios='1'] .hand-card.selected {
     transform: translateY(-6px) !important;
   }
