@@ -375,6 +375,102 @@ button, input, select { font: inherit; }
 button { border: 0; border-radius: 11px; padding: 7px 12px; font-weight: 700; cursor: pointer; transition: transform 120ms ease; }
 button:hover { transform: translateY(-1px); }
 button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.lang-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 24, 36, .45);
+  color: #e8f1ff;
+  font-weight: 700;
+  font-size: .82rem;
+  position: relative;
+}
+.lang-select-input {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-weight: inherit;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.lang-select-input option {
+  color: #0f2230;
+}
+.lang-icon {
+  font-size: .9rem;
+  line-height: 1;
+  color: currentColor;
+}
+.lang-icon svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.lang-short {
+  letter-spacing: .02em;
+  line-height: 1;
+}
+.lang-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.lang-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 24, 36, .45);
+  color: var(--text);
+  font-weight: 700;
+  font-size: .82rem;
+  cursor: pointer;
+}
+.lang-menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 140px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10, 26, 40, .92);
+  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+  display: none;
+  z-index: 2000;
+}
+.lang-menu.open .lang-menu-pop {
+  display: grid;
+  gap: 4px;
+}
+.lang-menu-item {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: #eef6ff;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 600;
+}
+.lang-menu-item[aria-selected='true'] {
+  background: rgba(255, 209, 102, .14);
+  color: #ffe7b3;
+}
+.lang-menu-item:hover {
+  background: rgba(255,255,255,.08);
+}
 button.primary { background: linear-gradient(140deg, #ffd166, var(--accent)); color: #1b232e; }
 button.click-banner {
   position: relative;
