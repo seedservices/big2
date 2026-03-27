@@ -1365,13 +1365,36 @@ body[data-screen='home'] .home-wrap {
 .room-create-card .room-active-code {
   text-align: center;
 }
-.room-create-tag {
+.room-create-callout {
   position: absolute;
-  left: 10px;
-  bottom: 10px;
-  font-size: .78rem;
-  color: rgba(229, 240, 248, .85);
-  letter-spacing: .06em;
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(8, 20, 30, .98);
+  color: #f8fbff;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  box-shadow:
+    0 8px 16px rgba(0,0,0,.32),
+    inset 0 0 0 1px rgba(255,255,255,.08);
+  white-space: nowrap;
+}
+.room-create-callout::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 12px;
+  height: 12px;
+  background: rgba(8, 20, 30, .98);
+  border-right: 1px solid rgba(255,255,255,.28);
+  border-bottom: 1px solid rgba(255,255,255,.28);
+  transform: translate(-50%, -40%) rotate(45deg);
+  box-shadow: 4px 4px 10px rgba(0,0,0,.18);
 }
 .room-create-card .room-active-code {
   font-size: .95rem;

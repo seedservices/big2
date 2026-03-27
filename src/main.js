@@ -230,7 +230,7 @@ const I18N={
     roomLobby:'大堂',
     roomTableTitle:'房間',
     roomSettings:'房間設定',
-    roomCreate:'開房',
+    roomCreate:'登記開房',
     roomJoin:'加入房間',
     roomEnter:'進入大堂',
     roomCode:'房號',
@@ -6991,7 +6991,7 @@ function renderHome(){
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
-  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-create-icon room-create-emoji" aria-hidden="true">👩🏻‍💻🧑🏻‍💻</div><span class="room-create-tag" aria-hidden="true">歡迎光臨😀</span></button>`;
+  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-create-icon room-create-emoji" aria-hidden="true">👩🏻‍💻🧑🏻‍💻</div><span class="room-create-callout" aria-hidden="true">歡近光臨😀</span></button>`;
   const maskRoomCode=(code)=>{
     const raw=String(code||'');
     if(!raw)return'';
