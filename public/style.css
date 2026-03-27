@@ -4211,7 +4211,8 @@ body[data-screen='game'] .table-center-stack {
   grid-area: controls;
   gap: 6px;
   flex-wrap: nowrap;
-  overflow-x: visible;
+  overflow: visible;
+  padding-top: 2px;
   position: relative;
   z-index: 6;
 }
@@ -5420,7 +5421,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   }
   .action-strip .control-row {
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 2px;
   }
@@ -7456,7 +7457,7 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   .action-strip .control-row {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
-    overflow-y: hidden !important;
+    overflow-y: visible !important;
     gap: 4px !important;
     -webkit-overflow-scrolling: touch;
   }
