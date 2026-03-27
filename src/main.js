@@ -2157,11 +2157,13 @@ async function loadActiveRooms(attempt=0){
           if(updatedAt>0){
             const staleAge=now-updatedAt;
             if((status==='lobby'||status==='starting'||status==='finished')&&staleAge>ROOM_PRUNE_LOBBY_MS){
+              void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
               pushHidden(data,'stale-lobby');
               hiddenRooms+=1;
               continue;
             }
             if(status==='playing'&&staleAge>ROOM_PRUNE_PLAYING_MS){
+              void firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(doc.id).delete().catch(()=>{});
               pushHidden(data,'stale-playing');
               hiddenRooms+=1;
               continue;
