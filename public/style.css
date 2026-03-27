@@ -6643,18 +6643,26 @@ body[data-screen='game'] .west > .seat-name-fixed .seat-subline {
 body[data-screen='game'] .action-strip .player-tag .seat-subline {
   color: rgba(214, 232, 222, .9) !important;
 }
-.result-cards .card.mini {
-  width: var(--card-w);
-  height: var(--card-h);
+body[data-screen='game'] .result-cards {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+body[data-screen='game'] .result-cards .card.mini {
+  width: clamp(44px, 9vmin, 64px);
+  height: calc(clamp(44px, 9vmin, 64px) * 1.392857);
   overflow: visible;
   flex: 0 0 auto;
   border-radius: 0;
   box-shadow: none;
 }
-.result-cards .card.mini + .card.mini {
-  margin-left: calc(var(--card-w) * -0.8);
+body[data-screen='game'] .result-cards .card.mini + .card.mini {
+  margin-left: calc(clamp(44px, 9vmin, 64px) * -0.72);
 }
-.result-cards .card.mini .card-art {
+body[data-screen='game'] .result-cards .card.mini .card-art {
   width: 100%;
   height: 100%;
   object-fit: contain;

@@ -6429,15 +6429,63 @@ function renderLangMenu(id){
   }).join('');
   const shortLabel=state.language==='zh-HK'?'中':'EN';
   const globeSvg=`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.7 9h-3.2a15.8 15.8 0 0 0-1.1-5.1 8.03 8.03 0 0 1 4.3 5.1Zm-7.7-7a13.6 13.6 0 0 1 1.8 6H10.2a13.6 13.6 0 0 1 1.8-6Zm-5.4 7h-3.2a8.03 8.03 0 0 1 4.3-5.1 15.8 15.8 0 0 0-1.1 5.1Zm0 2a15.8 15.8 0 0 0 1.1 5.1A8.03 8.03 0 0 1 3.4 13h3.2Zm5.4 7a13.6 13.6 0 0 1-1.8-6h3.6a13.6 13.6 0 0 1-1.8 6Zm3.6-7h3.2a8.03 8.03 0 0 1-4.3 5.1 15.8 15.8 0 0 0 1.1-5.1Z"/></svg>`;
-  return `<div class="lang-menu" data-lang-menu="1"><button id="${id}" class="lang-menu-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="${t('lang')}"><span class="lang-icon" aria-hidden="true">${globeSvg}</span><span class="lang-short">${shortLabel}</span></button><div class="lang-menu-pop" role="listbox" aria-label="${t('lang')}">${items}</div></div>`;
+  return `<div class="lang-menu" data-lang-menu="1" data-lang-menu-id="${id}"><button id="${id}" class="lang-menu-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="${t('lang')}"><span class="lang-icon" aria-hidden="true">${globeSvg}</span><span class="lang-short">${shortLabel}</span></button><div class="lang-menu-pop" role="listbox" aria-label="${t('lang')}" data-lang-menu-owner="${id}">${items}</div></div>`;
 }
 let langMenuDocBound=false;
 let openLangMenu=null;
+const langMenuPortals=new WeakMap();
+function positionLangMenuPop(trigger,pop){
+  const rect=trigger.getBoundingClientRect();
+  const padding=8;
+  pop.style.display='grid';
+  const popRect=pop.getBoundingClientRect();
+  let left=rect.right-popRect.width;
+  left=Math.max(padding,Math.min(left,window.innerWidth-popRect.width-padding));
+  let top=rect.bottom+6;
+  if(top+popRect.height>window.innerHeight-padding){
+    top=rect.top-popRect.height-6;
+  }
+  top=Math.max(padding,top);
+  pop.style.left=`${left}px`;
+  pop.style.top=`${top}px`;
+  pop.style.right='auto';
+  pop.style.bottom='auto';
+}
+function openLangMenuPop(menu,trigger,pop){
+  if(!langMenuPortals.has(pop)){
+    langMenuPortals.set(pop,{parent:pop.parentElement,next:pop.nextSibling});
+  }
+  document.body.appendChild(pop);
+  pop.style.position='fixed';
+  pop.style.zIndex='20000';
+  positionLangMenuPop(trigger,pop);
+}
+function closeLangMenuPop(menu){
+  const owner=menu?.dataset?.langMenuId;
+  const pop=menu?.querySelector?.('.lang-menu-pop')||document.querySelector(`.lang-menu-pop[data-lang-menu-owner="${owner}"]`);
+  if(!(pop instanceof HTMLElement))return;
+  pop.style.display='none';
+  pop.style.left='';
+  pop.style.top='';
+  pop.style.right='';
+  pop.style.bottom='';
+  pop.style.position='';
+  pop.style.zIndex='';
+  const portal=langMenuPortals.get(pop);
+  if(portal?.parent){
+    if(portal.next&&portal.next.parentElement===portal.parent){
+      portal.parent.insertBefore(pop,portal.next);
+    }else{
+      portal.parent.appendChild(pop);
+    }
+  }
+}
 function closeLangMenu(){
   if(!openLangMenu)return;
   openLangMenu.classList.remove('open');
   const trigger=openLangMenu.querySelector('.lang-menu-trigger');
   if(trigger)trigger.setAttribute('aria-expanded','false');
+  closeLangMenuPop(openLangMenu);
   openLangMenu=null;
 }
 function setLanguage(value,{reloadGoogle=false}={}){
@@ -6462,6 +6510,11 @@ function bindLangMenu(root,{reloadGoogle=false}={}){
       const isOpen=menu.classList.toggle('open');
       trigger.setAttribute('aria-expanded',isOpen?'true':'false');
       openLangMenu=isOpen?menu:null;
+      if(isOpen){
+        openLangMenuPop(menu,trigger,pop);
+      }else{
+        closeLangMenuPop(menu);
+      }
     });
     pop.querySelectorAll('.lang-menu-item').forEach((item)=>item.addEventListener('click',(ev)=>{
       ev.stopPropagation();
@@ -6621,6 +6674,9 @@ function bindBackCarousel(comboId){
   let dragStartY=0;
   let dragStartOffset=0;
   let snapTimer=0;
+  let rafId=0;
+  let pendingUpdate=false;
+  let lastSelectedValue='';
   const normalizeOffset=()=>{
     const section=getSectionWidth();
     if(!section)return;
@@ -6635,51 +6691,50 @@ function bindBackCarousel(comboId){
     const buttons=getButtons();
     if(!buttons.length)return null;
     const centerX=viewport.clientWidth/2;
-    const midStart=optionCount;
-    const midEnd=optionCount*2;
     let bestBtn=null;
     let bestDist=Infinity;
-    for(let i=midStart;i<midEnd;i+=1){
-      const btn=buttons[i];
-      if(!(btn instanceof HTMLElement))continue;
+    buttons.forEach((btn)=>{
+      if(!(btn instanceof HTMLElement))return;
       const btnValue=btn.getAttribute('data-value')||'';
-      if(preferredValue&&btnValue!==preferredValue)continue;
+      if(preferredValue&&btnValue!==preferredValue)return;
       const btnCenter=btn.offsetLeft+btn.offsetWidth/2+offsetX;
       const dist=Math.abs(btnCenter-centerX);
       if(dist<bestDist){
         bestDist=dist;
         bestBtn=btn;
       }
-    }
-    if(!bestBtn&&preferredValue){
-      for(let i=midStart;i<midEnd;i+=1){
-        const btn=buttons[i];
-        if(!(btn instanceof HTMLElement))continue;
-        const btnCenter=btn.offsetLeft+btn.offsetWidth/2+offsetX;
-        const dist=Math.abs(btnCenter-centerX);
-        if(dist<bestDist){
-          bestDist=dist;
-          bestBtn=btn;
-        }
-      }
-    }
+    });
     return bestBtn;
   };
-  const updateSelectionFromOffset=(preferredValue='')=>{
+  const updateSelectionFromOffset=(preferredValue='',forceScale=false)=>{
     const bestBtn=findNearestButton(preferredValue);
     const value=bestBtn?.getAttribute('data-value')||'';
-    if(value){
+    if(value&&value!==lastSelectedValue){
       state.home.backColor=value;
       markComboActive('back-combo-left',value);
       markComboActive('back-combo-right',value);
       markComboActive('config-back-combo',value);
+      lastSelectedValue=value;
+      forceScale=true;
     }
-    const buttons=getButtons();
-    buttons.forEach((btn)=>{
-      const btnValue=btn.getAttribute('data-value');
-      const isSelected=btnValue===value;
-      const scale=isSelected?1:0.86;
-      btn.style.transform=`scale(${scale})`;
+    if(forceScale&&value){
+      const buttons=getButtons();
+      buttons.forEach((btn)=>{
+        const btnValue=btn.getAttribute('data-value');
+        const isSelected=btnValue===value;
+        const scale=isSelected?1:0.86;
+        btn.style.transform=`scale(${scale})`;
+      });
+    }
+  };
+  const scheduleSelectionUpdate=(forceScale=false)=>{
+    pendingUpdate=true;
+    if(rafId)return;
+    rafId=requestAnimationFrame(()=>{
+      rafId=0;
+      if(!pendingUpdate)return;
+      pendingUpdate=false;
+      updateSelectionFromOffset('',forceScale);
     });
   };
   const centerToButton=(btn,animate=true,preferredValue='',allowNormalize=false)=>{
@@ -6773,12 +6828,12 @@ function bindBackCarousel(comboId){
     offsetX=dragStartOffset+dx;
     normalizeOffset();
     applyOffset(false);
-    updateSelectionFromOffset();
+    scheduleSelectionUpdate(false);
   });
   const endDrag=()=>{
     if(!dragActive)return;
     dragActive=false;
-    updateSelectionFromOffset();
+    updateSelectionFromOffset('',true);
     const target=findNearestButton(state.home.backColor);
     if(target)centerToButton(target,true,state.home.backColor);
   };
@@ -6800,6 +6855,7 @@ function bindBackCarousel(comboId){
   });
   requestAnimationFrame(()=>{
     centerToMiddleValue(state.home.backColor);
+    updateSelectionFromOffset(state.home.backColor,true);
   });
 }
 function bindEmoteDisplayToggle(comboId){
