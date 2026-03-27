@@ -7568,7 +7568,7 @@ function renderGame(){
   const logSheetOpen=portraitMode&&state.showLogSheet;
   const logToggleStateIcon='';
   const logToggleStateText=t('log');
-  const logSheetHtml=logSheetOpen?`<div class="log-sheet" id="log-sheet"><button class="log-sheet-backdrop" id="log-sheet-backdrop" aria-label="close"></button><section class="log-sheet-panel"><header class="log-sheet-head"><h3 class="title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><button id="log-sheet-close" class="secondary">${state.language==='zh-HK'?'關閉':'Close'}</button></header><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></div>`:'';
+  const logSheetHtml=logSheetOpen?`<div class="log-sheet" id="log-sheet"><button class="log-sheet-backdrop" id="log-sheet-backdrop" aria-label="close"></button><section class="log-sheet-panel side-card log-side-card"><header class="log-sheet-head"><h3 class="log-toggle-title title-with-icon"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><button id="log-sheet-close" class="secondary">${state.language==='zh-HK'?'關閉':'Close'}</button></header><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></div>`:'';
   const isRecPass=state.recommendHint===t('recPass');
   const isRecEmpty=state.recommendHint===t('noSuggest');
   const showRecommendHint=Boolean(state.recommendHint)&&!isRecPass;

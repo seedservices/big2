@@ -4900,7 +4900,7 @@ body[data-screen='game'][data-orientation='landscape'] .game-log-fab { display: 
 body[data-screen='game'][data-orientation='portrait'] .game-log-fab { display: inline-flex; }
 body[data-log-sheet='1'] .mobile-discard-panel { display: none !important; }
 body[data-log-sheet='1'] .side-zone { display: none !important; }
-body[data-log-sheet='1'] .log-side-card { display: none !important; }
+body[data-log-sheet='1'] .side-zone .log-side-card { display: none !important; }
 body[data-screen='game'] .log-side-card {
   position: relative;
   background: transparent;
@@ -6183,26 +6183,8 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   position: relative;
   width: 100%;
   max-height: 70dvh;
-  border-radius: 16px 16px 0 0;
-  border: 1px solid rgba(255,255,255,.2);
-  padding: 10px;
   overflow: hidden;
-  background: transparent;
-  box-shadow: 0 -12px 28px rgba(0,0,0,.3);
- }
-.log-sheet-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--ui-card-grad);
-  pointer-events: none;
-  z-index: 0;
- }
-.log-sheet-panel > * {
-  position: relative;
-  z-index: 1;
- }
+}
 .log-sheet-head {
   display: flex;
   align-items: center;
@@ -6211,9 +6193,67 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   margin-bottom: 6px;
  }
 .log-sheet-panel .history-list {
-  max-height: calc(70dvh - 52px);
+  max-height: none;
   overflow-y: auto;
- }
+  overflow-x: hidden;
+  min-height: 0;
+}
+body[data-log-sheet='1'] .log-sheet-panel.log-side-card {
+  padding: 9px;
+  gap: 7px;
+  display: grid;
+  grid-template-rows: auto minmax(0,1fr);
+  align-content: stretch;
+}
+body[data-log-sheet='1'] .log-sheet-panel .log-toggle-title {
+  min-height: 36px;
+  height: 36px;
+  font-size: .96rem;
+}
+body[data-log-sheet='1'] .history-list {
+  padding: 7px !important;
+  gap: 5px !important;
+}
+body[data-log-sheet='1'] .history-item {
+  padding: 5px 6px !important;
+  gap: 4px !important;
+  border-radius: 8px !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+}
+body[data-log-sheet='1'] .history-head {
+  gap: 6px !important;
+}
+body[data-log-sheet='1'] .history-title {
+  font-size: .82rem !important;
+}
+body[data-log-sheet='1'] .history-time {
+  font-size: .7rem !important;
+}
+body[data-log-sheet='1'] .history-detail {
+  font-size: .72rem !important;
+  line-height: 1.25 !important;
+}
+body[data-log-sheet='1'] .history-detail-row {
+  gap: 3px !important;
+  flex-wrap: wrap !important;
+}
+body[data-log-sheet='1'] .history-cards {
+  gap: 0 !important;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%) !important;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 90%) !important;
+  -webkit-mask-size: 100% 100% !important;
+  mask-size: 100% 100% !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+}
+body[data-log-sheet='1'] .history-cards .card.mini {
+  width: clamp(44px, 9vmin, 64px) !important;
+  height: calc(clamp(44px, 9vmin, 64px) * 1.392857) !important;
+}
+body[data-log-sheet='1'] .history-cards .card.mini + .card.mini {
+  margin-left: calc(clamp(44px, 9vmin, 64px) * -0.72) !important;
+}
 body[data-screen='game'] .congrats-screen,
 body[data-screen='game'] .result-screen {
   z-index: 12000;
