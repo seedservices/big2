@@ -6547,10 +6547,18 @@ function bindBackCarousel(comboId){
     const step=measureStep();
     if(!step)return;
     const buttons=[...track.querySelectorAll('.combo-btn')];
-    const selectedValue=state.home.backColor;
+    const center=track.scrollLeft+(track.clientWidth/2);
+    const centerIndex=Math.round(center/step);
+    const centerValue=BACK_OPTIONS[((centerIndex%optionCount)+optionCount)%optionCount]?.value;
+    if(centerValue){
+      state.home.backColor=centerValue;
+      markComboActive('back-combo-left',centerValue);
+      markComboActive('back-combo-right',centerValue);
+      markComboActive('config-back-combo',centerValue);
+    }
     buttons.forEach((btn)=>{
       const value=btn.getAttribute('data-value');
-      const isSelected=value===selectedValue;
+      const isSelected=value===centerValue;
       const scale=isSelected?1:0.86;
       btn.style.transform=`scale(${scale})`;
     });
@@ -6673,12 +6681,6 @@ function bindBackCarousel(comboId){
     }
     const btn=ev.target?.closest?.('.combo-btn');
     if(!(btn instanceof HTMLElement))return;
-    const value=btn.getAttribute('data-value');
-    if(!value)return;
-    state.home.backColor=value;
-    markComboActive('back-combo-left',value);
-    markComboActive('back-combo-right',value);
-    markComboActive('config-back-combo',value);
     const buttons=[...track.querySelectorAll('.combo-btn')];
     const index=buttons.indexOf(btn);
     if(index>=0){

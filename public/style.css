@@ -1913,7 +1913,7 @@ body[data-screen='home'] .home-wrap {
   height: clamp(62px, 14vw, 90px);
 }
 .cardback-combo .combo-btn {
-  padding: 2px 3px;
+  padding: 4px 5px;
   gap: 2px;
   display: grid;
   justify-items: center;
@@ -1927,10 +1927,12 @@ body[data-screen='home'] .home-wrap {
   line-height: 1;
 }
 .cardback-combo .combo-btn.active {
-  box-shadow: 0 0 0 2px rgba(255, 209, 102, .55);
+  box-shadow: none;
   border-radius: 8px;
 }
 .cardback-combo .combo-btn.active .combo-back-preview {
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, .55);
+  border-radius: 6px;
   transform: scale(1.15);
   transform-origin: center;
 }
