@@ -230,7 +230,7 @@ const I18N={
     roomLobby:'大堂',
     roomTableTitle:'房間',
     roomSettings:'房間設定',
-    roomCreate:'建立房間',
+    roomCreate:'開房',
     roomJoin:'加入房間',
     roomEnter:'進入大堂',
     roomCode:'房號',
@@ -6991,7 +6991,7 @@ function renderHome(){
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
   const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
-  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></button>`;
+  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-create-icon room-create-emoji" aria-hidden="true">👩🏻‍💻🧑🏻‍💻</div><span class="room-create-tag" aria-hidden="true">歡迎光臨😀</span></button>`;
   const maskRoomCode=(code)=>{
     const raw=String(code||'');
     if(!raw)return'';
@@ -7063,7 +7063,7 @@ function renderHome(){
         return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}>${isPrivate?`<span class="room-active-private-inline">🔑 ${t('roomPrivate')}</span>`:''}<div class="room-active-code"><span class="room-active-code-text">${esc(displayCode)}</span></div><div class="room-active-table room-active-table-full">${roomSeats}</div>${bottomRow}</button>`;
       }).join('')
       :'';
-  const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-empty">${t('roomActiveEmpty')}</div>`;
+  const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-card room-active-empty"><div class="room-active-code">${t('roomActiveEmpty')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></div>`;
   const hiddenCount=Number(state.home.activeRooms.hiddenCount)||0;
   const hiddenNote=hiddenCount?`<span class="room-active-hidden">Hidden: ${hiddenCount}</span>`:'';
   const refreshCountdownText=state.room.joinOpenCountdown&&state.room.joinOpenCountdown>0
