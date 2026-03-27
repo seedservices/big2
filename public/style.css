@@ -1483,6 +1483,9 @@ body[data-screen='home'] .home-wrap {
   justify-items: stretch;
   border-style: dashed;
   align-content: start;
+  pointer-events: none;
+  cursor: default;
+  opacity: .7;
 }
 .room-active-code {
   display: flex;
@@ -1638,6 +1641,33 @@ body[data-screen='home'] .home-wrap {
 .home-panel { padding: 12px; border-radius: 18px; background: linear-gradient(130deg, rgba(255,255,255,.09), rgba(255,255,255,.02)), rgba(6, 18, 30, .48); border: 1px solid rgba(255,255,255,.16); display: grid; gap: 10px; }
 .opponent-panel {
   padding: 12px;
+}
+.hidden-panel {
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+.hidden-debug-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+.hidden-debug-list {
+  display: grid;
+  gap: 10px;
+}
+.hidden-debug-row {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 22, 34, .5);
+  padding: 8px 10px;
+  display: grid;
+  gap: 4px;
+}
+.hidden-debug-meta {
+  font-size: .78rem;
+  color: var(--muted);
 }
 .opponent-grid {
   display: grid;
