@@ -7291,6 +7291,11 @@ function resultScreenHtml(v,arr){
     ?(Array.isArray(state.room.data.players)?state.room.data.players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:')).length:0)
     :0;
   const needsPlayers=isRoom&&roomHumanCount<2;
+  const roomPictureBySeat=(()=>{
+    const list=isRoom&&state.room.data?Array.isArray(state.room.data.players)?state.room.data.players:[]:[];
+    const entries=list.map((p)=>[Number.isFinite(Number(p?.seat))?Number(p.seat):-1,String(p?.picture||'').trim()]);
+    return new Map(entries.filter((entry)=>entry[0]!==-1&&entry[1]));
+  })();
   const hostSeat=(()=>{
     if(!isRoom||!state.room.data)return null;
     const hostId=String(state.room.data.hostId||'').trim();
@@ -7311,6 +7316,7 @@ function resultScreenHtml(v,arr){
   const detailBySeat=v.roundSummary?.details??arr.map((p)=>p.seat===winner.seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]));
   const rows=arr.map((p)=>{
     const isWinner=p.seat===winner.seat;
+    const isSelf=p.seat===v.selfSeat;
     const color=playerColorByViewClass(p.cls);
     const isHostSeat=hostSeat!==null&&hostSeat===p.seat;
     const hostBadgeHtml=isHostSeat?`<span class="lobby-seat-host-badge">🚩</span>`:'';
@@ -7331,9 +7337,10 @@ function resultScreenHtml(v,arr){
     const detailLine=isWinner
       ?`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreGain')} +${winnerGain}</div>`
       :`<div class="result-score-detail">${t('resultDetail')}: ${t('scoreBase')} ${detail.base} x ${detail.multiplier} · ${t('scoreDeduct')} ${detail.deduction}${mulTags?` · ${t('scorePenaltyBoost')}: ${mulTags}`:''}</div>`;
-    const isSelf=p.seat===v.selfSeat;
-    const avatarSrc=snapPicture
-      ?authPictureUrlFrom(snapPicture)
+    const selfPic=isSelf?authPictureUrl():'';
+    const fallbackPicture=snapPicture||roomPictureBySeat.get(p.seat)||String(p.picture||'').trim();
+    const avatarSrc=(selfPic||fallbackPicture)
+      ?authPictureUrlFrom(selfPic||fallbackPicture)
       :avatarDataUri(snapName,color,snapGender,Boolean(p.isBot));
     const botNameAttr=p.isBot?` data-bot-name="${esc(p.name)}"`:'';
     const winnerLastDiscardHtml=isWinner
