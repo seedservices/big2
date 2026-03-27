@@ -1875,21 +1875,22 @@ body[data-screen='home'] .home-wrap {
   gap: 6px;
 }
 .cardback-carousel .cardback-combo {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow: hidden;
   padding: 2px 0;
   touch-action: pan-x;
-  max-width: calc((clamp(44px, 10vw, 64px) + 6px) * 5);
+  width: 100%;
+  max-width: calc((clamp(44px, 10vw, 64px) + 14px) * 5);
   margin: 0 auto;
+}
+.cardback-rail {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  will-change: transform;
 }
 .cardback-carousel .cardback-combo::-webkit-scrollbar {
   display: none;
-}
-.cardback-carousel .combo-btn {
-  scroll-snap-align: center;
 }
 .cardback-carousel .carousel-btn {
   width: 28px;
@@ -1911,6 +1912,8 @@ body[data-screen='home'] .home-wrap {
 .cardback-combo .combo-back-preview {
   width: clamp(44px, 10vw, 64px);
   height: clamp(62px, 14vw, 90px);
+  -webkit-user-drag: none;
+  user-select: none;
 }
 .cardback-combo .combo-btn {
   padding: 4px 5px;

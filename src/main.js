@@ -6416,11 +6416,11 @@ function renderBackCombo(){
   return BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
 }
 function renderBackCarouselItems(){
-  const items=BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}"/></button>`).join('');
+  const items=BACK_OPTIONS.map((opt)=>`<button class="combo-btn ${state.home.backColor===opt.value?'active':''}" data-value="${opt.value}" aria-label="${opt.label[state.language]??opt.value}"><img class="combo-back-preview" src="${withBase(`card-assets/${opt.file}`)}" alt="${opt.label[state.language]??opt.value}" draggable="false"/></button>`).join('');
   return `${items}${items}${items}`;
 }
 function renderBackCarousel(comboId){
-  return `<div class="cardback-carousel" data-carousel="${comboId}"><button class="carousel-btn prev" type="button" data-carousel-dir="prev" aria-label="${state.language==='zh-HK'?'上一個':'Previous'}">‹</button><div class="option-combo cardback-combo cardback-track" id="${comboId}" data-carousel-track="1">${renderBackCarouselItems()}</div><button class="carousel-btn next" type="button" data-carousel-dir="next" aria-label="${state.language==='zh-HK'?'下一個':'Next'}">›</button></div>`;
+  return `<div class="cardback-carousel" data-carousel="${comboId}"><button class="carousel-btn prev" type="button" data-carousel-dir="prev" aria-label="${state.language==='zh-HK'?'上一個':'Previous'}">‹</button><div class="option-combo cardback-combo cardback-track" id="${comboId}" data-carousel-track="1"><div class="cardback-rail">${renderBackCarouselItems()}</div></div><button class="carousel-btn next" type="button" data-carousel-dir="next" aria-label="${state.language==='zh-HK'?'下一個':'Next'}">›</button></div>`;
 }
 let topbarDelegateBound=false;
 let roomTopMetaLayoutBound=false;
@@ -6529,85 +6529,139 @@ function bindCalloutDisplayToggle(comboId){
   }));
 }
 function bindBackCarousel(comboId){
-  const track=document.getElementById(comboId);
-  if(!(track instanceof HTMLElement))return;
-  if(track.dataset.carouselBound)return;
-  track.dataset.carouselBound='1';
-  const wrapper=track.closest('.cardback-carousel');
+  const viewport=document.getElementById(comboId);
+  if(!(viewport instanceof HTMLElement))return;
+  if(viewport.dataset.carouselBound)return;
+  viewport.dataset.carouselBound='1';
+  const wrapper=viewport.closest('.cardback-carousel');
   if(!(wrapper instanceof HTMLElement))return;
+  const rail=viewport.querySelector('.cardback-rail');
+  if(!(rail instanceof HTMLElement))return;
   const optionCount=BACK_OPTIONS.length;
-  const measureStep=()=>{
-    const first=track.querySelector('.combo-btn');
-    if(!(first instanceof HTMLElement))return 0;
-    const styles=window.getComputedStyle(track);
-    const gap=Number.parseFloat(styles.columnGap||styles.gap||'0')||0;
-    return first.getBoundingClientRect().width+gap;
+  const getButtons=()=>[...rail.querySelectorAll('.combo-btn')];
+  const getSectionWidth=()=>{
+    const buttons=getButtons();
+    if(buttons.length<optionCount*2)return 0;
+    const first=buttons[0];
+    const last=buttons[optionCount-1];
+    if(!(first instanceof HTMLElement)||!(last instanceof HTMLElement))return 0;
+    return (last.offsetLeft+last.offsetWidth)-first.offsetLeft;
   };
-  const applyScaling=()=>{
-    const step=measureStep();
-    if(!step)return;
-    const buttons=[...track.querySelectorAll('.combo-btn')];
-    const center=track.scrollLeft+(track.clientWidth/2);
-    const centerIndex=Math.round(center/step);
-    const centerValue=BACK_OPTIONS[((centerIndex%optionCount)+optionCount)%optionCount]?.value;
-    if(centerValue){
-      state.home.backColor=centerValue;
-      markComboActive('back-combo-left',centerValue);
-      markComboActive('back-combo-right',centerValue);
-      markComboActive('config-back-combo',centerValue);
+  let offsetX=0;
+  let dragActive=false;
+  let dragMoved=false;
+  let dragStartX=0;
+  let dragStartY=0;
+  let dragStartOffset=0;
+  let snapTimer=0;
+  const normalizeOffset=()=>{
+    const section=getSectionWidth();
+    if(!section)return;
+    while(offsetX<-section*2)offsetX+=section;
+    while(offsetX>0)offsetX-=section;
+  };
+  const applyOffset=(animate=false)=>{
+    rail.style.transition=animate?'transform 180ms ease':'none';
+    rail.style.transform=`translateX(${offsetX}px)`;
+  };
+  const findNearestButton=(preferredValue='')=>{
+    const buttons=getButtons();
+    if(!buttons.length)return null;
+    const centerX=viewport.clientWidth/2;
+    const midStart=optionCount;
+    const midEnd=optionCount*2;
+    let bestBtn=null;
+    let bestDist=Infinity;
+    for(let i=midStart;i<midEnd;i+=1){
+      const btn=buttons[i];
+      if(!(btn instanceof HTMLElement))continue;
+      const btnValue=btn.getAttribute('data-value')||'';
+      if(preferredValue&&btnValue!==preferredValue)continue;
+      const btnCenter=btn.offsetLeft+btn.offsetWidth/2+offsetX;
+      const dist=Math.abs(btnCenter-centerX);
+      if(dist<bestDist){
+        bestDist=dist;
+        bestBtn=btn;
+      }
     }
-    buttons.forEach((btn)=>{
-      const value=btn.getAttribute('data-value');
-      const isSelected=value===centerValue;
-      const scale=isSelected?1:0.86;
-      btn.style.transform=`scale(${scale})`;
-    });
+    if(!bestBtn&&preferredValue){
+      for(let i=midStart;i<midEnd;i+=1){
+        const btn=buttons[i];
+        if(!(btn instanceof HTMLElement))continue;
+        const btnCenter=btn.offsetLeft+btn.offsetWidth/2+offsetX;
+        const dist=Math.abs(btnCenter-centerX);
+        if(dist<bestDist){
+          bestDist=dist;
+          bestBtn=btn;
+        }
+      }
+    }
+    return bestBtn;
   };
-  const centerIndex=(index,behavior='smooth')=>{
-    const step=measureStep();
-    if(!step)return;
-    const buttons=[...track.querySelectorAll('.combo-btn')];
-    const btn=buttons[index];
-    if(!(btn instanceof HTMLElement))return;
-    const left=btn.offsetLeft-(track.clientWidth/2)+(btn.offsetWidth/2);
-    track.scrollTo({left,behavior});
-  };
-  const centerClosest=(behavior='smooth')=>{
-    const step=measureStep();
-    if(!step)return;
-    const center=track.scrollLeft+(track.clientWidth/2);
-    const index=Math.round(center/step);
-    centerIndex(index,behavior);
-  };
-  const centerOnValue=(value,behavior='smooth')=>{
-    const buttons=[...track.querySelectorAll('.combo-btn')];
-    if(!buttons.length)return;
-    const step=measureStep();
-    if(!step)return;
-    const firstIndex=buttons.findIndex((btn,idx)=>idx>=optionCount&&idx<optionCount*2&&btn.getAttribute('data-value')===value);
-    const index=firstIndex<0?optionCount: firstIndex;
-    const btnW=buttons[index]?.getBoundingClientRect().width||0;
-    const left=(index*step)-(track.clientWidth/2)+(btnW/2);
-    track.scrollTo({left,behavior});
-  };
-  const updateSelectionFromScroll=(allowWrap=false)=>{
-    const step=measureStep();
-    if(!step)return;
-    const center=track.scrollLeft+(track.clientWidth/2);
-    const index=Math.round(center/step);
-    const value=BACK_OPTIONS[((index%optionCount)+optionCount)%optionCount]?.value;
+  const updateSelectionFromOffset=(preferredValue='')=>{
+    const bestBtn=findNearestButton(preferredValue);
+    const value=bestBtn?.getAttribute('data-value')||'';
     if(value){
       state.home.backColor=value;
       markComboActive('back-combo-left',value);
       markComboActive('back-combo-right',value);
       markComboActive('config-back-combo',value);
     }
-    if(allowWrap){
-      const section=step*optionCount;
-      if(track.scrollLeft<section*0.5)track.scrollLeft+=section;
-      if(track.scrollLeft>section*1.5)track.scrollLeft-=section;
+    const buttons=getButtons();
+    buttons.forEach((btn)=>{
+      const btnValue=btn.getAttribute('data-value');
+      const isSelected=btnValue===value;
+      const scale=isSelected?1:0.86;
+      btn.style.transform=`scale(${scale})`;
+    });
+  };
+  const centerToButton=(btn,animate=true,preferredValue='',allowNormalize=false)=>{
+    if(!(btn instanceof HTMLElement))return;
+    if(snapTimer){
+      window.clearTimeout(snapTimer);
+      snapTimer=0;
     }
-    applyScaling();
+    const centerX=viewport.clientWidth/2;
+    const btnCenter=btn.offsetLeft+btn.offsetWidth/2;
+    offsetX=centerX-btnCenter;
+    if(allowNormalize)normalizeOffset();
+    applyOffset(animate);
+    updateSelectionFromOffset(preferredValue);
+    if(animate&&preferredValue){
+      snapTimer=window.setTimeout(()=>{
+        centerToMiddleValue(preferredValue);
+        snapTimer=0;
+      },190);
+    }
+  };
+  const centerToIndex=(index,animate=true,allowNormalize=false)=>{
+    const buttons=getButtons();
+    const btn=buttons[index];
+    if(btn)centerToButton(btn,animate,'',allowNormalize);
+  };
+  const centerToMiddleValue=(value)=>{
+    const buttons=getButtons();
+    if(!buttons.length)return;
+    const middleIndex=buttons.findIndex((btn,idx)=>idx>=optionCount&&idx<optionCount*2&&btn.getAttribute('data-value')===value);
+    if(middleIndex>=0)centerToIndex(middleIndex,false,true);
+  };
+  const centerToValue=(value,animate=true)=>{
+    const buttons=getButtons();
+    if(!buttons.length)return;
+    const centerX=viewport.clientWidth/2;
+    let bestBtn=null;
+    let bestDelta=Infinity;
+    buttons.forEach((btn)=>{
+      if(btn.getAttribute('data-value')!==value)return;
+      const btnCenter=btn.offsetLeft+btn.offsetWidth/2;
+      const targetOffset=centerX-btnCenter;
+      const delta=Math.abs(targetOffset-offsetX);
+      if(delta<bestDelta){
+        bestDelta=delta;
+        bestBtn=btn;
+      }
+    });
+    if(bestBtn)centerToButton(bestBtn,animate,value);
   };
   const getNextValue=(dir)=>{
     const current=state.home.backColor;
@@ -6617,105 +6671,68 @@ function bindBackCarousel(comboId){
     const nextIndex=(currentIndex+delta+optionCount)%optionCount;
     return BACK_OPTIONS[nextIndex]?.value;
   };
-  let isSnapping=false;
-  let snapBehavior='smooth';
-  let scrollTimer=null;
-  let lastScrollLeft=track.scrollLeft;
-  const scheduleSettle=(behavior='smooth')=>{
-    if(scrollTimer)clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(()=>{
-      const idle=Math.abs(track.scrollLeft-lastScrollLeft)<0.5;
-      const canFocus=idle&&!dragActive;
-      const allowWrap=canFocus;
-      updateSelectionFromScroll(allowWrap);
-      if(canFocus){
-        const focusBehavior=isSnapping?snapBehavior:behavior;
-        centerOnValue(state.home.backColor,focusBehavior);
-      }
-      if(isSnapping&&idle)isSnapping=false;
-    },180);
-  };
-  track.addEventListener('scroll',()=>{
-    applyScaling();
-    lastScrollLeft=track.scrollLeft;
-    scheduleSettle(isSnapping?snapBehavior:'auto');
-  },{passive:true});
-  const onRelease=()=>{
-    isSnapping=true;
-    snapBehavior='smooth';
-    scheduleSettle('smooth');
-  };
   wrapper.querySelector('[data-carousel-dir="prev"]')?.addEventListener('click',()=>{
-    if(isSnapping)return;
+    if(dragActive)return;
     const nextValue=getNextValue('prev');
     if(!nextValue)return;
-    state.home.backColor=nextValue;
-    markComboActive('back-combo-left',nextValue);
-    markComboActive('back-combo-right',nextValue);
-    markComboActive('config-back-combo',nextValue);
-    isSnapping=true;
-    snapBehavior='smooth';
-    scheduleSettle('smooth');
+    centerToValue(nextValue,true);
   });
   wrapper.querySelector('[data-carousel-dir="next"]')?.addEventListener('click',()=>{
-    if(isSnapping)return;
+    if(dragActive)return;
     const nextValue=getNextValue('next');
     if(!nextValue)return;
-    state.home.backColor=nextValue;
-    markComboActive('back-combo-left',nextValue);
-    markComboActive('back-combo-right',nextValue);
-    markComboActive('config-back-combo',nextValue);
-    isSnapping=true;
-    snapBehavior='smooth';
-    scheduleSettle('smooth');
+    centerToValue(nextValue,true);
   });
-  let dragActive=false;
-  let dragMoved=false;
-  let dragStartX=0;
-  let dragStartY=0;
-  track.addEventListener('pointerdown',(ev)=>{
+  viewport.addEventListener('pointerdown',(ev)=>{
+    if(!(ev.target instanceof HTMLElement))return;
+    const onCard=ev.target.closest?.('.combo-btn');
+    if(!onCard)return;
     dragActive=true;
     dragMoved=false;
     dragStartX=ev.clientX;
     dragStartY=ev.clientY;
+    dragStartOffset=offsetX;
+    applyOffset(false);
+    if(snapTimer){
+      window.clearTimeout(snapTimer);
+      snapTimer=0;
+    }
   });
-  track.addEventListener('pointermove',(ev)=>{
+  viewport.addEventListener('pointermove',(ev)=>{
     if(!dragActive)return;
-    const dx=Math.abs(ev.clientX-dragStartX);
+    const dx=ev.clientX-dragStartX;
     const dy=Math.abs(ev.clientY-dragStartY);
-    if(dx>6||dy>6)dragMoved=true;
+    if(Math.abs(dx)>6||dy>6)dragMoved=true;
+    offsetX=dragStartOffset+dx;
+    normalizeOffset();
+    applyOffset(false);
+    updateSelectionFromOffset();
   });
-  track.addEventListener('pointerup',()=>{
-    const moved=dragMoved;
+  const endDrag=()=>{
+    if(!dragActive)return;
     dragActive=false;
-    dragMoved=false;
-    if(moved)onRelease();
-  },{passive:true});
-  track.addEventListener('pointercancel',()=>{dragActive=false;dragMoved=false;});
-  track.addEventListener('click',(ev)=>{
-    if(isSnapping)return;
-    if(dragActive){
-      const dx=Math.abs((ev.clientX??0)-dragStartX);
-      const dy=Math.abs((ev.clientY??0)-dragStartY);
-      if(dx>6||dy>6)return;
-    }
-    const btn=ev.target?.closest?.('.combo-btn');
+    updateSelectionFromOffset();
+    const target=findNearestButton(state.home.backColor);
+    if(target)centerToButton(target,true,state.home.backColor);
+  };
+  viewport.addEventListener('pointerup',endDrag,{passive:true});
+  viewport.addEventListener('pointercancel',()=>{dragActive=false;});
+  viewport.addEventListener('click',(ev)=>{
+    if(dragMoved)return;
+    if(!(ev.target instanceof HTMLElement))return;
+    const preview=ev.target.closest?.('.combo-back-preview');
+    if(!preview)return;
+    const btn=preview.closest?.('.combo-btn');
     if(!(btn instanceof HTMLElement))return;
-    const buttons=[...track.querySelectorAll('.combo-btn')];
-    const index=buttons.indexOf(btn);
-    if(index>=0){
-      isSnapping=true;
-      snapBehavior='smooth';
-      centerIndex(index);
-      scheduleSettle('smooth');
-    }
+    const value=btn.getAttribute('data-value');
+    if(!value)return;
+    centerToButton(btn,true,value);
   });
-  requestAnimationFrame(()=>{ 
-    const step=measureStep();
-    if(!step)return;
-    track.scrollLeft=step*optionCount;
-    centerOnValue(state.home.backColor,'auto');
-    applyScaling();
+  viewport.addEventListener('dragstart',(ev)=>{
+    ev.preventDefault();
+  });
+  requestAnimationFrame(()=>{
+    centerToMiddleValue(state.home.backColor);
   });
 }
 function bindEmoteDisplayToggle(comboId){
