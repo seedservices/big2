@@ -254,7 +254,7 @@ const I18N={
     roomPrivacy:'房間私隱',
     roomPrivate:'私人',
     roomPublic:'公開',
-    roomNeedPlayers:'至少需要 1 位真人玩家加入才可開始',
+    roomNeedPlayers:'至少 1 位玩家加入才可開始',
     roomRoomId:'房號',
     roomRound:'回合',
     roomCountdown:'倒數',
