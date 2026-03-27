@@ -233,7 +233,7 @@ const I18N={
     roomCreate:'建立房間',
     roomJoin:'加入房間',
     roomEnter:'進入大堂',
-    roomCode:'房間代碼',
+    roomCode:'房號',
     roomCopy:'複製代碼',
     roomReady:'準備好',
     roomNotReady:'未準備',
@@ -255,7 +255,7 @@ const I18N={
     roomPrivate:'私人',
     roomPublic:'公開',
     roomNeedPlayers:'至少需要 1 位真人玩家加入才可開始',
-    roomRoomId:'房間代碼',
+    roomRoomId:'房號',
     roomRound:'回合',
     roomCountdown:'倒數',
     emote:'表情',
@@ -7320,11 +7320,17 @@ function renderGame(){
       appEl.insertAdjacentHTML('beforeend',logSheetHtml);
     }
     if(logFab instanceof HTMLElement){
-      const x=state.logFab?.x;
-      const y=state.logFab?.y;
+      let x=state.logFab?.x;
+      let y=state.logFab?.y;
       const pad=8;
       const viewW=Math.max(0,window.innerWidth||0);
       const viewH=Math.max(0,window.innerHeight||0);
+      const lastW=Number(state.logFab?.vw||0);
+      const lastH=Number(state.logFab?.vh||0);
+      if(Number.isFinite(x)&&Number.isFinite(y)&&lastW>0&&lastH>0&&(lastW!==viewW||lastH!==viewH)){
+        x=(x/lastW)*viewW;
+        y=(y/lastH)*viewH;
+      }
       const fabW=Math.max(0,logFab.offsetWidth||0);
       const fabH=Math.max(0,logFab.offsetHeight||0);
       const maxX=Math.max(0,viewW-fabW-pad);
@@ -7334,6 +7340,8 @@ function renderGame(){
         const ny=Math.max(pad,Math.min(y,maxY));
         state.logFab.x=nx;
         state.logFab.y=ny;
+        state.logFab.vw=viewW;
+        state.logFab.vh=viewH;
         logFab.style.left=`${nx}px`;
         logFab.style.top=`${ny}px`;
         logFab.style.right='auto';
@@ -7636,6 +7644,8 @@ function bindGameEvents(v,arr){
       const ny=clamp(y,8,maxY-8);
       state.logFab.x=nx;
       state.logFab.y=ny;
+      state.logFab.vw=window.innerWidth||0;
+      state.logFab.vh=window.innerHeight||0;
       logFab.style.left=`${nx}px`;
       logFab.style.top=`${ny}px`;
       logFab.style.right='auto';
@@ -7999,6 +8009,37 @@ function isPortraitLogSheetOpen(){
   if(state.screen!=='game'||!state.showLogSheet)return false;
   return isPortraitMode();
 }
+function syncLogFabPosition(){
+  const logFab=document.getElementById('game-log-fab');
+  if(!(logFab instanceof HTMLElement))return;
+  let x=state.logFab?.x;
+  let y=state.logFab?.y;
+  if(!Number.isFinite(x)||!Number.isFinite(y))return;
+  const viewW=Math.max(0,window.innerWidth||0);
+  const viewH=Math.max(0,window.innerHeight||0);
+  const lastW=Number(state.logFab?.vw||0);
+  const lastH=Number(state.logFab?.vh||0);
+  if(lastW>0&&lastH>0&&(lastW!==viewW||lastH!==viewH)){
+    x=(x/lastW)*viewW;
+    y=(y/lastH)*viewH;
+  }
+  const pad=8;
+  const fabW=Math.max(0,logFab.offsetWidth||0);
+  const fabH=Math.max(0,logFab.offsetHeight||0);
+  if(!fabW||!fabH)return;
+  const maxX=Math.max(0,viewW-fabW-pad);
+  const maxY=Math.max(0,viewH-fabH-pad);
+  const nx=Math.max(pad,Math.min(x,maxX));
+  const ny=Math.max(pad,Math.min(y,maxY));
+  state.logFab.x=nx;
+  state.logFab.y=ny;
+  state.logFab.vw=viewW;
+  state.logFab.vh=viewH;
+  logFab.style.left=`${nx}px`;
+  logFab.style.top=`${ny}px`;
+  logFab.style.right='auto';
+  logFab.style.bottom='auto';
+}
 function render(){
   if(state.screen==='home'&&location.hash==='#opponents'){
     state.screen='opponents';
@@ -8033,6 +8074,7 @@ function syncViewport(){
   const orientationChanged=Boolean(lastOrientation)&&orientation!==lastOrientation;
   lastOrientation=orientation;
   document.body.setAttribute('data-orientation',orientation);
+  syncLogFabPosition();
   syncWebViewportGuardAttrs();
   root.style.setProperty('--table-tilt','0deg');
   const blocked=shouldBlockLandscapeMobile();
