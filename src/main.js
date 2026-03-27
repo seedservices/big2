@@ -7305,6 +7305,7 @@ function resultScreenHtml(v,arr){
   const winner=arr.find((p)=>p.count===0)??arr[0];
   const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
   const winnerLastDiscardCards=winnerLastPlay?.cards??[];
+  const showConfetti=Number.isFinite(Number(v.selfSeat))&&winner.seat===v.selfSeat;
   const deductions=v.roundSummary?.deductions??arr.map((p)=>p.seat===winner.seat?0:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]).deduction);
   const winnerGain=Number(v.roundSummary?.winnerGain??deductions.reduce((sum,vv)=>sum+vv,0));
   const detailBySeat=v.roundSummary?.details??arr.map((p)=>p.seat===winner.seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]));
@@ -7352,6 +7353,7 @@ function resultScreenHtml(v,arr){
     </div>`;
   }).join('');
   return`<section class="result-screen">
+    ${showConfetti?`<div class="confetti-layer result-confetti" aria-hidden="true"></div>`:''}
     <div class="result-card">
       <h2 class="title-with-icon"><span class="title-icon title-icon-result" aria-hidden="true"></span><span>${t('resultTitle')}</span></h2>
       <div class="hint">${esc(uiStatus(v.status))}</div>
