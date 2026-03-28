@@ -258,7 +258,7 @@ const I18N={
     reveal:'完局攤牌',
     revealSub:'有人勝出，所有玩家餘牌如下：',
     drag:'可拖曳手牌重新排序',
-    must3:'階磚♦️3出先。',
+    must3:'階磚♦️3出先',
     beat:'你所選牌未能大過上手。',
     cantPass:'話事中不可過牌。',
     retake:'重新話事。',
@@ -7886,6 +7886,10 @@ function bindBackCarousel(comboId){
   let dragStartX=0;
   let dragStartY=0;
   let dragStartOffset=0;
+  let velocity=0;
+  let lastMoveAt=0;
+  let lastMoveX=0;
+  let momentumRaf=0;
   let snapTimer=0;
   let rafId=0;
   let pendingUpdate=false;
@@ -7966,6 +7970,37 @@ function bindBackCarousel(comboId){
       scheduleSelectionUpdate(false);
     });
   };
+  const snapToNearest=()=>{
+    updateSelectionFromOffset('',true);
+    const target=findNearestButton(state.home.backColor);
+    if(target)centerToButton(target,true,state.home.backColor);
+  };
+  const stopMomentum=()=>{
+    if(momentumRaf){
+      cancelAnimationFrame(momentumRaf);
+      momentumRaf=0;
+    }
+  };
+  const startMomentum=()=>{
+    stopMomentum();
+    let lastFrame=performance.now();
+    const step=(now)=>{
+      const dt=Math.min(32,now-lastFrame);
+      lastFrame=now;
+      offsetX+=velocity*dt;
+      velocity*=0.94;
+      normalizeOffset();
+      applyOffset(false);
+      scheduleSelectionUpdate(false);
+      if(Math.abs(velocity)<0.02){
+        momentumRaf=0;
+        snapToNearest();
+        return;
+      }
+      momentumRaf=requestAnimationFrame(step);
+    };
+    momentumRaf=requestAnimationFrame(step);
+  };
   const centerToButton=(btn,animate=true,preferredValue='',allowNormalize=false)=>{
     if(!(btn instanceof HTMLElement))return;
     if(snapTimer){
@@ -8038,11 +8073,16 @@ function bindBackCarousel(comboId){
     if(!(ev.target instanceof HTMLElement))return;
     const onCard=ev.target.closest?.('.combo-btn');
     if(!onCard)return;
+    viewport.setPointerCapture?.(ev.pointerId);
+    stopMomentum();
     dragActive=true;
     dragMoved=false;
     dragStartX=ev.clientX;
     dragStartY=ev.clientY;
     dragStartOffset=offsetX;
+    lastMoveAt=performance.now();
+    lastMoveX=ev.clientX;
+    velocity=0;
     applyOffset(false);
     if(snapTimer){
       window.clearTimeout(snapTimer);
@@ -8054,6 +8094,12 @@ function bindBackCarousel(comboId){
     const dx=ev.clientX-dragStartX;
     const dy=Math.abs(ev.clientY-dragStartY);
     if(Math.abs(dx)>6||dy>6)dragMoved=true;
+    const now=performance.now();
+    const dt=Math.max(8,now-lastMoveAt);
+    const stepX=ev.clientX-lastMoveX;
+    velocity=velocity*0.8+(stepX/dt)*0.2;
+    lastMoveAt=now;
+    lastMoveX=ev.clientX;
     pendingOffsetX=dragStartOffset+dx;
     scheduleOffsetApply();
   });
@@ -8066,12 +8112,15 @@ function bindBackCarousel(comboId){
       applyOffset(false);
       pendingMove=false;
     }
-    updateSelectionFromOffset('',true);
-    const target=findNearestButton(state.home.backColor);
-    if(target)centerToButton(target,true,state.home.backColor);
+    if(dragMoved&&Math.abs(velocity)>0.02){
+      startMomentum();
+      return;
+    }
+    snapToNearest();
   };
   viewport.addEventListener('pointerup',endDrag,{passive:true});
-  viewport.addEventListener('pointercancel',()=>{dragActive=false;});
+  viewport.addEventListener('pointercancel',endDrag,{passive:true});
+  viewport.addEventListener('pointerleave',endDrag,{passive:true});
   viewport.addEventListener('click',(ev)=>{
     if(dragMoved)return;
     if(!(ev.target instanceof HTMLElement))return;

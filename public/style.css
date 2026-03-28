@@ -4436,11 +4436,11 @@ body[data-screen='game'] .table-center-stack {
   position: relative;
   z-index: 6;
 }
-.action-strip .control-row #play-btn { order: 1; }
-.action-strip .control-row #pass-btn { order: 2; }
-.action-strip .control-row #emote-toggle { order: 3; }
+.action-strip .control-row .recommend-anchor { order: 1; }
+.action-strip .control-row #play-btn { order: 2; }
+.action-strip .control-row #pass-btn { order: 3; }
 .action-strip .control-row #auto-sort-btn { order: 4; }
-.action-strip .control-row .recommend-anchor { order: 5; }
+.action-strip .control-row #emote-toggle { order: 5; }
 .action-strip .hand {
   gap: 3px;
   grid-area: hand;
