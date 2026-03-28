@@ -1,4 +1,4 @@
-﻿﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+﻿﻿﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'♦️',red:true},
   {symbol:'♣️',red:false},
@@ -73,19 +73,16 @@ function matchGuestPlayerId(roomData){
   }
   return '';
 }
-let popunderArmedUntil=0;
-let popunderBypassBound=false;
-let popunderDebugOverlay=null;
-let popunderLastOverlay=null;
-let popunderLastOverlayAt=0;
-const POPUNDER_DEBUG=true;
 function armPopunderBypass(ms=5000){
+  return;
   popunderArmedUntil=Date.now()+Math.max(0,Number(ms)||0);
   if(popunderBypassBound)return;
   document.addEventListener('pointerdown',(e)=>{
     if(Date.now()>popunderArmedUntil)return;
     const app=document.getElementById('app');
     if(!app)return;
+    forceRootPointerEvents();
+    purgePopunderOverlays();
     if(!popunderDebugOverlay&&POPUNDER_DEBUG){
       popunderDebugOverlay=document.createElement('div');
       popunderDebugOverlay.style.cssText='position:fixed;left:8px;bottom:8px;z-index:999999;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,0.72);color:#fff;font:12px/1.3 system-ui;max-width:70vw;pointer-events:none;';
@@ -97,8 +94,18 @@ function armPopunderBypass(ms=5000){
     const y=Number.isFinite(touch?.clientY)?touch.clientY:e.clientY;
     if(!Number.isFinite(x)||!Number.isFinite(y))return;
     const top=document.elementFromPoint(x,y);
+    const stackTop=document.elementsFromPoint?document.elementsFromPoint(x,y):[];
+    const bestInApp=stackTop.find((el)=>app.contains(el));
     if(!top||app.contains(top)){
       if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent=`Popunder debug: top=${top?.tagName?.toLowerCase()||'none'} (app)`;
+      if(bestInApp){
+        const btn=bestInApp.closest?.('button,[role="button"],.game-cta-btn')||bestInApp;
+        const init={bubbles:true,cancelable:true,clientX:x,clientY:y};
+        try{btn.dispatchEvent(new PointerEvent('pointerdown',init));}catch{}
+        try{btn.dispatchEvent(new PointerEvent('pointerup',init));}catch{}
+        btn.dispatchEvent(new MouseEvent('click',init));
+        if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent=`Popunder debug: forced click to ${btn.tagName.toLowerCase()}`;
+      }
       return;
     }
     popunderLastOverlay=top;
@@ -110,39 +117,40 @@ function armPopunderBypass(ms=5000){
       popunderDebugOverlay.textContent=`Popunder overlay: ${top.tagName.toLowerCase()}${id}${cls?'.'+cls.replace(/\s+/g,'.'):''} z=${styles.zIndex} pe=${styles.pointerEvents}`;
     }
     const disabled=[];
-    let node=top;
-    while(node&&node!==document.body){
-      const prev=node.style.pointerEvents;
-      disabled.push({node,prev});
-      node.style.pointerEvents='none';
-      node=node.parentElement;
+    if(top!==document.documentElement&&top!==document.body){
+      const prev=top.style.pointerEvents;
+      disabled.push({node:top,prev});
+      top.style.pointerEvents='none';
     }
-    const under=document.elementFromPoint(x,y);
-    if(under&&app.contains(under)){
+    const stack=document.elementsFromPoint?document.elementsFromPoint(x,y):[];
+    let under=null;
+    for(const el of stack){
+      if(!app.contains(el))continue;
+      const btn=el.closest?.('button,[role="button"],.game-cta-btn');
+      if(btn&&app.contains(btn)){
+        under=btn;
+        break;
+      }
+      if(!under)under=el;
+    }
+    if(under){
       e.preventDefault();
       e.stopPropagation();
-      under.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:x,clientY:y}));
-      if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent='Popunder debug: rerouted click to app';
+      const init={bubbles:true,cancelable:true,clientX:x,clientY:y};
+      try{under.dispatchEvent(new PointerEvent('pointerdown',init));}catch{}
+      try{under.dispatchEvent(new PointerEvent('pointerup',init));}catch{}
+      under.dispatchEvent(new MouseEvent('click',init));
+      if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent=`Popunder debug: rerouted click to ${under.tagName.toLowerCase()}`;
     }
-    window.setTimeout(()=>{disabled.forEach(({node,prev})=>{if(node?.isConnected)node.style.pointerEvents=prev||'';});},5000);
+    window.setTimeout(()=>{disabled.forEach(({node,prev})=>{if(node?.isConnected)node.style.pointerEvents=prev||'';});},1500);
   },true);
   popunderBypassBound=true;
 }
 function runPopunderAd(){
   try{
-    const root=[document.documentElement,document.body].filter(Boolean).pop();
-    if(!root)return;
-    if(POPUNDER_DEBUG){
-      if(popunderLastOverlay&&Date.now()-popunderLastOverlayAt<15000){
-        try{popunderLastOverlay.remove();}catch{}
-      }
-    }
-    const script=document.createElement('script');
-    script.dataset.zone='10798259';
-    script.src='https://al5sm.com/tag.min.js';
-    root.appendChild(script);
-    armPopunderBypass(5000);
-    window.setTimeout(()=>{try{window.focus();}catch(err){/* noop */}},0);
+    const url='https://omg10.com/4/10798765';
+    const win=window.open(url,'big2_ad_tab');
+    if(!win)window.location.href=url;
   }catch(err){
     console.warn('popunder ad failed',err);
   }
