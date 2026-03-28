@@ -7600,6 +7600,9 @@ body[data-screen='game'] .side-zone.log-collapsed .log-side-card.collapsed {
   body[data-screen='game'][data-ios='1'] .action-strip .hand {
     overflow: visible !important;
   }
+  body[data-screen='game'][data-ios='1'] .action-zone {
+    padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
+  }
   body[data-screen='game'][data-ios='1'] .action-strip .hand {
     padding-top: 16px !important;
     min-height: calc(var(--card-h) * 1.34 + 34px) !important;
@@ -8234,6 +8237,10 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   body[data-screen='game'][data-log-open='1'] .action-strip {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
+  }
+  body[data-screen='game'][data-ios='1'][data-log-open='0'] .action-zone,
+  body[data-screen='game'][data-ios='1'][data-log-open='1'] .action-zone {
+    padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
   }
   body[data-screen='game'][data-log-open='0'] .side-zone,
   body[data-screen='game'][data-log-open='1'] .side-zone,
