@@ -2676,6 +2676,17 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   line-height: 1;
   vertical-align: middle;
 }
+.title-icon-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -1px;
+  font-size: 1rem;
+  line-height: 1;
+}
 .title-icon-log {
   background-repeat: no-repeat;
   background-position: center;
