@@ -8868,7 +8868,397 @@ function profileFieldValue(profile,field,emptyValue){
   const bank=profile?.[field]??{};
   const key=pickProfileLangKey(bank);
   const fallback=bank.en??bank['zh-HK']??emptyValue;
-  return bank?.[key]??fallback??emptyValue;
+  const value=bank?.[key]??fallback??emptyValue;
+  const preferred=String(state.language||'').trim();
+  if(field==='profile')return translateProfileLines(value,preferred);
+  if(field==='motto')return translateProfileMotto(value,preferred);
+  return value;
+}
+const PROFILE_LINE_TRANSLATIONS_RAW={
+  fr:{
+    'Opens like a slow simmer, then flips the table at the perfect time. He says “one more hand” while already reading your next card.':'Il démarre comme un mijotage, puis renverse la table au moment parfait. Il dit « encore une main » tout en lisant déjà ta prochaine carte.',
+    'He drags you into impatience and ends it on your mistake. Quiet at the table, loud in the math—every card is already booked.':'Il t’entraîne dans l’impatience et conclut sur ton erreur. Silencieux à la table, bruyant dans le calcul—chaque carte est déjà comptée.',
+    'Arranges cards like a chessboard and times turns with a coffee cup. You don’t lose to his cards, you lose to his tempo—even your breathing follows it.':'Il aligne les cartes comme un échiquier et cadence les tours avec une tasse de café. Tu ne perds pas contre ses cartes, tu perds contre son tempo—même ta respiration le suit.',
+    'He remembers your mistakes by tempo and replays them next round. To him, the game is time management, winning is just extra credit.':'Il mémorise tes erreurs par rythme et les rejoue au tour suivant. Pour lui, la partie est une gestion du temps, gagner n’est qu’un bonus.',
+    'Plays like a camera shutter—click, your rhythm is gone. Loves fast attacks, sometimes keeps one card just for the drama.':'Il joue comme un déclencheur d’appareil—clic, ton rythme disparaît. Il adore l’attaque rapide et garde parfois une carte pour le drame.',
+    'He keeps a card when you think he is all-in, then finishes with a dramatic last touch. You are still smiling in the photo while he already cleared the table.':'Il garde une carte quand tu crois qu’il est all‑in, puis finit par un dernier geste dramatique. Tu souris encore sur la photo qu’il a déjà tout nettoyé.',
+    'Looks chill, hides a dagger. Late game bursts like a fast break—so fast you are still thinking when it ends.':'Il a l’air tranquille, cache une dague. Fin de partie, il explose comme une contre‑attaque—si vite que tu réfléchis encore quand tout est fini.',
+    'Few words, but a rapid sequence that makes you question everything. What looks like luck is just his route, pre‑planned.':'Peu de mots, mais une rafale qui te fait tout remettre en question. Ce qui semble être de la chance, c’est juste son itinéraire préparé.',
+    'Boxes with the deck—probe, feint, then a heavy punch. Blink and the table is empty, and your reactions feel slow.':'Il boxe avec le paquet—sonde, feinte, puis un coup lourd. Tu clignes des yeux, la table est vide et tes réactions semblent lentes.',
+    'He lets you feel safe, then hits the accelerator to finish. By the time you notice, the tempo is locked.':'Il te laisse te sentir en sécurité, puis accélère pour finir. Quand tu t’en rends compte, le tempo est verrouillé.',
+    'Speaks slow, plays slower—always on beat. The more you rush, the steadier he becomes, like a slow drum.':'Il parle lentement, joue encore plus lentement—toujours sur le tempo. Plus tu te presses, plus il devient stable, comme un tambour lent.',
+    'He slows the tempo until you drift, then closes with clean hands. The last move is quiet, but it lands.':'Il ralentit le tempo jusqu’à te faire décrocher, puis conclut proprement. Le dernier coup est silencieux, mais il frappe juste.',
+    'Treats the table like an oven—preheat, then serve a surprise. Hopes you overreach, then punishes it.':'Elle traite la table comme un four—pré‑chauffe puis sert la surprise. Elle espère que tu dépasses les limites, puis elle punit.',
+    'She waits for you to spiral; that is when dessert is served. What you think is mercy is just heat control.':'Elle attend que tu dérailles; c’est l’heure du dessert. Ce que tu prends pour de la clémence n’est qu’un contrôle de température.',
+    'Soft moves, sharp results. Don’t let the smile fool you—it is just smoke.':'Mouvements doux, résultats tranchants. Ne te laisse pas tromper par le sourire—ce n’est que de la fumée.',
+    'You think she is slow-building, she is just baiting you. When you feel safe, the smallest card pushes you off.':'Tu crois qu’elle monte lentement, elle te tend un appât. Quand tu te crois en sécurité, la plus petite carte te fait tomber.',
+    'Strings combos like jazz riffs. When you think she is lost, she is setting a trap, each hand a metronome.':'Elle enchaîne les combos comme des riffs de jazz. Quand tu crois qu’elle s’égare, elle pose un piège, chaque main un métronome.',
+    'She saves the strongest combo for the moment you feel safe. Once you relax, the chorus hits.':'Elle garde le combo le plus fort pour le moment où tu te sens en sécurité. Dès que tu te relâches, le refrain tombe.',
+    'Builds a puzzle, then disassembles your hand. Conservative on the surface, ruthless underneath, every card has a slot.':'Elle assemble un puzzle puis démonte ta main. Prudente en surface, impitoyable dessous; chaque carte a sa place.',
+    'Her table is a puzzle; the last piece is always in her hand. When you think you are one card away, she is already packing.':'Sa table est un puzzle; la dernière pièce est toujours dans sa main. Quand tu penses être à une carte, elle range déjà la boîte.',
+    'Always takes the scenic route—one hand, three lines. You never know her next stop because she likes the detour.':'Elle prend toujours le chemin panoramique—une main, trois lignes. Tu ne connais jamais sa prochaine étape, elle aime les détours.',
+    'Her routes change; your predictions do not. She uses your confidence to pull you off course.':'Ses routes changent; tes prévisions, non. Elle utilise ta confiance pour te faire dévier.',
+    'Slow grower, then unstoppable bloom. Most dangerous in the last few hands—you realize too late.':'Démarre lentement puis devient irrésistible. La plus dangereuse dans les dernières mains—tu le comprends trop tard.',
+    'First half is a stroll, second half is fireworks. She waits for your guard to drop, then lights it up.':'La première moitié est une promenade, la seconde un feu d’artifice. Elle attend que ta garde tombe, puis allume la mèche.',
+    'She moves like a sea breeze—fast in, fast out. Early tempo pulls you off course; late game she just closes the line.':'Elle bouge comme une brise marine—entrée rapide, sortie rapide. Le tempo du début te dévie; en fin de partie, elle ferme la ligne.',
+    'She makes ordinary cards look premium, so you think she is conserving. She is really conserving your options.':'Elle rend les cartes ordinaires luxueuses, tu crois qu’elle économise. En réalité, elle économise tes options.',
+    'More awake as night deepens, her tempo flashes like neon. She speeds up when you relax.':'Plus la nuit avance, plus elle est éveillée; son tempo clignote comme un néon. Elle accélère quand tu te relâches.',
+    'She loves the night’s rhythm and pulls you into it with every hand.':'Elle aime le rythme de la nuit et t’y entraîne à chaque main.',
+    'Lives for the night. Faster tempo, sharper strikes, no hesitation.':'Il vit pour la nuit. Tempo plus rapide, frappes plus nettes, aucune hésitation.',
+    'Night is his arena—neon-fast plays and clean finishes before you can react.':'La nuit est son arène—des coups néon‑rapides et des fins propres avant que tu réagisses.',
+    'Methodical and precise, he models first then executes. Steady tempo, calibrated plays.':'Méthodique et précis, il modélise d’abord puis exécute. Tempo stable, coups calibrés.',
+    'He likes drills and endurance—long games turn into his rhythm.':'Il aime l’entraînement et l’endurance—les longues parties deviennent son rythme.',
+    'Plays with a star map in mind—predicts your next move. Clean, fast, and surgical, like a GPS into a dead end.':'Elle joue avec une carte du ciel en tête—prédit ton prochain coup. Propre, rapide, chirurgical, comme un GPS vers une impasse.',
+    'She clears the obvious path, then blocks the hidden one. You think you have three routes; she keeps one.':'Elle ouvre la voie évidente puis bloque la voie cachée. Tu crois avoir trois routes, elle n’en laisse qu’une.',
+    'All-in on speed. The first rush is meant to push you downhill and keep you defending.':'Tout sur la vitesse. La première vague sert à te faire dévaler et à te maintenir en défense.',
+    'He wants you to run with him. You cannot. By the time you breathe, he is waving at the finish.':'Il veut que tu cours avec lui. Tu ne peux pas. Quand tu reprends ton souffle, il te salue déjà à la ligne d’arrivée.',
+    'Plays like calligraphy—clean lines, no wasted strokes. You think he is slow, he just refuses chaos.':'Il joue comme la calligraphie—lignes nettes, aucun trait perdu. Tu le crois lent, il refuse juste le chaos.',
+    'He hates wasting cards; every card must play a role. Try to disrupt him and he answers with shorter, cleaner lines.':'Il déteste gâcher les cartes; chacune doit avoir un rôle. Perturbe‑le et il répond avec des lignes plus courtes, plus nettes.',
+    'High slopes, high stakes. He is fine losing once for a big return.':'Haute pente, gros enjeux. Il accepte de perdre une fois pour un gros retour.',
+    'He would rather flip the table once than win small ten times. What looks wild is just his favorite angle.':'Il préfère renverser la table une fois que gagner petit dix fois. Ce qui paraît sauvage n’est que son angle favori.',
+    'Builds patiently, then knocks the tower down. Her patience outlasts your hand.':'Elle construit patiemment puis renverse la tour. Sa patience dépasse ta main.',
+    'She quietly seals off the line you love most. When you notice, your road already belongs to her.':'Elle ferme en silence la ligne que tu aimes le plus. Quand tu t’en rends compte, ta route est déjà à elle.',
+    'Switches pace on a dime. Relax once and she finishes, like lights out.':'Elle change de rythme en un instant. Détends‑toi une fois et elle finit, comme une extinction des lumières.',
+    'She pauses a beat on purpose, so you blink first. What feels like a glitch is her metronome.':'Elle ralentit exprès d’un temps pour que tu clignes d’abord. Ce qui semble un bug, c’est son métronome.',
+    'Low error rate, high discipline. You beat him by taking risks, but risk is his trap.':'Faible taux d’erreur, grande discipline. Tu le bats en prenant des risques, mais le risque est son piège.',
+    'He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.':'Il te force à choisir puis bloque les deux routes. Plus tu poursuis la victoire, plus tu tombes dans son tempo.',
+    'Balanced and steady—friendly pace, no free wins. She is like perfect air‑conditioning, always “just right.”':'Équilibrée et stable—rythme agréable, aucune victoire gratuite. Comme une clim parfaite, toujours « juste bien ».',
+    'She keeps the game at just right so you will not risk it. While you hesitate, she is already done.':'Elle maintient la partie « juste bien » pour que tu n’oses pas risquer. Pendant que tu hésites, c’est déjà fini.',
+    'Prefers head‑on clashes. The longer the fight, the more alive he gets.':'Il préfère les chocs frontaux. Plus le combat dure, plus il s’anime.',
+    'The more you press, the harder he snaps back. You think he is surviving; he is charging.':'Plus tu appuies, plus il riposte fort. Tu crois qu’il survit; il se recharge.',
+    'Soft vibe, sharp math. Deadly on the last card, like the final stroke.':'Ambiance douce, calcul tranchant. Mortelle sur la dernière carte, comme le trait final.',
+    'Her smile is bait, her last card is the lock. You think she is chatting; she is closing the net.':'Son sourire est l’appât, sa dernière carte est le verrou. Tu crois qu’elle bavarde, elle referme le filet.',
+    'He plays like a star chart—marks every exit, then closes them one by one. You think you have options; he has already ringed you.':'Il joue comme une carte des étoiles—marque chaque sortie puis les ferme une à une. Tu crois avoir des options; il t’a déjà encerclé.',
+    'He is not afraid of slow, only of you rushing. The moment you panic, he ends it with the simplest cards.':'Il ne craint pas la lenteur, seulement ta précipitation. Dès que tu paniques, il conclut avec les cartes les plus simples.'
+  },
+  de:{
+    'Opens like a slow simmer, then flips the table at the perfect time. He says “one more hand” while already reading your next card.':'Er beginnt wie ein leises Köcheln und kippt dann im perfekten Moment den Tisch. Er sagt „noch eine Hand“, während er schon deine nächste Karte liest.',
+    'He drags you into impatience and ends it on your mistake. Quiet at the table, loud in the math—every card is already booked.':'Er zieht dich in Ungeduld und beendet es mit deinem Fehler. Am Tisch leise, in der Mathematik laut – jede Karte ist schon verbucht.',
+    'Arranges cards like a chessboard and times turns with a coffee cup. You don’t lose to his cards, you lose to his tempo—even your breathing follows it.':'Er ordnet Karten wie ein Schachbrett und misst die Züge mit einer Kaffeetasse. Du verlierst nicht an seinen Karten, sondern an seinem Tempo – selbst dein Atem folgt ihm.',
+    'He remembers your mistakes by tempo and replays them next round. To him, the game is time management, winning is just extra credit.':'Er merkt sich deine Fehler im Tempo und spielt sie in der nächsten Runde nach. Für ihn ist das Spiel Zeitmanagement, Gewinnen ist nur Extra‑Punkte.',
+    'Plays like a camera shutter—click, your rhythm is gone. Loves fast attacks, sometimes keeps one card just for the drama.':'Er spielt wie ein Kameraverschluss – klick, dein Rhythmus ist weg. Er liebt schnelle Angriffe und behält manchmal eine Karte nur für die Dramaturgie.',
+    'He keeps a card when you think he is all-in, then finishes with a dramatic last touch. You are still smiling in the photo while he already cleared the table.':'Er behält eine Karte, wenn du denkst, er ist all‑in, und beendet dann mit einem dramatischen letzten Zug. Du lächelst noch im Foto, während er den Tisch schon leer geräumt hat.',
+    'Looks chill, hides a dagger. Late game bursts like a fast break—so fast you are still thinking when it ends.':'Wirkt entspannt, verbirgt einen Dolch. Im Endspiel explodiert er wie ein Fastbreak – so schnell, dass du noch denkst, wenn es vorbei ist.',
+    'Few words, but a rapid sequence that makes you question everything. What looks like luck is just his route, pre‑planned.':'Wenig Worte, aber eine schnelle Sequenz, die alles infrage stellt. Was wie Glück aussieht, ist nur seine vorgeplante Route.',
+    'Boxes with the deck—probe, feint, then a heavy punch. Blink and the table is empty, and your reactions feel slow.':'Er boxt mit dem Deck – tasten, fintieren, dann ein harter Schlag. Ein Blinzeln, der Tisch ist leer und deine Reaktion wirkt langsam.',
+    'He lets you feel safe, then hits the accelerator to finish. By the time you notice, the tempo is locked.':'Er lässt dich dich sicher fühlen, dann gibt er Gas zum Finish. Wenn du es merkst, ist das Tempo schon festgezurrt.',
+    'Speaks slow, plays slower—always on beat. The more you rush, the steadier he becomes, like a slow drum.':'Er spricht langsam, spielt noch langsamer – immer im Takt. Je mehr du hetzt, desto ruhiger wird er, wie eine langsame Trommel.',
+    'He slows the tempo until you drift, then closes with clean hands. The last move is quiet, but it lands.':'Er verlangsamt das Tempo, bis du wegdriftest, und schließt dann sauber ab. Der letzte Zug ist leise, aber sitzt.',
+    'Treats the table like an oven—preheat, then serve a surprise. Hopes you overreach, then punishes it.':'Sie behandelt den Tisch wie einen Ofen – vorheizen, dann die Überraschung servieren. Sie hofft, dass du überziehst, und bestraft es.',
+    'She waits for you to spiral; that is when dessert is served. What you think is mercy is just heat control.':'Sie wartet, bis du ins Straucheln gerätst – dann gibt es Dessert. Was du für Gnade hältst, ist nur Temperaturkontrolle.',
+    'Soft moves, sharp results. Don’t let the smile fool you—it is just smoke.':'Sanfte Züge, scharfe Ergebnisse. Lass dich vom Lächeln nicht täuschen – es ist nur Rauch.',
+    'You think she is slow-building, she is just baiting you. When you feel safe, the smallest card pushes you off.':'Du denkst, sie baut langsam auf, dabei ködert sie dich nur. Wenn du dich sicher fühlst, stößt dich die kleinste Karte.',
+    'Strings combos like jazz riffs. When you think she is lost, she is setting a trap, each hand a metronome.':'Sie reiht Kombos wie Jazz‑Riffs aneinander. Wenn du denkst, sie ist verloren, stellt sie die Falle – jede Hand ein Metronom.',
+    'She saves the strongest combo for the moment you feel safe. Once you relax, the chorus hits.':'Sie spart das stärkste Kombo für den Moment auf, in dem du dich sicher fühlst. Sobald du dich entspannst, schlägt der Refrain ein.',
+    'Builds a puzzle, then disassembles your hand. Conservative on the surface, ruthless underneath, every card has a slot.':'Sie baut ein Puzzle und zerlegt dann deine Hand. Außen vorsichtig, innen gnadenlos – jede Karte hat ihren Platz.',
+    'Her table is a puzzle; the last piece is always in her hand. When you think you are one card away, she is already packing.':'Ihr Tisch ist ein Puzzle; das letzte Teil liegt immer in ihrer Hand. Wenn du denkst, du bist eine Karte entfernt, packt sie schon ein.',
+    'Always takes the scenic route—one hand, three lines. You never know her next stop because she likes the detour.':'Sie nimmt immer die Nebenstrecke – eine Hand, drei Linien. Du kennst nie ihren nächsten Halt, sie liebt Umwege.',
+    'Her routes change; your predictions do not. She uses your confidence to pull you off course.':'Ihre Routen wechseln, deine Vorhersagen nicht. Sie nutzt dein Selbstvertrauen, um dich vom Kurs abzubringen.',
+    'Slow grower, then unstoppable bloom. Most dangerous in the last few hands—you realize too late.':'Langsam im Anlauf, dann unaufhaltsam. Am gefährlichsten in den letzten Händen – du merkst es zu spät.',
+    'First half is a stroll, second half is fireworks. She waits for your guard to drop, then lights it up.':'Die erste Hälfte ist ein Spaziergang, die zweite ein Feuerwerk. Sie wartet, bis deine Deckung fällt, und zündet dann.',
+    'She moves like a sea breeze—fast in, fast out. Early tempo pulls you off course; late game she just closes the line.':'Sie bewegt sich wie eine Meeresbrise – schnell rein, schnell raus. Frühes Tempo bringt dich vom Kurs; im Endspiel schließt sie einfach die Linie.',
+    'She makes ordinary cards look premium, so you think she is conserving. She is really conserving your options.':'Sie lässt gewöhnliche Karten edel wirken, sodass du denkst, sie spart. In Wahrheit spart sie deine Optionen.',
+    'More awake as night deepens, her tempo flashes like neon. She speeds up when you relax.':'Je tiefer die Nacht, desto wacher wird sie; ihr Tempo blitzt wie Neon. Sie beschleunigt, wenn du dich entspannst.',
+    'She loves the night’s rhythm and pulls you into it with every hand.':'Sie liebt den Rhythmus der Nacht und zieht dich mit jeder Hand hinein.',
+    'Lives for the night. Faster tempo, sharper strikes, no hesitation.':'Er lebt für die Nacht. Schnelleres Tempo, schärfere Schläge, kein Zögern.',
+    'Night is his arena—neon-fast plays and clean finishes before you can react.':'Die Nacht ist seine Arena – neon‑schnelle Züge und saubere Abschlüsse, bevor du reagieren kannst.',
+    'Methodical and precise, he models first then executes. Steady tempo, calibrated plays.':'Methodisch und präzise – er modelliert zuerst, dann führt er aus. Stetiges Tempo, kalibrierte Züge.',
+    'He likes drills and endurance—long games turn into his rhythm.':'Er liebt Training und Ausdauer – lange Partien werden zu seinem Rhythmus.',
+    'Plays with a star map in mind—predicts your next move. Clean, fast, and surgical, like a GPS into a dead end.':'Sie spielt mit einer Sternkarte im Kopf – sagt deinen nächsten Zug voraus. Sauber, schnell, chirurgisch, wie ein GPS in eine Sackgasse.',
+    'She clears the obvious path, then blocks the hidden one. You think you have three routes; she keeps one.':'Sie räumt den offensichtlichen Weg frei und blockiert dann den versteckten. Du glaubst drei Routen zu haben; sie lässt eine.',
+    'All-in on speed. The first rush is meant to push you downhill and keep you defending.':'Alles auf Tempo. Der erste Schub soll dich bergab drücken und dich in der Verteidigung halten.',
+    'He wants you to run with him. You cannot. By the time you breathe, he is waving at the finish.':'Er will, dass du mit ihm läufst. Du kannst nicht. Wenn du wieder Luft holst, winkt er schon im Ziel.',
+    'Plays like calligraphy—clean lines, no wasted strokes. You think he is slow, he just refuses chaos.':'Er spielt wie Kalligrafie – saubere Linien, kein Strich zu viel. Du denkst, er sei langsam, er verweigert nur Chaos.',
+    'He hates wasting cards; every card must play a role. Try to disrupt him and he answers with shorter, cleaner lines.':'Er hasst es, Karten zu verschwenden; jede Karte muss eine Rolle spielen. Stör ihn, und er antwortet mit kürzeren, klareren Linien.',
+    'High slopes, high stakes. He is fine losing once for a big return.':'Hohe Pisten, hohe Einsätze. Er ist okay damit, einmal zu verlieren für einen großen Gewinn.',
+    'He would rather flip the table once than win small ten times. What looks wild is just his favorite angle.':'Lieber einmal den Tisch drehen als zehnmal klein gewinnen. Was wild aussieht, ist nur sein Lieblingswinkel.',
+    'Builds patiently, then knocks the tower down. Her patience outlasts your hand.':'Sie baut geduldig auf und stößt dann den Turm um. Ihre Geduld hält länger als deine Hand.',
+    'She quietly seals off the line you love most. When you notice, your road already belongs to her.':'Sie versiegelt leise die Linie, die du am meisten magst. Wenn du es merkst, gehört dein Weg schon ihr.',
+    'Switches pace on a dime. Relax once and she finishes, like lights out.':'Sie wechselt das Tempo im Handumdrehen. Entspann dich einmal, und sie beendet es – wie Licht aus.',
+    'She pauses a beat on purpose, so you blink first. What feels like a glitch is her metronome.':'Sie hält bewusst einen Beat, damit du zuerst blinzelst. Was wie ein Fehler wirkt, ist ihr Metronom.',
+    'Low error rate, high discipline. You beat him by taking risks, but risk is his trap.':'Geringe Fehlerquote, hohe Disziplin. Du schlägst ihn, wenn du Risiken gehst – aber Risiko ist seine Falle.',
+    'He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.':'Er zwingt dich zur Wahl und blockiert dann beide Wege. Je mehr du dem Sieg nachjagst, desto tiefer fällst du in sein Tempo.',
+    'Balanced and steady—friendly pace, no free wins. She is like perfect air‑conditioning, always “just right.”':'Ausgewogen und stetig – angenehmes Tempo, keine Geschenke. Wie eine perfekte Klimaanlage, immer „genau richtig“.',
+    'She keeps the game at just right so you will not risk it. While you hesitate, she is already done.':'Sie hält das Spiel „genau richtig“, damit du kein Risiko eingehst. Während du zögerst, ist sie schon fertig.',
+    'Prefers head‑on clashes. The longer the fight, the more alive he gets.':'Er bevorzugt den Frontal‑Zusammenstoß. Je länger der Kampf, desto lebendiger wird er.',
+    'The more you press, the harder he snaps back. You think he is surviving; he is charging.':'Je mehr du drückst, desto härter schlägt er zurück. Du denkst, er überlebt; er lädt auf.',
+    'Soft vibe, sharp math. Deadly on the last card, like the final stroke.':'Sanfter Vibe, scharfe Mathematik. Tödlich auf der letzten Karte, wie der letzte Pinselstrich.',
+    'Her smile is bait, her last card is the lock. You think she is chatting; she is closing the net.':'Ihr Lächeln ist Köder, ihre letzte Karte ist das Schloss. Du denkst, sie plaudert; sie zieht das Netz zu.',
+    'He plays like a star chart—marks every exit, then closes them one by one. You think you have options; he has already ringed you.':'Er spielt wie eine Sternkarte – markiert jeden Ausgang und schließt sie nacheinander. Du meinst Optionen zu haben; er hat dich schon umringt.',
+    'He is not afraid of slow, only of you rushing. The moment you panic, he ends it with the simplest cards.':'Er hat keine Angst vor Langsamkeit, nur vor deiner Hektik. Sobald du panisch wirst, beendet er es mit den einfachsten Karten.'
+  },
+  es:{
+    'Opens like a slow simmer, then flips the table at the perfect time. He says “one more hand” while already reading your next card.':'Empieza como un hervor lento y da la vuelta a la mesa en el momento perfecto. Dice «una mano más» mientras ya lee tu siguiente carta.',
+    'He drags you into impatience and ends it on your mistake. Quiet at the table, loud in the math—every card is already booked.':'Te arrastra a la impaciencia y remata con tu error. Silencioso en la mesa, ruidoso en el cálculo: cada carta ya está contabilizada.',
+    'Arranges cards like a chessboard and times turns with a coffee cup. You don’t lose to his cards, you lose to his tempo—even your breathing follows it.':'Ordena las cartas como un tablero de ajedrez y cronometra los turnos con una taza de café. No pierdes por sus cartas, pierdes por su tempo; hasta tu respiración lo sigue.',
+    'He remembers your mistakes by tempo and replays them next round. To him, the game is time management, winning is just extra credit.':'Recuerda tus errores por el ritmo y los repite en la siguiente ronda. Para él, el juego es gestión del tiempo; ganar es un extra.',
+    'Plays like a camera shutter—click, your rhythm is gone. Loves fast attacks, sometimes keeps one card just for the drama.':'Juega como un obturador: clic, tu ritmo desaparece. Le encantan los ataques rápidos y a veces guarda una carta solo por el drama.',
+    'He keeps a card when you think he is all-in, then finishes with a dramatic last touch. You are still smiling in the photo while he already cleared the table.':'Guarda una carta cuando crees que va con todo y remata con un toque final dramático. Tú sigues sonriendo en la foto mientras él ya limpió la mesa.',
+    'Looks chill, hides a dagger. Late game bursts like a fast break—so fast you are still thinking when it ends.':'Parece relajado, esconde una daga. En el final estalla como un contraataque: tan rápido que sigues pensando cuando ya terminó.',
+    'Few words, but a rapid sequence that makes you question everything. What looks like luck is just his route, pre‑planned.':'Pocas palabras, pero una secuencia rápida que te hace dudar de todo. Lo que parece suerte es solo su ruta planeada.',
+    'Boxes with the deck—probe, feint, then a heavy punch. Blink and the table is empty, and your reactions feel slow.':'Boxea con la baraja: tantea, amaga y suelta un golpe fuerte. Parpadeas y la mesa está vacía, tus reacciones se sienten lentas.',
+    'He lets you feel safe, then hits the accelerator to finish. By the time you notice, the tempo is locked.':'Te hace sentir seguro y luego acelera para terminar. Cuando te das cuenta, el tempo ya está cerrado.',
+    'Speaks slow, plays slower—always on beat. The more you rush, the steadier he becomes, like a slow drum.':'Habla lento, juega más lento todavía, siempre a tiempo. Cuanto más te apresuras, más firme se vuelve, como un tambor lento.',
+    'He slows the tempo until you drift, then closes with clean hands. The last move is quiet, but it lands.':'Baja el tempo hasta que te desconectas y cierra con manos limpias. El último movimiento es silencioso, pero pega.',
+    'Treats the table like an oven—preheat, then serve a surprise. Hopes you overreach, then punishes it.':'Trata la mesa como un horno: precalienta y luego sirve la sorpresa. Espera que te excedas y te castiga.',
+    'She waits for you to spiral; that is when dessert is served. What you think is mercy is just heat control.':'Espera a que te descompongas; ahí se sirve el postre. Lo que crees misericordia es solo control del fuego.',
+    'Soft moves, sharp results. Don’t let the smile fool you—it is just smoke.':'Movimientos suaves, resultados afilados. No te engañe la sonrisa: es solo humo.',
+    'You think she is slow-building, she is just baiting you. When you feel safe, the smallest card pushes you off.':'Crees que va lento, pero solo te está cebando. Cuando te sientes seguro, la carta más pequeña te empuja.',
+    'Strings combos like jazz riffs. When you think she is lost, she is setting a trap, each hand a metronome.':'Encadena combos como riffs de jazz. Cuando crees que se perdió, está armando la trampa; cada mano es un metrónomo.',
+    'She saves the strongest combo for the moment you feel safe. Once you relax, the chorus hits.':'Guarda el combo más fuerte para el momento en que te sientes seguro. Cuando te relajas, llega el estribillo.',
+    'Builds a puzzle, then disassembles your hand. Conservative on the surface, ruthless underneath, every card has a slot.':'Arma un rompecabezas y luego desarma tu mano. Conservadora por fuera, implacable por dentro; cada carta tiene su lugar.',
+    'Her table is a puzzle; the last piece is always in her hand. When you think you are one card away, she is already packing.':'Su mesa es un rompecabezas; la última pieza siempre está en su mano. Cuando crees que te falta una carta, ella ya está guardando.',
+    'Always takes the scenic route—one hand, three lines. You never know her next stop because she likes the detour.':'Siempre toma la ruta panorámica: una mano, tres caminos. Nunca sabes su siguiente parada porque le gustan los desvíos.',
+    'Her routes change; your predictions do not. She uses your confidence to pull you off course.':'Sus rutas cambian; tus predicciones no. Usa tu confianza para sacarte del rumbo.',
+    'Slow grower, then unstoppable bloom. Most dangerous in the last few hands—you realize too late.':'Crece lento y luego es imparable. Más peligrosa en las últimas manos; te das cuenta tarde.',
+    'First half is a stroll, second half is fireworks. She waits for your guard to drop, then lights it up.':'La primera mitad es un paseo, la segunda es fuegos artificiales. Espera a que bajes la guardia y enciende la mecha.',
+    'She moves like a sea breeze—fast in, fast out. Early tempo pulls you off course; late game she just closes the line.':'Se mueve como una brisa marina: entra rápido, sale rápido. El tempo inicial te saca del rumbo; al final solo cierra la línea.',
+    'She makes ordinary cards look premium, so you think she is conserving. She is really conserving your options.':'Hace que cartas comunes parezcan de lujo; crees que se guarda, pero en realidad te guarda tus opciones.',
+    'More awake as night deepens, her tempo flashes like neon. She speeds up when you relax.':'Cuanto más avanza la noche, más despierta está; su tempo parpadea como neón. Acelera cuando te relajas.',
+    'She loves the night’s rhythm and pulls you into it with every hand.':'Ama el ritmo de la noche y te arrastra a él con cada mano.',
+    'Lives for the night. Faster tempo, sharper strikes, no hesitation.':'Vive para la noche. Tempo más rápido, golpes más afilados, sin dudar.',
+    'Night is his arena—neon-fast plays and clean finishes before you can react.':'La noche es su arena: jugadas de neón, rápidas, y finales limpios antes de que reacciones.',
+    'Methodical and precise, he models first then executes. Steady tempo, calibrated plays.':'Metódico y preciso: primero modela, luego ejecuta. Tempo estable, jugadas calibradas.',
+    'He likes drills and endurance—long games turn into his rhythm.':'Le gustan los entrenamientos y la resistencia; las partidas largas se convierten en su ritmo.',
+    'Plays with a star map in mind—predicts your next move. Clean, fast, and surgical, like a GPS into a dead end.':'Juega con un mapa estelar en la mente y predice tu siguiente movimiento. Limpia, rápida y quirúrgica, como un GPS hacia un callejón sin salida.',
+    'She clears the obvious path, then blocks the hidden one. You think you have three routes; she keeps one.':'Limpia el camino obvio y luego bloquea el oculto. Crees tener tres rutas; ella deja una.',
+    'All-in on speed. The first rush is meant to push you downhill and keep you defending.':'Todo a la velocidad. La primera embestida busca empujarte cuesta abajo y mantenerte defendiendo.',
+    'He wants you to run with him. You cannot. By the time you breathe, he is waving at the finish.':'Quiere que corras con él. No puedes. Cuando recuperas el aliento, ya te está saludando en la meta.',
+    'Plays like calligraphy—clean lines, no wasted strokes. You think he is slow, he just refuses chaos.':'Juega como la caligrafía: líneas limpias, ningún trazo desperdiciado. Crees que es lento, solo rechaza el caos.',
+    'He hates wasting cards; every card must play a role. Try to disrupt him and he answers with shorter, cleaner lines.':'Odia desperdiciar cartas; cada carta debe tener un papel. Si lo perturbas, responde con líneas más cortas y limpias.',
+    'High slopes, high stakes. He is fine losing once for a big return.':'Altas pendientes, grandes apuestas. Le vale perder una vez por un gran retorno.',
+    'He would rather flip the table once than win small ten times. What looks wild is just his favorite angle.':'Prefiere voltear la mesa una vez antes que ganar pequeño diez veces. Lo que parece salvaje es solo su ángulo favorito.',
+    'Builds patiently, then knocks the tower down. Her patience outlasts your hand.':'Construye con paciencia y luego derriba la torre. Su paciencia dura más que tu mano.',
+    'She quietly seals off the line you love most. When you notice, your road already belongs to her.':'Sella en silencio la línea que más te gusta. Cuando lo notas, tu camino ya es suyo.',
+    'Switches pace on a dime. Relax once and she finishes, like lights out.':'Cambia de ritmo al instante. Relájate una vez y termina, como apagón.',
+    'She pauses a beat on purpose, so you blink first. What feels like a glitch is her metronome.':'Se detiene un compás a propósito para que tú parpadees primero. Lo que parece un fallo es su metrónomo.',
+    'Low error rate, high discipline. You beat him by taking risks, but risk is his trap.':'Baja tasa de error, alta disciplina. Le ganas tomando riesgos, pero el riesgo es su trampa.',
+    'He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.':'Te obliga a elegir y luego bloquea ambos caminos. Cuanto más persigues la victoria, más caes en su tempo.',
+    'Balanced and steady—friendly pace, no free wins. She is like perfect air‑conditioning, always “just right.”':'Equilibrada y constante: ritmo amable, sin victorias regaladas. Como un aire acondicionado perfecto, siempre «justo».',
+    'She keeps the game at just right so you will not risk it. While you hesitate, she is already done.':'Mantiene el juego «justo» para que no arriesgues. Mientras dudas, ella ya terminó.',
+    'Prefers head‑on clashes. The longer the fight, the more alive he gets.':'Prefiere los choques frontales. Cuanto más larga la pelea, más vivo se siente.',
+    'The more you press, the harder he snaps back. You think he is surviving; he is charging.':'Cuanto más presionas, más fuerte responde. Crees que aguanta; en realidad se está cargando.',
+    'Soft vibe, sharp math. Deadly on the last card, like the final stroke.':'Vibra suave, cálculo afilado. Letal en la última carta, como el trazo final.',
+    'Her smile is bait, her last card is the lock. You think she is chatting; she is closing the net.':'Su sonrisa es el cebo, su última carta es el cerrojo. Crees que charla; está cerrando la red.',
+    'He plays like a star chart—marks every exit, then closes them one by one. You think you have options; he has already ringed you.':'Juega como un mapa estelar: marca cada salida y luego las cierra una a una. Crees tener opciones; ya te rodeó.',
+    'He is not afraid of slow, only of you rushing. The moment you panic, he ends it with the simplest cards.':'No teme la lentitud, solo tu prisa. En cuanto entras en pánico, termina con las cartas más simples.'
+  },
+  ja:{
+    'Opens like a slow simmer, then flips the table at the perfect time. He says “one more hand” while already reading your next card.':'じわじわ入って、絶妙なタイミングで流れをひっくり返す。「あと一手」と言いながら次のカードまで読んでいる。',
+    'He drags you into impatience and ends it on your mistake. Quiet at the table, loud in the math—every card is already booked.':'焦らせてミスを引き出し、その一瞬で終わらせる。卓では静かだが計算は饒舌で、すべてのカードが記帳済み。',
+    'Arranges cards like a chessboard and times turns with a coffee cup. You don’t lose to his cards, you lose to his tempo—even your breathing follows it.':'カードをチェス盤のように並べ、コーヒーカップでテンポを測る。負けるのは手札ではなく彼のリズムで、呼吸さえ合わせられる。',
+    'He remembers your mistakes by tempo and replays them next round. To him, the game is time management, winning is just extra credit.':'ミスのリズムを覚えて次の局で再現する。彼にとって勝敗はオマケで、ゲームは時間管理。',
+    'Plays like a camera shutter—click, your rhythm is gone. Loves fast attacks, sometimes keeps one card just for the drama.':'シャッターのようにプレーする。カシャッと一瞬でリズムが崩れる。速攻が好きで、演出のために一枚残すこともある。',
+    'He keeps a card when you think he is all-in, then finishes with a dramatic last touch. You are still smiling in the photo while he already cleared the table.':'全力だと思わせて一枚残し、最後にドラマチックに締める。写真ではまだ笑っているのに、卓はもう空。',
+    'Looks chill, hides a dagger. Late game bursts like a fast break—so fast you are still thinking when it ends.':'穏やかに見えて刃を隠している。終盤は速攻のように連続で押し切り、考えている間に終わる。',
+    'Few words, but a rapid sequence that makes you question everything. What looks like luck is just his route, pre‑planned.':'口数は少ないが連打で揺さぶる。運に見えるのは、計画されたルートにすぎない。',
+    'Boxes with the deck—probe, feint, then a heavy punch. Blink and the table is empty, and your reactions feel slow.':'探り、フェイント、そして強打。瞬きしたら卓は空で、反応が遅く感じる。',
+    'He lets you feel safe, then hits the accelerator to finish. By the time you notice, the tempo is locked.':'安心させてから加速して締める。気づく頃にはテンポが固定されている。',
+    'Speaks slow, plays slower—always on beat. The more you rush, the steadier he becomes, like a slow drum.':'話し方はゆっくり、プレーはさらにゆっくり。常にビート通りで、焦るほど彼は安定する。',
+    'He slows the tempo until you drift, then closes with clean hands. The last move is quiet, but it lands.':'テンポを落として意識をずらし、最後はきれいに締める。静かな一手だが決まる。',
+    'Treats the table like an oven—preheat, then serve a surprise. Hopes you overreach, then punishes it.':'卓はオーブン。温めてからサプライズを出す。無理をさせて、それを罰する。',
+    'She waits for you to spiral; that is when dessert is served. What you think is mercy is just heat control.':'崩れた瞬間がデザートの時間。優しさに見えるのは火加減の調整だけ。',
+    'Soft moves, sharp results. Don’t let the smile fool you—it is just smoke.':'動きは柔らかく、結果は鋭い。笑顔に騙されるな、ただの煙幕だ。',
+    'You think she is slow-building, she is just baiting you. When you feel safe, the smallest card pushes you off.':'じっくり育てているように見えて、ただの誘い。安心した瞬間、最小のカードで落とされる。',
+    'Strings combos like jazz riffs. When you think she is lost, she is setting a trap, each hand a metronome.':'ジャズのリフのようにコンボを繋ぐ。迷っているように見えて罠を張り、手札はメトロノームだ。',
+    'She saves the strongest combo for the moment you feel safe. Once you relax, the chorus hits.':'安心した瞬間に最大コンボを温存。緩んだ途端、サビが来る。',
+    'Builds a puzzle, then disassembles your hand. Conservative on the surface, ruthless underneath, every card has a slot.':'パズルを組んでから手札を解体する。表向きは慎重、内側は非情。すべてのカードに役割がある。',
+    'Her table is a puzzle; the last piece is always in her hand. When you think you are one card away, she is already packing.':'卓はパズルで、最後のピースは常に彼女の手の中。あと一枚だと思った瞬間、もう片付けている。',
+    'Always takes the scenic route—one hand, three lines. You never know her next stop because she likes the detour.':'いつも景色の道を選ぶ。一手で三つの道。次の行き先が読めないのは、寄り道が好きだから。',
+    'Her routes change; your predictions do not. She uses your confidence to pull you off course.':'彼女のルートは変わるが、あなたの予測は固定。自信を利用して進路を外させる。',
+    'Slow grower, then unstoppable bloom. Most dangerous in the last few hands—you realize too late.':'遅咲きだが止まらない。終盤が最も危険で、気づいた時には遅い。',
+    'First half is a stroll, second half is fireworks. She waits for your guard to drop, then lights it up.':'前半は散歩、後半は花火。油断した瞬間に火を付ける。',
+    'She moves like a sea breeze—fast in, fast out. Early tempo pulls you off course; late game she just closes the line.':'海風のように素早く出入りする。序盤のテンポで軌道を外され、終盤はそのまま閉じられる。',
+    'She makes ordinary cards look premium, so you think she is conserving. She is really conserving your options.':'普通のカードを特別に見せて温存しているように錯覚させる。本当に削られているのはあなたの選択肢。',
+    'More awake as night deepens, her tempo flashes like neon. She speeds up when you relax.':'夜が深いほど冴え、テンポはネオンのように点滅する。油断したときに加速する。',
+    'She loves the night’s rhythm and pulls you into it with every hand.':'夜のリズムが好きで、手札ごとに引き込んでくる。',
+    'Lives for the night. Faster tempo, sharper strikes, no hesitation.':'夜のために生きる。テンポは速く、打ちは鋭く、迷いなし。',
+    'Night is his arena—neon-fast plays and clean finishes before you can react.':'夜は彼のアリーナ。ネオンのような速さで仕掛け、反応する前にきれいに終わらせる。',
+    'Methodical and precise, he models first then executes. Steady tempo, calibrated plays.':'几帳面で正確。まずモデル化してから実行する。安定したテンポ、調整された一手。',
+    'He likes drills and endurance—long games turn into his rhythm.':'訓練と持久が好きで、長期戦は彼のリズムになる。',
+    'Plays with a star map in mind—predicts your next move. Clean, fast, and surgical, like a GPS into a dead end.':'星図を頭に描き、次の一手を予測する。無駄なく速く、外科的で、行き止まりへ導くGPSのよう。',
+    'She clears the obvious path, then blocks the hidden one. You think you have three routes; she keeps one.':'見える道を片付けたあと、見えない道を塞ぐ。三つあると思った道は一つだけになる。',
+    'All-in on speed. The first rush is meant to push you downhill and keep you defending.':'スピード全振り。最初のラッシュで下り坂に押し込み、守りに回させる。',
+    'He wants you to run with him. You cannot. By the time you breathe, he is waving at the finish.':'一緒に走らせようとするが追いつけない。息を整えたころには、彼はもうゴールで手を振っている。',
+    'Plays like calligraphy—clean lines, no wasted strokes. You think he is slow, he just refuses chaos.':'書道のように無駄のない線。遅いのではなく、混沌を拒んでいるだけ。',
+    'He hates wasting cards; every card must play a role. Try to disrupt him and he answers with shorter, cleaner lines.':'カードを無駄にするのが嫌いで、すべてに役割がある。崩そうとすると、さらに短く鋭い線で返す。',
+    'High slopes, high stakes. He is fine losing once for a big return.':'高い斜面に高い賭け。一度の負けで大きな見返りを狙う。',
+    'He would rather flip the table once than win small ten times. What looks wild is just his favorite angle.':'小さく十回勝つより一度の大逆転。荒々しく見えるのは得意な角度なだけ。',
+    'Builds patiently, then knocks the tower down. Her patience outlasts your hand.':'じっくり積み上げ、最後に倒す。彼女の忍耐はあなたの手札より長い。',
+    'She quietly seals off the line you love most. When you notice, your road already belongs to her.':'好きなラインを静かに塞ぐ。気づいたときには、その道はもう彼女のもの。',
+    'Switches pace on a dime. Relax once and she finishes, like lights out.':'テンポを一瞬で切り替える。緩んだ瞬間に終わらせ、灯りが消えるように。',
+    'She pauses a beat on purpose, so you blink first. What feels like a glitch is her metronome.':'わざと一拍止めて先に瞬きをさせる。バグに見えるのは彼女のメトロノーム。',
+    'Low error rate, high discipline. You beat him by taking risks, but risk is his trap.':'ミスが少なく規律が高い。リスクで勝てるが、そのリスクこそ罠。',
+    'He forces a choice, then blocks both roads. The more you chase the win, the deeper you fall into his tempo.':'選択を迫り、両方の道を塞ぐ。勝ちを追うほど彼のテンポに沈む。',
+    'Balanced and steady—friendly pace, no free wins. She is like perfect air‑conditioning, always “just right.”':'バランス型で安定、優しいペースでもタダでは勝たせない。完璧な空調のようにいつも「ちょうどいい」。',
+    'She keeps the game at just right so you will not risk it. While you hesitate, she is already done.':'ちょうどいい状態を保ってリスクを取らせない。迷っている間に終わっている。',
+    'Prefers head‑on clashes. The longer the fight, the more alive he gets.':'真っ向勝負が好き。長引くほど燃えてくる。',
+    'The more you press, the harder he snaps back. You think he is surviving; he is charging.':'押すほど強く跳ね返す。耐えているようで、実は溜めている。',
+    'Soft vibe, sharp math. Deadly on the last card, like the final stroke.':'柔らかな雰囲気、鋭い計算。最後の一枚が致命的、最後の一筆のよう。',
+    'Her smile is bait, her last card is the lock. You think she is chatting; she is closing the net.':'笑顔は餌、最後のカードは鍵。雑談しているようで網を閉じている。',
+    'He plays like a star chart—marks every exit, then closes them one by one. You think you have options; he has already ringed you.':'星図のように出口を全部印し、順に閉じていく。選択肢があると思っているが、もう包囲されている。',
+    'He is not afraid of slow, only of you rushing. The moment you panic, he ends it with the simplest cards.':'遅さは怖くない。怖いのはあなたの焦り。パニックになった瞬間、最もシンプルなカードで終わらせる。'
+  }
+};
+const PROFILE_MOTTO_TRANSLATIONS={
+  fr:{
+    'Slow is smooth.':'Lent, c’est fluide.',
+    'Make every move count.':'Chaque coup compte.',
+    'One step faster, a lot sharper.':'Un pas plus vite, beaucoup plus net.',
+    'Save the strike for last.':'Garde le coup pour la fin.',
+    'Lead and dominate.':'Mène et domine.',
+    'Steady first, speed later.':'D’abord la stabilité, ensuite la vitesse.',
+    'Stay cool, win clean.':'Reste cool, gagne net.',
+    'Soft can still sting.':'La douceur peut piquer.',
+    'Combos are the show.':'Les combos font le spectacle.',
+    'Count it, then strike.':'Compte, puis frappe.',
+    'Adapt fast, stay balanced.':'S’adapter vite, rester équilibré.',
+    'Late game is home turf.':'La fin de partie, c’est son terrain.',
+    'With the right wind, you barely push.':'Avec le bon vent, tu pousses à peine.',
+    'Night is the home court.':'La nuit est son terrain.',
+    'Night is the stage.':'La nuit est la scène.',
+    'Measure, then move.':'Mesure, puis avance.',
+    'See far, win early.':'Vois loin, gagne tôt.',
+    'Speed wins half.':'La vitesse, c’est la moitié de la victoire.',
+    'Order beats chaos.':'L’ordre bat le chaos.',
+    'Bet big, win big.':'Gros risque, gros gain.',
+    'Patience pays.':'La patience paie.',
+    'Tempo is the weapon.':'Le tempo est l’arme.',
+    'Stability saves.':'La stabilité sauve.',
+    'Calm doesn’t mean soft.':'Calme ne veut pas dire mou.',
+    'Go hard or go home.':'À fond ou rien.',
+    'The endgame tells all.':'La fin révèle tout.',
+    'See it, then land it.':'Vois‑le, puis pose‑le.'
+  },
+  de:{
+    'Slow is smooth.':'Langsam ist geschmeidig.',
+    'Make every move count.':'Jeder Zug zählt.',
+    'One step faster, a lot sharper.':'Einen Schritt schneller, deutlich schärfer.',
+    'Save the strike for last.':'Heb den Schlag für den Schluss auf.',
+    'Lead and dominate.':'Führe und dominiere.',
+    'Steady first, speed later.':'Erst stabil, dann schnell.',
+    'Stay cool, win clean.':'Kühl bleiben, sauber gewinnen.',
+    'Soft can still sting.':'Sanft kann stechen.',
+    'Combos are the show.':'Kombos sind die Show.',
+    'Count it, then strike.':'Erst zählen, dann schlagen.',
+    'Adapt fast, stay balanced.':'Schnell anpassen, im Gleichgewicht bleiben.',
+    'Late game is home turf.':'Das Endspiel ist Heimvorteil.',
+    'With the right wind, you barely push.':'Mit dem richtigen Wind musst du kaum drücken.',
+    'Night is the home court.':'Die Nacht ist Heimcourt.',
+    'Night is the stage.':'Die Nacht ist die Bühne.',
+    'Measure, then move.':'Messen, dann bewegen.',
+    'See far, win early.':'Weit sehen, früh gewinnen.',
+    'Speed wins half.':'Tempo gewinnt die Hälfte.',
+    'Order beats chaos.':'Ordnung schlägt Chaos.',
+    'Bet big, win big.':'Groß setzen, groß gewinnen.',
+    'Patience pays.':'Geduld zahlt sich aus.',
+    'Tempo is the weapon.':'Tempo ist die Waffe.',
+    'Stability saves.':'Stabilität rettet.',
+    'Calm doesn’t mean soft.':'Ruhig heißt nicht weich.',
+    'Go hard or go home.':'Ganz oder gar nicht.',
+    'The endgame tells all.':'Das Endspiel sagt alles.',
+    'See it, then land it.':'Erst sehen, dann landen.'
+  },
+  es:{
+    'Slow is smooth.':'Lento es fluido.',
+    'Make every move count.':'Cada jugada cuenta.',
+    'One step faster, a lot sharper.':'Un paso más rápido, mucho más preciso.',
+    'Save the strike for last.':'Guarda el golpe para el final.',
+    'Lead and dominate.':'Lidera y domina.',
+    'Steady first, speed later.':'Primero la estabilidad, luego la velocidad.',
+    'Stay cool, win clean.':'Mantén la calma, gana limpio.',
+    'Soft can still sting.':'Lo suave también puede doler.',
+    'Combos are the show.':'Los combos son el espectáculo.',
+    'Count it, then strike.':'Cuenta y luego golpea.',
+    'Adapt fast, stay balanced.':'Adáptate rápido, mantén el equilibrio.',
+    'Late game is home turf.':'El final es su terreno.',
+    'With the right wind, you barely push.':'Con el viento justo, apenas empujas.',
+    'Night is the home court.':'La noche es su cancha.',
+    'Night is the stage.':'La noche es el escenario.',
+    'Measure, then move.':'Mide y luego actúa.',
+    'See far, win early.':'Ve lejos, gana pronto.',
+    'Speed wins half.':'La velocidad gana la mitad.',
+    'Order beats chaos.':'El orden vence al caos.',
+    'Bet big, win big.':'Apuesta grande, gana grande.',
+    'Patience pays.':'La paciencia paga.',
+    'Tempo is the weapon.':'El tempo es el arma.',
+    'Stability saves.':'La estabilidad salva.',
+    'Calm doesn’t mean soft.':'La calma no es debilidad.',
+    'Go hard or go home.':'A tope o nada.',
+    'The endgame tells all.':'El final lo dice todo.',
+    'See it, then land it.':'Míralo y luego clávalo.'
+  },
+  ja:{
+    'Slow is smooth.':'ゆっくりは滑らか。',
+    'Make every move count.':'一手一手を大切に。',
+    'One step faster, a lot sharper.':'一歩速く、ずっと切れ味。',
+    'Save the strike for last.':'一撃は最後に。',
+    'Lead and dominate.':'主導して制す。',
+    'Steady first, speed later.':'まず安定、次に速さ。',
+    'Stay cool, win clean.':'冷静に、きれいに勝つ。',
+    'Soft can still sting.':'優しさでも刺さる。',
+    'Combos are the show.':'連続技こそ見せ場。',
+    'Count it, then strike.':'数えてから打つ。',
+    'Adapt fast, stay balanced.':'素早く適応、均衡を保つ。',
+    'Late game is home turf.':'終盤が本領。',
+    'With the right wind, you barely push.':'風向き次第で力はいらない。',
+    'Night is the home court.':'夜がホーム。',
+    'Night is the stage.':'夜が舞台。',
+    'Measure, then move.':'測ってから動く。',
+    'See far, win early.':'先を見て早勝ち。',
+    'Speed wins half.':'速さで半分勝ち。',
+    'Order beats chaos.':'秩序が混沌に勝つ。',
+    'Bet big, win big.':'大きく賭けて大きく勝つ。',
+    'Patience pays.':'忍耐は報われる。',
+    'Tempo is the weapon.':'テンポが武器。',
+    'Stability saves.':'安定が守る。',
+    'Calm doesn’t mean soft.':'落ち着きは弱さじゃない。',
+    'Go hard or go home.':'やるかやられるか。',
+    'The endgame tells all.':'終盤がすべてを語る。',
+    'See it, then land it.':'見極めて、落とす。'
+  }
+};
+const PROFILE_LINE_TRANSLATIONS_CACHE={};
+function normalizeProfileKey(value=''){
+  return String(value??'')
+    .replace(/[“”]/g,'"')
+    .replace(/[‘’]/g,"'")
+    .replace(/[\u2010-\u2015\u2212]/g,'-')
+    .replace(/\u00a0/g,' ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .toLowerCase();
+}
+function getProfileLineTranslation(langKey,line){
+  const lang=PROFILE_LINE_TRANSLATIONS_RAW[langKey]?langKey:'';
+  if(!lang)return '';
+  let cache=PROFILE_LINE_TRANSLATIONS_CACHE[lang];
+  if(!cache){
+    cache={};
+    const src=PROFILE_LINE_TRANSLATIONS_RAW[lang]??{};
+    Object.entries(src).forEach(([k,v])=>{
+      const nk=normalizeProfileKey(k);
+      if(nk)cache[nk]=v;
+    });
+    PROFILE_LINE_TRANSLATIONS_CACHE[lang]=cache;
+  }
+  const key=normalizeProfileKey(line);
+  return key?cache[key]??'':'';
+}
+function translateProfileLines(value,langKey){
+  const lang=PROFILE_LINE_TRANSLATIONS_RAW[langKey]?langKey:'';
+  if(!lang)return value;
+  if(Array.isArray(value)){
+    return value.map((line)=>getProfileLineTranslation(lang,line)||line);
+  }
+  if(typeof value==='string')return getProfileLineTranslation(lang,value)||value;
+  return value;
+}
+function translateProfileMotto(value,langKey){
+  const lang=PROFILE_MOTTO_TRANSLATIONS[langKey]?langKey:'';
+  if(!lang||typeof value!=='string')return value;
+  const map=PROFILE_MOTTO_TRANSLATIONS[lang];
+  return map[value]??value;
 }
 function renderOpponents(){
   const seen=new Set();
@@ -9509,6 +9899,7 @@ function bindGameEvents(v,arr){
     opponentProfileDelegateBound=true;
   }
   document.getElementById('home-btn')?.addEventListener('click',()=>{
+    closeLangMenu();
     if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
     state.opponentProfileName='';
     if(state.home.mode==='room'&&state.room.id){
@@ -9638,6 +10029,7 @@ function bindGameEvents(v,arr){
   document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   const handleRestart=async()=>{
+    closeLangMenu();
     triggerClickBanner(document.getElementById('restart-btn'));
     await waitMs(120);
     state.opponentProfileName='';
@@ -9942,7 +10334,7 @@ function bindGameEvents(v,arr){
   });
 
   document.getElementById('pass-btn')?.addEventListener('click',()=>{unlockAudio();runPass();});
-  document.getElementById('play-btn')?.addEventListener('click',()=>{unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));void runPlay(cards);});
+  document.getElementById('play-btn')?.addEventListener('click',()=>{closeLangMenu();unlockAudio();const cards=v.hand.filter((c)=>state.selected.has(cardId(c)));void runPlay(cards);});
 }
 
 function isPortraitMode(){

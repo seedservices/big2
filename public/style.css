@@ -654,6 +654,9 @@ body[data-screen='home'] .home-wrap {
   padding-right: 12px;
   border-right: 1px solid rgba(245, 220, 164, .18);
 }
+.royal-home-body .home-form-right {
+  padding-left: 18px;
+}
 .royal-home-body .home-form-col {
   gap: 16px;
 }
@@ -5995,6 +5998,7 @@ body[data-screen='game'] .intro-modal {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     gap: 10px;
+    padding-left: 0;
   }
   .royal-home-body .home-form-right .home-section-title {
     grid-column: 1 / -1;
