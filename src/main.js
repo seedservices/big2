@@ -185,6 +185,7 @@ const I18N={
     fr:'法文',
     de:'德文',
     es:'西班牙文',
+    ja:'日文',
     close:'關閉',
     carouselPrev:'上一個',
     carouselNext:'下一個',
@@ -428,6 +429,7 @@ const I18N={
     fr:'French',
     de:'German',
     es:'Spanish',
+    ja:'Japanese',
     close:'Close',
     carouselPrev:'Previous',
     carouselNext:'Next',
@@ -1390,6 +1392,250 @@ const I18N={
     roomReadyCount:'Listos {{ready}}/{{total}}',
     roomSending:'Enviando...',
     roomSendTimeout:'Problema de conexión — reintenta.'
+  },
+  ja:{
+    title:'ビッグツー',
+    sub:'',
+    lang:'言語',
+    zh:'繁体字中国語',
+    en:'英語',
+    fr:'フランス語',
+    de:'ドイツ語',
+    es:'スペイン語',
+    ja:'日本語',
+    close:'閉じる',
+    carouselPrev:'前へ',
+    carouselNext:'次へ',
+    roomEnterCodeHint:'コードを入力して参加。',
+    roomCreateCallout:'ようこそ😀',
+    webTooSmall:'ウィンドウが小さすぎます（現在 {{w}} x {{h}}）。少なくとも {{minW}} x {{minH}} に拡大してください。',
+    portraitTitle:'縦向きが必要です',
+    portraitBody:'このゲームはモバイルの縦向きのみ対応です。端末を回転してください。',
+    diagLabel:'診断',
+    diagAudio:'音声',
+    diagSpeech:'コール音声',
+    diagReady:'有効',
+    diagOff:'オフ',
+    diagUnavailable:'利用不可',
+    lbBest:'最高',
+    lbWorst:'最低',
+    lbUpdated:'更新',
+    lbWR:'勝率',
+    lbAvg:'平均',
+    name:'プレイヤー名',
+    ai:'対戦相手レベル',
+    gender:'性別',
+    playerSettings:'プレイヤー設定',
+    systemSettings:'システム設定',
+    male:'男性',
+    female:'女性',
+    easy:'初心者',
+    normal:'普通',
+    hard:'上級者',
+    solo:'ゲーム開始',
+    loginToStart:'サインインしてください',
+    config:'設定',
+    soundFx:'効果音',
+    audioVoice:'音声とボイス',
+    voiceMode:'コールボイス',
+    calloutDisplay:'コール表示',
+    calloutDisplayOn:'オン',
+    calloutDisplayOff:'オフ',
+    emoteDisplay:'エモート表示',
+    voiceAuto:'自動',    voiceOff:'オフ',
+    voicePack:'ボイススタイル',
+    voicePackClassic:'クラシック',
+    voicePackEnergetic:'エネルギッシュ',
+    voicePackMinimal:'ミニマル',
+    soundOn:'オン',
+    soundOff:'オフ',
+    home:'ホーム',
+    again:'もう一度',
+    restart:'リスタート',
+    play:'出す',
+    pass:'パス',
+    autoSeq:'順子並び替え',
+    autoPattern:'役並び替え',
+    suggest:'おすすめ',
+    score:'スコア',
+    suggestCost:'',
+    cards:'手札',
+    log:'ゲームログ',
+    nolog:'履歴なし',
+    rules:'ルール概要',
+    ruleItems:[
+      '合法な出し方は以下のとおりです。',
+      '単札',
+      'ペア',
+      'ペアは単札と同じルールで、前のペアを上回る必要があります。例：♥️A♠️A は ♥️K♠️K に勝ちます。同じランクの場合は高いスートで比較します。',
+      'トリプル（同じランク3枚）',
+      '5枚役',
+      'ストレート：5枚の連番。A-2-3-4-5 が最強、3-4-5-6-7 が最弱。同じランクのストレートは最高位カードのスートで比較します。J-Q-K-A-2、Q-K-A-2-3、K-A-3-4-5 のストレートは不可。',
+      'フラッシュ：同じスートの5枚で連番ではないもの。最も高いランクから順に比較し、それでも同じならスートで比較します。例：♠️2-4-5-6-8 は ♥️A-K-Q-10-8 に勝ちます。',
+      'フルハウス：ペア＋トリプル。トリプルのランクで比較します。',
+      'フォーカード：同じランク4枚＋任意1枚。4枚のランクで比較します。',
+      'ストレートフラッシュ：同じスートのストレート。最強は ♠️A-2-3-4-5。',
+      '役の強さ：ストレート < フラッシュ < フルハウス < フォーカード < ストレートフラッシュ。'
+    ],
+    wait:'待機中...',
+    free:'現在上がりがないため、親は任意の役を出せます。',
+    last:'直前',
+    recentCard:'直前のカード',
+    reveal:'公開',
+    revealSub:'勝者決定。残りのカードを公開:',
+    drag:'ドラッグして手札の順を変更',
+    must3:'最初の手番は♦️3を含める必要があります。',
+    beat:'選択したカードは前の出し札に勝てません。',
+    cantPass:'親のときはパスできません。',
+    retake:'が親になります。',
+    pick:'まずカードを選択してください。',
+    pair:'ペアは同じランクである必要があります。',
+    triple:'トリプルは同じランクである必要があります。',
+    count:'出せる枚数は1、2、3、5のみ。',
+    five:'無効な5枚役です。',
+    illegal:'無効な出し方です。',
+    penalty:'ペナルティ',
+    aiTag:'(AI)',
+    wins:'勝ち！',
+    congrats:'おめでとう！勝ちました！',
+    resultTitle:'ラウンド結果',
+    resultWinner:'勝者',
+    resultRemain:'残りの手札',
+    resultLastDiscard:'最後に出したカード',
+    resultDelta:'スコア変動',
+    resultDetail:'スコア詳細',
+    scoreBase:'基本',
+    scoreMul:'倍率',
+    scoreDeduct:'減点',
+    scoreGain:'加点',
+    scoreAnyTwo:'2を所持',
+    scoreTopTwo:'最強の♠️2を所持',
+    scoreChao2:'チャオ2',
+    scoreChao3:'チャオ3',
+    scoreChao4:'チャオ4',
+    scoreChaoBig:'大チャオ',
+    scorePenaltyBoost:'倍率ペナルティ',
+    lastCardCall:'ラストカード',
+    noSuggest:'現在おすすめはありません。',
+    needScore:'',
+    recPass:'パス。',
+    recReady:'すでに提案があります。先に出すかパスしてください。',
+    accept:'採用',
+    reject:'却下',
+    start:'が先手です。',
+    played:'を出した',
+    cardBack:'カード背面',
+    blue:'青',
+    red:'赤',
+    theme:'テーマ',
+    themeOcean:'オーシャンブルー',
+    themeEmerald:'エメラルドグリーン',
+    themeSunset:'サンセットオレンジ',
+    themeSlate:'スレートグレー',
+    themeAurora:'オーロラパープル',
+    themeSand:'サンドゴールド',
+    themeCyber:'ネオンナイト',
+    useGoogleName:'Google名を使用',
+    signOut:'サインアウト',
+    lb:'ランキング',
+    opponents:'対戦相手',
+    dob:'生年月日',
+    hobbies:'趣味',
+    profile:'プロフィール',
+    zodiac:'星座',
+    motto:'モットー',
+    lbHeadingDesc:'スコア差、勝利数、勝率に基づきランキングを更新します。',
+    lbRefresh:'ランキング更新',
+    lbSort:'並び替え',
+    lbPeriod:'期間',
+    lbNoData:'データがありません',
+    lbTotalDelta:'総増減',
+    lbWins:'勝利数',
+    lbGames:'試合数',
+    lbWinRate:'勝率',
+    lbAvgDelta:'平均差',
+    lbAll:'全期間',
+    lb7d:'7日',
+    lb30d:'30日',
+    scoreGuide:'スコア',
+    clickProfile:'ネームカードをクリック',
+    scoreGuideTitle:'スコア算出',
+    scoreGuideItems:[
+      '全員5000点から開始。',
+      '誰かが手札を出し切るとラウンド終了。',
+      '敗者の基本点：残り1-9枚 x1、10-12枚 x2、13枚 x3。',
+      '倍率ペナルティ：2を所持で x2、♠️2（最強）を所持でさらに x2。倍率は累積。',
+      'ラストカード規則：次のプレイヤーが1枚で上がるのを止められない場合、他2人の減点も負担。',
+      '敗者の減点合計が勝者に加算。'
+    ],
+    roomLobby:'ロビー',
+    roomTableTitle:'テーブル',
+    roomSettings:'ルーム設定',
+    roomCreate:'テーブル作成',
+    roomJoin:'テーブル参加',
+    roomEnter:'ロビーへ',
+    roomCode:'テーブルコード',
+    roomCopy:'コードをコピー',
+    roomReady:'準備完了',
+    roomNotReady:'未準備',
+    roomWaiting:'待機中',
+    roomStart:'開始',
+    roomLeave:'ロビーに戻る',
+    roomLoginRequired:'ルームを作成または参加するにはサインインしてください。',
+    roomFull:'満員です。',
+    roomNotFound:'ルームが見つかりません。',
+    roomClosed:'ルームは閉じています。',
+    roomJoinFail:'参加に失敗しました。',
+    roomCreateFail:'作成に失敗しました。',
+    roomAlreadyIn:'すでに別のルームに参加しています。退出してから参加してください。',
+    roomReadyHint:'ホストの開始を待っています。',
+    roomDisconnected:'ルームから退出しました。再参加してください。',
+    roomHost:'ホスト',
+    roomHostTag:'ホスト',
+    roomPrivacy:'公開設定',
+    roomPrivate:'非公開',
+    roomPublic:'公開',
+    roomNeedPlayers:'開始には少なくとも他のプレイヤー1人が必要です。',
+    roomRoomId:'ルームID',
+    roomRound:'ラウンド',
+    roomCountdown:'カウントダウン',
+    emote:'エモート',
+    emoteLabelCool:'クール',
+    emoteLabelThrow:'投げる',
+    emoteLabelRude:'失礼',
+    emoteLabelSweat:'手札なし',
+    emoteLabelRage:'激怒',
+    emoteLabelSmash:'叩く',
+    emoteLabelFire:'炎',
+    emoteLabelThink:'考え中',
+    emoteLabelCry:'泣く',
+    emoteLabelCheers:'乾杯',
+    emoteLabelThumbs:'いいね',
+    emoteLabelCrack:'ヒビ',
+    emoteLabelSleep:'眠い',
+    emoteLabelLove:'ハート',
+    emoteLabelChampagne:'シャンパン',
+    emoteLabelShock:'ショック',
+    seatLabel:'席 {{n}}',
+    roomAvailable:'参加可能',
+    roomSeatOpen:'空席',
+    roomActiveList:'参加可能なテーブル',
+    roomActiveEmpty:'参加可能なテーブルはありません。',
+    roomActiveRefresh:'更新',
+    roomStatusLabel:'ルーム状態',
+    roomStatusPlaying:'プレイ中',
+    roomWaitingReady:'参加者待ち',
+    roomStarted:'ゲーム中',
+    roomWelcomeJoin:'参加歓迎',
+    roomWaitingHost:'ホストの開始待ち...',
+    roomReconnecting:'接続が切れました。再接続中...',
+    roomStale:'ルーム情報が古くなりました。ロビーに戻ってください。',
+    roomJoinLog:'{{name}} が参加しました。',
+    roomLeaveLog:'{{name}} が退出しました。',
+    roomStarting:'ルームを開始しています...',
+    roomReadyCount:'準備 {{ready}}/{{total}}',
+    roomSending:'送信中...',
+    roomSendTimeout:'接続に問題があります — 再試行してください。'
   }
 };
 const KIND={
@@ -1397,21 +1643,24 @@ const KIND={
   en:{single:'Single',pair:'Pair',triple:'Triple',straight:'Straight',flush:'Flush',fullhouse:'Full House',fourofkind:'Four Kind',straightflush:'Straight Flush'},
   fr:{single:'Carte',pair:'Paire',triple:'Brelan',straight:'Suite',flush:'Couleur',fullhouse:'Full',fourofkind:'Carré',straightflush:'Quinte flush'},
   de:{single:'Einzel',pair:'Paar',triple:'Drilling',straight:'Straße',flush:'Farbe',fullhouse:'Full House',fourofkind:'Vierling',straightflush:'Straight Flush'},
-  es:{single:'Carta',pair:'Pareja',triple:'Trío',straight:'Escalera',flush:'Color',fullhouse:'Full',fourofkind:'Póker',straightflush:'Escalera de color'}
+  es:{single:'Carta',pair:'Pareja',triple:'Trío',straight:'Escalera',flush:'Color',fullhouse:'Full',fourofkind:'Póker',straightflush:'Escalera de color'},
+  ja:{single:'1枚',pair:'ペア',triple:'トリプル',straight:'ストレート',flush:'フラッシュ',fullhouse:'フルハウス',fourofkind:'フォーカード',straightflush:'ストレートフラッシュ'}
 };
 const LANGUAGE_OPTIONS=[
   {value:'zh-HK',labelKey:'zh'},
   {value:'en',labelKey:'en'},
   {value:'fr',labelKey:'fr'},
   {value:'de',labelKey:'de'},
-  {value:'es',labelKey:'es'}
+  {value:'es',labelKey:'es'},
+  {value:'ja',labelKey:'ja'}
 ];
 const LANGUAGE_NATIVE_LABEL={
   'zh-HK':'繁體中文',
   en:'English',
   fr:'Français',
   de:'Deutsch',
-  es:'Español'
+  es:'Español',
+  ja:'日本語'
 };
 const CALLOUT_RESPONSE_TEXT = {
   'zh-HK': {
@@ -1959,12 +2208,12 @@ const OPPONENT_PROFILE_BY_NAME={
   }
 };
 const BACK_OPTIONS=[
-  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue',fr:'Bleu',de:'Blau',es:'Azul'}},
-  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red',fr:'Rouge',de:'Rot',es:'Rojo'}},
-  {value:'green',file:'back-green.png',label:{'zh-HK':'綠色',en:'Green',fr:'Vert',de:'Grün',es:'Verde'}},
-  {value:'gold',file:'back-gold.png',label:{'zh-HK':'金色',en:'Gold',fr:'Or',de:'Gold',es:'Oro'}},
-  {value:'silver',file:'back-silver.png',label:{'zh-HK':'銀色',en:'Silver',fr:'Argent',de:'Silber',es:'Plata'}},
-  {value:'purple',file:'back-purple.png',label:{'zh-HK':'紫色',en:'Purple',fr:'Violet',de:'Lila',es:'Morado'}}
+  {value:'blue',file:'back-blue.png',label:{'zh-HK':'藍色',en:'Blue',fr:'Bleu',de:'Blau',es:'Azul',ja:'青'}},
+  {value:'red',file:'back-red.png',label:{'zh-HK':'紅色',en:'Red',fr:'Rouge',de:'Rot',es:'Rojo',ja:'赤'}},
+  {value:'green',file:'back-green.png',label:{'zh-HK':'綠色',en:'Green',fr:'Vert',de:'Grün',es:'Verde',ja:'緑'}},
+  {value:'gold',file:'back-gold.png',label:{'zh-HK':'金色',en:'Gold',fr:'Or',de:'Gold',es:'Oro',ja:'金'}},
+  {value:'silver',file:'back-silver.png',label:{'zh-HK':'銀色',en:'Silver',fr:'Argent',de:'Silber',es:'Plata',ja:'銀'}},
+  {value:'purple',file:'back-purple.png',label:{'zh-HK':'紫色',en:'Purple',fr:'Violet',de:'Lila',es:'Morado',ja:'紫'}}
 ];
 const BASE_URL=(import.meta.env?.BASE_URL??'./').replace(/\/?$/,'/');
 const withBase=(p)=>`${BASE_URL}${String(p??'').replace(/^\/+/,'')}`;
@@ -2746,7 +2995,8 @@ function fmtDateTime(ts){
     'zh-HK':'zh-HK',
     fr:'fr-FR',
     de:'de-DE',
-    es:'es-ES'
+    es:'es-ES',
+    ja:'ja-JP'
   };
   const locale=localeMap[state.language]||'en-US';
   try{return new Date(n).toLocaleString(locale,{hour12:false});}catch{return'-';}
@@ -5220,8 +5470,8 @@ function speakCallout(text,gender='male',meta={}){
       return;
     }
     const synth=window.speechSynthesis;
-    const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|ting[-\s]?ting|sin[-\s]?ji|sinji|mei[-\s]?jia|xiaoxiao|xiaoyi|xiaomeng|xiaohan|jia[-\s]?yi|yi[-\s]?ting|tracy|hiumaan|standard[-_\s]?a|standard[-_\s]?c|neural[-_\s]?a|neural[-_\s]?c|yue[-_\s]?hk[-_\s]?(female|a|c))/i;
-    const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang|xiaoming|xiaogang|james|tom|kevin|danny|hiugaai|wanlung|aasing|standard[-_\s]?b|standard[-_\s]?d|neural[-_\s]?b|neural[-_\s]?d|yue[-_\s]?hk[-_\s]?(male|b|d))/i;
+    const femaleHint=/(female|woman|girl|zira|samantha|victoria|karen|aria|ava|alloy|helena|sabina|dalia|paulina|monica|laura|denise|julie|amelie|hedda|katja|haruka|kyoko|ayumi|nanami|sayaka|ting[-\s]?ting|sin[-\s]?ji|sinji|mei[-\s]?jia|xiaoxiao|xiaoyi|xiaomeng|xiaohan|jia[-\s]?yi|yi[-\s]?ting|tracy|hiumaan|standard[-_\s]?a|standard[-_\s]?c|neural[-_\s]?a|neural[-_\s]?c|yue[-_\s]?hk[-_\s]?(female|a|c))/i;
+    const maleHint=/(male|\bman\b|boy|david|alex|daniel|fred|jorge|pablo|raul|diego|carlos|henri|thomas|stefan|klaus|ichiro|otoya|takumi|lee|jun[-\s]?jie|wei|ming|yunxi|yunyang|xiaoming|xiaogang|james|tom|kevin|danny|hiugaai|wanlung|aasing|standard[-_\s]?b|standard[-_\s]?d|neural[-_\s]?b|neural[-_\s]?d|yue[-_\s]?hk[-_\s]?(male|b|d))/i;
     const voiceMeta=(v)=>`${v?.name||''} ${v?.voiceURI||''} ${v?.lang||''}`;
     const isFemaleVoice=(v)=>femaleHint.test(voiceMeta(v))&&!maleHint.test(voiceMeta(v));
     const isMaleVoice=(v)=>maleHint.test(voiceMeta(v))&&!femaleHint.test(voiceMeta(v));
@@ -5231,6 +5481,7 @@ function speakCallout(text,gender='male',meta={}){
       if(state.language==='de')return{tts:'de-DE',prefixes:['de']};
       if(state.language==='es')return{tts:'es-ES',prefixes:['es']};
       if(state.language==='en')return{tts:'en-US',prefixes:['en']};
+      if(state.language==='ja')return{tts:'ja-JP',prefixes:['ja']};
       return{tts:'yue-HK',prefixes:['yue','zh-hk','zh-hant-hk']};
     })();
     const isCantoneseVoice=(v)=>{
@@ -5253,8 +5504,8 @@ function speakCallout(text,gender='male',meta={}){
         :byLangPrefixes(source,speechLangMeta.prefixes);
       const set=langPool.filter((v)=>!isMandarinVoice(v));
       if(!set.length)return null;
-      if(g==='female')return set.find(isFemaleVoice) ?? null;
-      return set.find(isMaleVoice) ?? null;
+      if(g==='female')return set.find(isFemaleVoice) ?? set.find((v)=>!isMaleVoice(v)) ?? null;
+      return set.find(isMaleVoice) ?? set.find((v)=>!isFemaleVoice(v)) ?? null;
     };
     const chooseAnyCantonese=(voices)=>{
       const source=voices??[];
@@ -5275,8 +5526,9 @@ function speakCallout(text,gender='male',meta={}){
     };
     const speakNow=()=>{
       if(speakSeq!==calloutSpeakSeq)return;
+      const emojiPattern=/[\uD83C-\uDBFF\uDC00-\uDFFF]/g;
       const spokenMsg=msg
-        .replace(/\p{Extended_Pictographic}/gu,'')
+        .replace(emojiPattern,'')
         .replace(/\uFE0F/gu,'')
         .replace(/[!!]/g,'')
         .trim();
@@ -7139,7 +7391,7 @@ function formatGameLogDateTime(ts){
   const n=Number(ts)||0;
   if(!n)return'';
   try{
-    const locale=state.language==='en'?'en-US':'zh-HK';
+    const locale=state.language==='en'?'en-US':state.language==='ja'?'ja-JP':'zh-HK';
     const d=new Date(n);
     const time=d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
     return time;
@@ -7151,7 +7403,7 @@ function formatSystemLogDateTime(ts){
   const n=Number(ts)||0;
   if(!n)return'';
   try{
-    const locale=state.language==='en'?'en-US':'zh-HK';
+    const locale=state.language==='en'?'en-US':state.language==='ja'?'ja-JP':'zh-HK';
     const d=new Date(n);
     const time=d.toLocaleTimeString(locale,{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
     return time;
@@ -7648,7 +7900,7 @@ function renderLangMenu(id){
     const selected=state.language===opt.value;
     return `<button class="lang-menu-item" type="button" role="option" data-lang="${opt.value}" aria-selected="${selected?'true':'false'}">${label}</button>`;
   }).join('');
-  const shortLabel=state.language==='zh-HK'?'中':state.language==='fr'?'FR':state.language==='de'?'DE':state.language==='es'?'ES':'EN';
+  const shortLabel=state.language==='zh-HK'?'中':state.language==='fr'?'FR':state.language==='de'?'DE':state.language==='es'?'ES':state.language==='ja'?'JA':'EN';
   const globeSvg=`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.7 9h-3.2a15.8 15.8 0 0 0-1.1-5.1 8.03 8.03 0 0 1 4.3 5.1Zm-7.7-7a13.6 13.6 0 0 1 1.8 6H10.2a13.6 13.6 0 0 1 1.8-6Zm-5.4 7h-3.2a8.03 8.03 0 0 1 4.3-5.1 15.8 15.8 0 0 0-1.1 5.1Zm0 2a15.8 15.8 0 0 0 1.1 5.1A8.03 8.03 0 0 1 3.4 13h3.2Zm5.4 7a13.6 13.6 0 0 1-1.8-6h3.6a13.6 13.6 0 0 1-1.8 6Zm3.6-7h3.2a8.03 8.03 0 0 1-4.3 5.1 15.8 15.8 0 0 0 1.1-5.1Z"/></svg>`;
   return `<div class="lang-menu" data-lang-menu="1" data-lang-menu-id="${id}"><button id="${id}" class="lang-menu-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="${t('lang')}"><span class="lang-icon" aria-hidden="true">${globeSvg}</span><span class="lang-short">${shortLabel}</span></button><div class="lang-menu-pop" role="listbox" aria-label="${t('lang')}" data-lang-menu-owner="${id}">${items}</div></div>`;
 }
