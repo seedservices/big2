@@ -6247,6 +6247,11 @@ function suggestPlay(hand,lastPlay,isFirstTrick,game){
     }
   }
   if(!legal.length)return null;
+  const winning=legal.filter((p)=>hand.length-(p.cards?.length||0)===0);
+  if(winning.length){
+    winning.sort((a,b)=>comparePower(a.eval.power,b.eval.power));
+    return winning[0];
+  }
   const seat=Number.isInteger(game?.currentSeat)?game.currentSeat:0;
   const sim=game&&Array.isArray(game.players)
     ?{
