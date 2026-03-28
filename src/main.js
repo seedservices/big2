@@ -8855,6 +8855,21 @@ function profileParagraphsHtml(profileText){
   if(!clean.length)return'<p>-</p>';
   return clean.map((p)=>`<p>${esc(p)}</p>`).join('');
 }
+function pickProfileLangKey(bank){
+  if(!bank||typeof bank!=='object')return 'en';
+  const preferred=String(state.language||'').trim();
+  if(preferred&&bank[preferred])return preferred;
+  if(bank.en)return 'en';
+  if(bank['zh-HK'])return 'zh-HK';
+  const keys=Object.keys(bank);
+  return keys[0]||'en';
+}
+function profileFieldValue(profile,field,emptyValue){
+  const bank=profile?.[field]??{};
+  const key=pickProfileLangKey(bank);
+  const fallback=bank.en??bank['zh-HK']??emptyValue;
+  return bank?.[key]??fallback??emptyValue;
+}
 function renderOpponents(){
   const seen=new Set();
   const bots=BOT_PROFILE_POOL.filter((b)=>{
@@ -8866,14 +8881,13 @@ function renderOpponents(){
     const accent=pick(NPC_COLOR_POOL,hashNameSeed(b.name));
     const link=avatarDataUri(b.name,'#7aaed8',b.gender,true);
     const profile=OPPONENT_PROFILE_BY_NAME[b.name]??{dob:'-',hobbies:{},profile:{}};
-    const langKey=state.language==='zh-HK'?'zh-HK':'en';
-    const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
+    const hobbies=profileFieldValue(profile,'hobbies',[]);
     const hobbyText=formatHobbyList(hobbies);
-    const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
+    const profileText=profileFieldValue(profile,'profile','-');
     const profileHtml=profileParagraphsHtml(profileText);
-    const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
+    const zodiacText=profileFieldValue(profile,'zodiac','-');
     const zodiacMark=zodiacSymbol(zodiacText);
-    const mottoText=profile.motto?.[langKey]??profile.motto?.['zh-HK']??'-';
+    const mottoText=profileFieldValue(profile,'motto','-');
     const genderLabel=b.gender==='female'?t('female'):t('male');
     const genderIcon=b.gender==='female'?'♀':'♂';
     const genderClass=b.gender==='female'?'gender-female':'gender-male';
@@ -8902,21 +8916,20 @@ function renderOpponents(){
   bindLangMenu(document.querySelector('.topbar-right'),{reloadGoogle:!state.home.google?.signedIn});
 }
 function opponentProfileModalHtml(name){
-  const langKey=state.language==='zh-HK'?'zh-HK':'en';
   const profile=OPPONENT_PROFILE_BY_NAME[name]??{dob:'-',hobbies:{},profile:{},zodiac:{},motto:{}};
-  const hobbies=profile.hobbies?.[langKey]??profile.hobbies?.['zh-HK']??[];
+  const hobbies=profileFieldValue(profile,'hobbies',[]);
   const hobbyText=formatHobbyList(hobbies);
-  const profileText=profile.profile?.[langKey]??profile.profile?.['zh-HK']??'-';
+  const profileText=profileFieldValue(profile,'profile','-');
   const profileHtml=profileParagraphsHtml(profileText);
-  const zodiacText=profile.zodiac?.[langKey]??profile.zodiac?.['zh-HK']??'-';
+  const zodiacText=profileFieldValue(profile,'zodiac','-');
   const zodiacMark=zodiacSymbol(zodiacText);
-  const mottoText=profile.motto?.[langKey]??profile.motto?.['zh-HK']??'-';
+  const mottoText=profileFieldValue(profile,'motto','-');
   const gender=botGenderByName(name);
   const genderLabel=gender==='female'?t('female'):t('male');
   const genderIcon=gender==='female'?'♀':'♂';
   const genderClass=gender==='female'?'gender-female':'gender-male';
   const avatarSrc=avatarDataUri(name,'#7aaed8',gender,true);
-  const closeLabel=state.language==='en'?'Close':'關閉';
+  const closeLabel=t('close');
   return`<div class="intro-modal opponent-profile-modal" id="opponent-profile-modal">
     <button class="intro-backdrop" id="opponent-profile-backdrop" aria-label="close"></button>
     <section class="intro-sheet opponent-profile-sheet">
@@ -9118,7 +9131,7 @@ function renderGame(){
     const opponentAttr=p.isBot?` data-opponent-name="${esc(p.rawName||p.name)}"`:'';
     const langKey=state.language==='zh-HK'?'zh-HK':'en';
     const profile=OPPONENT_PROFILE_BY_NAME[p.rawName||p.name];
-    const mottoText=profile?.motto?.[langKey]??profile?.motto?.['zh-HK']??'';
+    const mottoText=profileFieldValue(profile,'motto','');
     const hintText='';
     const mottoClass=state.language==='en'?'hk-power-motto motto-en':'hk-power-motto';
     const mottoTilt=(() => {
