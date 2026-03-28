@@ -6701,9 +6701,8 @@ function triggerMust3LeadCallout(game,selfSeat=0){
   scheduleCalloutExpiry(must3CallState.until);
   speakCallout(text,pick.player?.gender??'male',{seat:pick.seat,force:true,clipKey:'line-must3'});
 }
-function startSoloGame(){runPopunderAd();randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.showLogSheet=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
+function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.showLogSheet=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
 function startRoomLocalGame(roomData){
-  runPopunderAd();
   randomizeNpcColors();
   const uid=currentRoomPlayerId();
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
@@ -8262,6 +8261,7 @@ function renderHome(){
   bindEmoteDisplayToggle('emote-display-combo');
   document.getElementById('solo-start')?.addEventListener('click',async()=>{
     if(!signedInForPlay())return;
+    runPopunderAd();
     unlockAudio();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
@@ -8339,6 +8339,7 @@ function renderHome(){
   }));
   document.getElementById('room-start')?.addEventListener('click',async()=>{
     if(state.room.pendingStart)return;
+    runPopunderAd();
     state.room.pendingStart=true;
     if(roomStartPendingTimer){clearTimeout(roomStartPendingTimer);}
     roomStartPendingTimer=window.setTimeout(()=>{
@@ -9197,6 +9198,7 @@ function bindGameEvents(v,arr){
   document.getElementById('restart-btn')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('restart-btn'));
     await waitMs(120);
+    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
@@ -9205,6 +9207,7 @@ function bindGameEvents(v,arr){
   document.getElementById('result-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('result-again'));
     await waitMs(120);
+    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
@@ -9222,6 +9225,7 @@ function bindGameEvents(v,arr){
   document.getElementById('congrats-again')?.addEventListener('click',async()=>{
     triggerClickBanner(document.getElementById('congrats-again'));
     await waitMs(120);
+    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
