@@ -3758,13 +3758,7 @@ body[data-screen='game'] .table-center-stack {
   position: absolute;
   z-index: 2600;
   display: inline-block;
-  padding: calc(3px * var(--callout-size, 1));
-  border: calc(2px * var(--callout-size, 1)) solid var(--bubble-border);
-  border-radius: calc(24px * var(--callout-size, 1)) calc(16px * var(--callout-size, 1)) calc(26px * var(--callout-size, 1)) calc(14px * var(--callout-size, 1));
-  background: var(--bubble-fill);
-  color: #fff;
   pointer-events: none;
-  filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
   transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
   animation: calloutFloat var(--callout-float-dur, 2.6s) ease-in-out infinite;
 }
@@ -3775,15 +3769,21 @@ body[data-screen='game'] .table-center-stack {
   position: absolute;
   z-index: 2600;
   display: inline-block;
+  pointer-events: none;
+  transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
+  animation: none;
+}
+.play-type-call .callout-box,
+.last-card-call .callout-box,
+.emote-callout .callout-box {
   padding: calc(3px * var(--callout-size, 1));
   border: calc(2px * var(--callout-size, 1)) solid var(--bubble-border);
   border-radius: calc(24px * var(--callout-size, 1)) calc(16px * var(--callout-size, 1)) calc(26px * var(--callout-size, 1)) calc(14px * var(--callout-size, 1));
   background: var(--bubble-fill);
   color: #fff;
-  pointer-events: none;
   filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.12));
-  transform: translate3d(var(--callout-shift-x, 0px), var(--callout-shift-y, 0px), 0) rotate(var(--callout-tilt, 0deg)) scale(var(--callout-scale, 1));
-  animation: none;
+  transform: translate3d(var(--callout-box-shift-x, 0px), var(--callout-box-shift-y, 0px), 0);
+  display: inline-block;
 }
 .play-type-call .hk-inner,
 .last-card-call .hk-inner {

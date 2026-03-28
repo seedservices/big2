@@ -1759,6 +1759,21 @@ const CALLOUT_RESPONSE_TEXT = {
     ],
     winnerRepeat: 'Otra vez yo.',
   },
+  ja: {
+    pass: ['パス', '出せない', 'あなたの番'],
+    last: ['ラストカード！', '残り1枚！'],
+    play: [
+      (kind) => `${kind}！`,
+      (kind) => `${kind}、どうぞ。`,
+      (kind) => `${kind}。`,
+    ],
+    winner: [
+      'いい勝負でした。',
+      '運が良かった。',
+      'このラウンドは私の勝ち！'
+    ],
+    winnerRepeat: 'また私ですね。',
+  },
 };
 const EMOTE_STICKERS=[
   {id:'cool',file:'emote-cool.png'},
@@ -9013,22 +9028,22 @@ function renderGame(){
     if(activeCallout.kind==='pass'){
       const fresh='';
       const jitter=calloutJitterStyle(viewCls,`pass|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass} pass-call${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass} pass-call${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="callout-box"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='play'){
       const fresh=activeCallout.fresh?' play-type-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`play|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="callout-box"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='must3'){
       const fresh=activeCallout.fresh?' play-type-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`must3|${seat}|${activeCallout.nonce}|${activeCallout.text}`);
-      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="play-type-call ${seatClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="callout-box"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     if(activeCallout.kind==='last'){
       const fresh=activeCallout.fresh?' last-card-call-fresh':'';
       const jitter=calloutJitterStyle(viewCls,`last|${seat}|${activeCallout.nonce}`);
-      return`<div class="last-card-call ${lastClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+      return`<div class="last-card-call ${lastClass}${fresh}${calloutClass}" style="--player-color:${color};${jitter}"><div class="callout-box"><div class="hk-inner">${emoteInlineHtml}<span class="${textClass}">${esc(activeCallout.text)}</span></div></div><div class="tail tail-${tailDir}"></div></div>`;
     }
     return'';
   };
@@ -9070,7 +9085,7 @@ function renderGame(){
     const seatClass='play-type-call-seat';
     const tailDir=viewCls==='north'?'north':viewCls==='east'?'east':viewCls==='west'?'west':'south';
     const jitter=calloutJitterStyle(viewCls,`emote|${seat}|${activeEmote?.ts||0}|${emoteSticker.id}`);
-    return`<div class="emote-callout ${seatClass}" data-emote-seat="${seat}" style="--player-color:${color};${jitter}"><div class="hk-inner"><span class="emote-icon">${emoteImageHtml}</span></div><div class="tail tail-${tailDir}"></div></div>`;
+    return`<div class="emote-callout ${seatClass}" data-emote-seat="${seat}" style="--player-color:${color};${jitter}"><div class="callout-box"><div class="hk-inner"><span class="emote-icon">${emoteImageHtml}</span></div></div><div class="tail tail-${tailDir}"></div></div>`;
   };
   const emoteHtml=(emoteDisplayEnabled&&emoteSticker&&Number.isInteger(v.selfSeat)&&emoteSeat===v.selfSeat)
     ?`<div class="table-emote emote-${emoteSticker.id}">${emoteImageHtml}</div>`
@@ -9244,7 +9259,8 @@ function retargetCalloutTails(){
   const bubbles=[...document.querySelectorAll('.play-type-call, .last-card-call, .emote-callout')];
   const vw=Math.max(0,window.innerWidth||0);
   const vh=Math.max(0,window.innerHeight||0);
-  const margin=8;
+  const isMobile=isMobilePointer();
+  const margin=isMobile?5:8;
   for(const bubble of bubbles){
     if(!(bubble instanceof HTMLElement))continue;
     const tail=bubble.querySelector('.tail');
@@ -9282,11 +9298,22 @@ function retargetCalloutTails(){
       else if(b.bottom>vh-margin)sy=(vh-margin)-b.bottom;
     }
     if(sx||sy){
-      bubble.style.setProperty('--callout-shift-x',`${sx.toFixed(1)}px`);
-      bubble.style.setProperty('--callout-shift-y',`${sy.toFixed(1)}px`);
+      if(isMobile){
+        bubble.style.setProperty('--callout-box-shift-x',`${sx.toFixed(1)}px`);
+        bubble.style.setProperty('--callout-box-shift-y',`${sy.toFixed(1)}px`);
+        bubble.style.removeProperty('--callout-shift-x');
+        bubble.style.removeProperty('--callout-shift-y');
+      }else{
+        bubble.style.setProperty('--callout-shift-x',`${sx.toFixed(1)}px`);
+        bubble.style.setProperty('--callout-shift-y',`${sy.toFixed(1)}px`);
+        bubble.style.removeProperty('--callout-box-shift-x');
+        bubble.style.removeProperty('--callout-box-shift-y');
+      }
     }else{
       bubble.style.removeProperty('--callout-shift-x');
       bubble.style.removeProperty('--callout-shift-y');
+      bubble.style.removeProperty('--callout-box-shift-x');
+      bubble.style.removeProperty('--callout-box-shift-y');
     }
   }
 }
