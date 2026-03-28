@@ -2248,7 +2248,8 @@ function formatHobbyList(hobbies){
   const list=Array.isArray(hobbies)?hobbies.map((x)=>String(x??'').trim()).filter(Boolean):[];
   if(!list.length)return'-';
   const joiner=state.language==='zh-HK'?'、':', ';
-  return list.join(joiner);
+  const translated=list.map((item)=>translateProfileHobby(item,state.language));
+  return translated.join(joiner);
 }
 function zodiacSymbol(name=''){
   const key=String(name??'').toLowerCase();
@@ -2266,6 +2267,396 @@ function zodiacSymbol(name=''){
   if(key.includes('aquarius')||key.includes('水瓶'))return'♒';
   if(key.includes('pisces')||key.includes('雙魚'))return'♓';
   return'';
+}
+const PROFILE_HOBBY_TRANSLATIONS={
+  fr:{
+    'shore fishing':'pêche en bord de mer',
+    'board games':'jeux de société',
+    'instant photos':'photos instantanées',
+    'running':'course à pied',
+    'chess variants':'variantes d’échecs',
+    'latte art':'latte art',
+    'street photography':'photo de rue',
+    'movie posters':'affiches de films',
+    'model kits':'maquettes',
+    'basketball':'basket-ball',
+    'mechanical keyboards':'claviers mécaniques',
+    'city nights':'nuits urbaines',
+    'hiking':'randonnée',
+    'boxing drills':'entraînement de boxe',
+    'wuxia novels':'romans wuxia',
+    'guitar':'guitare',
+    'jogging':'jogging',
+    'trip planning':'planification de voyages',
+    'baking':'pâtisserie',
+    'illustration':'illustration',
+    'aromatherapy':'aromathérapie',
+    'yoga':'yoga',
+    'floral design':'art floral',
+    'photography':'photographie',
+    'jazz':'jazz',
+    'handcrafts':'artisanat',
+    'ceramics':'céramique',
+    'reading':'lecture',
+    'puzzles':'puzzles',
+    'travel journals':'carnets de voyage',
+    'street food':'street food',
+    'sketching':'croquis',
+    'gardening':'jardinage',
+    'lo-fi music':'musique lo‑fi',
+    'pour-over coffee':'café filtre',
+    'seaside runs':'course en bord de mer',
+    'city food hunts':'chasse aux bonnes adresses',
+    'film cameras':'appareils argentiques',
+    'night activities':'sorties nocturnes',
+    'drinks':'boissons',
+    'nightlife':'vie nocturne',
+    'late-night eats':'repas tardifs',
+    'night runs':'courses de nuit',
+    '3D drawing':'dessin 3D',
+    'gaming':'jeux vidéo',
+    'cadet':'cadets',
+    'swimming':'natation',
+    'stargazing':'observation des étoiles',
+    'synth music':'musique synthé',
+    'speed cubing':'speed cubing',
+    'streetball':'streetball',
+    'skateboarding':'skateboard',
+    'ramen hunts':'chasse aux ramen',
+    'calligraphy':'calligraphie',
+    'city walks':'balades en ville',
+    'vinyl':'vinyle',
+    'snowboarding':'snowboard',
+    'arcades':'salles d’arcade',
+    'retro cameras':'appareils rétro',
+    'pottery':'poterie',
+    'book cafés':'cafés‑librairies',
+    'watercolor':'aquarelle',
+    'night markets':'marchés de nuit',
+    'indie films':'films indépendants',
+    'journaling':'journal intime',
+    'badminton':'badminton',
+    'strategy games':'jeux de stratégie',
+    'podcasts':'podcasts',
+    'tennis':'tennis',
+    'photo edits':'retouche photo',
+    'boxing':'boxe',
+    'graphic tees':'t‑shirts graphiques',
+    'motorbikes':'motos',
+    'pilates':'pilates',
+    'lo‑fi beats':'beats lo‑fi',
+    'stationery':'papeterie',
+    'astro photography':'astrophotographie',
+    'city night hikes':'randos nocturnes en ville',
+    'competitive games':'jeux compétitifs'
+  },
+  de:{
+    'shore fishing':'Küstenangeln',
+    'board games':'Brettspiele',
+    'instant photos':'Sofortfotos',
+    'running':'Laufen',
+    'chess variants':'Schachvarianten',
+    'latte art':'Latte Art',
+    'street photography':'Straßenfotografie',
+    'movie posters':'Filmplakate',
+    'model kits':'Modellbausätze',
+    'basketball':'Basketball',
+    'mechanical keyboards':'mechanische Tastaturen',
+    'city nights':'Stadtnächte',
+    'hiking':'Wandern',
+    'boxing drills':'Boxtraining',
+    'wuxia novels':'Wuxia‑Romane',
+    'guitar':'Gitarre',
+    'jogging':'Jogging',
+    'trip planning':'Reiseplanung',
+    'baking':'Backen',
+    'illustration':'Illustration',
+    'aromatherapy':'Aromatherapie',
+    'yoga':'Yoga',
+    'floral design':'Floristik',
+    'photography':'Fotografie',
+    'jazz':'Jazz',
+    'handcrafts':'Handarbeit',
+    'ceramics':'Keramik',
+    'reading':'Lesen',
+    'puzzles':'Puzzles',
+    'travel journals':'Reisetagebücher',
+    'street food':'Streetfood',
+    'sketching':'Skizzieren',
+    'gardening':'Gartenarbeit',
+    'lo-fi music':'Lo‑Fi‑Musik',
+    'pour-over coffee':'Filterkaffee',
+    'seaside runs':'Läufe am Meer',
+    'city food hunts':'Food‑Hunts in der Stadt',
+    'film cameras':'Analogkameras',
+    'night activities':'Nachtaktivitäten',
+    'drinks':'Getränke',
+    'nightlife':'Nachtleben',
+    'late-night eats':'Spät‑Essen',
+    'night runs':'Nachtläufe',
+    '3D drawing':'3D‑Zeichnen',
+    'gaming':'Gaming',
+    'cadet':'Kadetten',
+    'swimming':'Schwimmen',
+    'stargazing':'Sternenbeobachtung',
+    'synth music':'Synth‑Musik',
+    'speed cubing':'Speed Cubing',
+    'streetball':'Streetball',
+    'skateboarding':'Skateboarding',
+    'ramen hunts':'Ramen‑Suche',
+    'calligraphy':'Kalligrafie',
+    'city walks':'Stadtspaziergänge',
+    'vinyl':'Vinyl',
+    'snowboarding':'Snowboarden',
+    'arcades':'Spielhallen',
+    'retro cameras':'Retro‑Kameras',
+    'pottery':'Töpfern',
+    'book cafés':'Buchcafés',
+    'watercolor':'Aquarell',
+    'night markets':'Nachtmärkte',
+    'indie films':'Indie‑Filme',
+    'journaling':'Journaling',
+    'badminton':'Badminton',
+    'strategy games':'Strategiespiele',
+    'podcasts':'Podcasts',
+    'tennis':'Tennis',
+    'photo edits':'Fotobearbeitung',
+    'boxing':'Boxen',
+    'graphic tees':'Grafik‑T‑Shirts',
+    'motorbikes':'Motorräder',
+    'pilates':'Pilates',
+    'lo‑fi beats':'Lo‑Fi‑Beats',
+    'stationery':'Schreibwaren',
+    'astro photography':'Astrofotografie',
+    'city night hikes':'nächtliche Stadtwanderungen',
+    'competitive games':'Wettkampfspiele'
+  },
+  es:{
+    'shore fishing':'pesca costera',
+    'board games':'juegos de mesa',
+    'instant photos':'fotos instantáneas',
+    'running':'correr',
+    'chess variants':'variantes de ajedrez',
+    'latte art':'latte art',
+    'street photography':'fotografía callejera',
+    'movie posters':'pósters de cine',
+    'model kits':'maquetas',
+    'basketball':'baloncesto',
+    'mechanical keyboards':'teclados mecánicos',
+    'city nights':'noches urbanas',
+    'hiking':'senderismo',
+    'boxing drills':'entrenamiento de boxeo',
+    'wuxia novels':'novelas wuxia',
+    'guitar':'guitarra',
+    'jogging':'trote',
+    'trip planning':'planificación de viajes',
+    'baking':'repostería',
+    'illustration':'ilustración',
+    'aromatherapy':'aromaterapia',
+    'yoga':'yoga',
+    'floral design':'diseño floral',
+    'photography':'fotografía',
+    'jazz':'jazz',
+    'handcrafts':'artesanías',
+    'ceramics':'cerámica',
+    'reading':'lectura',
+    'puzzles':'rompecabezas',
+    'travel journals':'diarios de viaje',
+    'street food':'comida callejera',
+    'sketching':'bocetos',
+    'gardening':'jardinería',
+    'lo-fi music':'música lo‑fi',
+    'pour-over coffee':'café filtrado',
+    'seaside runs':'correr junto al mar',
+    'city food hunts':'búsqueda de comida en la ciudad',
+    'film cameras':'cámaras analógicas',
+    'night activities':'actividades nocturnas',
+    'drinks':'bebidas',
+    'nightlife':'vida nocturna',
+    'late-night eats':'comida nocturna',
+    'night runs':'correr de noche',
+    '3D drawing':'dibujo 3D',
+    'gaming':'videojuegos',
+    'cadet':'cadetes',
+    'swimming':'natación',
+    'stargazing':'observación de estrellas',
+    'synth music':'música synth',
+    'speed cubing':'speed cubing',
+    'streetball':'streetball',
+    'skateboarding':'skateboarding',
+    'ramen hunts':'búsqueda de ramen',
+    'calligraphy':'caligrafía',
+    'city walks':'paseos por la ciudad',
+    'vinyl':'vinilo',
+    'snowboarding':'snowboard',
+    'arcades':'salas recreativas',
+    'retro cameras':'cámaras retro',
+    'pottery':'cerámica',
+    'book cafés':'cafés con libros',
+    'watercolor':'acuarela',
+    'night markets':'mercados nocturnos',
+    'indie films':'cine indie',
+    'journaling':'diario personal',
+    'badminton':'bádminton',
+    'strategy games':'juegos de estrategia',
+    'podcasts':'podcasts',
+    'tennis':'tenis',
+    'photo edits':'edición de fotos',
+    'boxing':'boxeo',
+    'graphic tees':'camisetas gráficas',
+    'motorbikes':'motocicletas',
+    'pilates':'pilates',
+    'lo‑fi beats':'beats lo‑fi',
+    'stationery':'papelería',
+    'astro photography':'astrofotografía',
+    'city night hikes':'paseos nocturnos por la ciudad',
+    'competitive games':'juegos competitivos'
+  },
+  ja:{
+    'shore fishing':'海釣り',
+    'board games':'ボードゲーム',
+    'instant photos':'インスタント写真',
+    'running':'ランニング',
+    'chess variants':'チェスのバリエーション',
+    'latte art':'ラテアート',
+    'street photography':'ストリート写真',
+    'movie posters':'映画ポスター',
+    'model kits':'模型',
+    'basketball':'バスケットボール',
+    'mechanical keyboards':'メカニカルキーボード',
+    'city nights':'都会の夜',
+    'hiking':'ハイキング',
+    'boxing drills':'ボクシング練習',
+    'wuxia novels':'武侠小説',
+    'guitar':'ギター',
+    'jogging':'ジョギング',
+    'trip planning':'旅行計画',
+    'baking':'お菓子作り',
+    'illustration':'イラスト',
+    'aromatherapy':'アロマテラピー',
+    'yoga':'ヨガ',
+    'floral design':'フラワーデザイン',
+    'photography':'写真',
+    'jazz':'ジャズ',
+    'handcrafts':'手作り',
+    'ceramics':'陶芸',
+    'reading':'読書',
+    'puzzles':'パズル',
+    'travel journals':'旅行日記',
+    'street food':'屋台グルメ',
+    'sketching':'スケッチ',
+    'gardening':'園芸',
+    'lo-fi music':'ローファイ音楽',
+    'pour-over coffee':'ハンドドリップ',
+    'seaside runs':'海辺ラン',
+    'city food hunts':'街の食べ歩き',
+    'film cameras':'フィルムカメラ',
+    'night activities':'夜のアクティビティ',
+    'drinks':'お酒',
+    'nightlife':'ナイトライフ',
+    'late-night eats':'深夜ごはん',
+    'night runs':'夜ラン',
+    '3D drawing':'3D描画',
+    'gaming':'ゲーム',
+    'cadet':'少年隊',
+    'swimming':'水泳',
+    'stargazing':'星空観察',
+    'synth music':'シンセ音楽',
+    'speed cubing':'スピードキューブ',
+    'streetball':'ストリートバスケ',
+    'skateboarding':'スケートボード',
+    'ramen hunts':'ラーメン探し',
+    'calligraphy':'書道',
+    'city walks':'街歩き',
+    'vinyl':'レコード',
+    'snowboarding':'スノーボード',
+    'arcades':'アーケード',
+    'retro cameras':'レトロカメラ',
+    'pottery':'陶芸',
+    'book cafés':'ブックカフェ',
+    'watercolor':'水彩',
+    'night markets':'夜市',
+    'indie films':'インディー映画',
+    'journaling':'日記',
+    'badminton':'バドミントン',
+    'strategy games':'戦略ゲーム',
+    'podcasts':'ポッドキャスト',
+    'tennis':'テニス',
+    'photo edits':'写真編集',
+    'boxing':'ボクシング',
+    'graphic tees':'グラフィックT',
+    'motorbikes':'バイク',
+    'pilates':'ピラティス',
+    'lo‑fi beats':'ローファイビート',
+    'stationery':'文房具',
+    'astro photography':'天体写真',
+    'city night hikes':'夜の街歩き',
+    'competitive games':'競技ゲーム'
+  }
+};
+const PROFILE_ZODIAC_TRANSLATIONS={
+  fr:{
+    Taurus:'Taureau',
+    Scorpio:'Scorpion',
+    Pisces:'Poissons',
+    Cancer:'Cancer',
+    Aries:'Bélier',
+    Virgo:'Vierge',
+    Aquarius:'Verseau',
+    Gemini:'Gémeaux',
+    Leo:'Lion',
+    Sagittarius:'Sagittaire',
+    Libra:'Balance',
+    Capricorn:'Capricorne'
+  },
+  de:{
+    Taurus:'Stier',
+    Scorpio:'Skorpion',
+    Pisces:'Fische',
+    Cancer:'Krebs',
+    Aries:'Widder',
+    Virgo:'Jungfrau',
+    Aquarius:'Wassermann',
+    Gemini:'Zwillinge',
+    Leo:'Löwe',
+    Sagittarius:'Schütze',
+    Libra:'Waage',
+    Capricorn:'Steinbock'
+  },
+  es:{
+    Taurus:'Tauro',
+    Scorpio:'Escorpio',
+    Pisces:'Piscis',
+    Cancer:'Cáncer',
+    Aries:'Aries',
+    Virgo:'Virgo',
+    Aquarius:'Acuario',
+    Gemini:'Géminis',
+    Leo:'Leo',
+    Sagittarius:'Sagitario',
+    Libra:'Libra',
+    Capricorn:'Capricornio'
+  },
+  ja:{
+    Taurus:'おうし座',
+    Scorpio:'さそり座',
+    Pisces:'うお座',
+    Cancer:'かに座',
+    Aries:'おひつじ座',
+    Virgo:'おとめ座',
+    Aquarius:'みずがめ座',
+    Gemini:'ふたご座',
+    Leo:'しし座',
+    Sagittarius:'いて座',
+    Libra:'てんびん座',
+    Capricorn:'やぎ座'
+  }
+};
+function translateProfileHobby(value,langKey){
+  const map=PROFILE_HOBBY_TRANSLATIONS[langKey];
+  if(!map||typeof value!=='string')return value;
+  const key=String(value).trim();
+  return map[key]??map[key.replace(/\s+/g,' ')]??value;
 }
 function hashTextSeed(seed=''){
   const txt=String(seed??'');
@@ -2513,42 +2904,127 @@ function setSoloStatus(message,{appendLog=true}={}){
   if(g.systemLog.length>200)g.systemLog=g.systemLog.slice(-200);
 }
 function legalMiniCopy(){
-  const zh=state.language==='zh-HK';
+  const lang=state.language;
+  const zh=lang==='zh-HK';
+  const fr=lang==='fr';
+  const de=lang==='de';
+  const es=lang==='es';
+  const ja=lang==='ja';
   const listHtml=(items,ordered=false)=>`${ordered?'<ol>':'<ul>'}${items.map((x)=>`<li>${esc(x)}</li>`).join('')}${ordered?'</ol>':'</ul>'}`;
   const labels=zh
     ?{privacy:'私隱政策',about:'關於我們',contact:'聯絡我們',terms:'使用條款'}
-    :{privacy:'Privacy',about:'About',contact:'Contact',terms:'Terms'};
+    :fr
+      ?{privacy:'Confidentialité',about:'À propos',contact:'Contact',terms:'Conditions'}
+      :de
+        ?{privacy:'Datenschutz',about:'Über uns',contact:'Kontakt',terms:'Bedingungen'}
+        :es
+          ?{privacy:'Privacidad',about:'Acerca de',contact:'Contacto',terms:'Términos'}
+          :ja
+            ?{privacy:'プライバシー',about:'概要',contact:'連絡先',terms:'利用規約'}
+            :{privacy:'Privacy',about:'About',contact:'Contact',terms:'Terms'};
   const privacyIntro=zh
     ?'我們重視你的私隱並以最少必要原則處理資料。'
-    :'We follow a data-minimal approach to protect your privacy.';
+    :fr
+      ?'Nous appliquons une collecte minimale pour protéger votre vie privée.'
+      :de
+        ?'Wir nutzen einen datensparsamen Ansatz zum Schutz deiner Privatsphäre.'
+        :es
+          ?'Seguimos un enfoque de datos mínimos para proteger tu privacidad.'
+          :ja
+            ?'プライバシー保護のため、最小限のデータ収集を行います。'
+            :'We follow a data-minimal approach to protect your privacy.';
   const privacyCollect=zh
     ?[
       '帳戶資料：顯示名稱、登入電郵',
       '遊戲資料：設定、對戰紀錄、分數與排行榜',
       '技術資料：裝置類型、作業系統、瀏覽器版本、語言、基本錯誤記錄'
     ]
-    :[
-      'Account data: display name, sign-in email',
-      'Game data: settings, match records, scores, leaderboard',
-      'Technical data: device type, OS, browser version, language, basic error logs'
-    ];
+    :fr
+      ?[
+        'Données de compte : nom d’affichage, e‑mail de connexion',
+        'Données de jeu : paramètres, parties, scores, classement',
+        'Données techniques : type d’appareil, OS, navigateur, langue, logs d’erreurs basiques'
+      ]
+      :de
+        ?[
+          'Kontodaten: Anzeigename, Anmelde‑E‑Mail',
+          'Spieldaten: Einstellungen, Spielverläufe, Punkte, Rangliste',
+          'Technische Daten: Gerätetyp, OS, Browser, Sprache, einfache Fehlerlogs'
+        ]
+        :es
+          ?[
+            'Datos de cuenta: nombre visible, correo de inicio de sesión',
+            'Datos de juego: ajustes, partidas, puntuaciones, clasificación',
+            'Datos técnicos: tipo de dispositivo, SO, navegador, idioma, registros básicos'
+          ]
+          :ja
+            ?[
+              'アカウント情報: 表示名、ログインメール',
+              'ゲーム情報: 設定、対戦履歴、スコア、ランキング',
+              '技術情報: 端末種別、OS、ブラウザ、言語、基本エラーログ'
+            ]
+            :[
+              'Account data: display name, sign-in email',
+              'Game data: settings, match records, scores, leaderboard',
+              'Technical data: device type, OS, browser version, language, basic error logs'
+            ];
   const privacyUse=zh
     ?[
       '維持登入與偏好設定（Cookies 或同類技術）',
       '遊戲運作、排行榜與統計分析',
       '防止濫用、風險控制與技術維護'
     ]
-    :[
-      'Maintain sign-in and preferences (cookies or similar)',
-      'Core gameplay, leaderboard, and statistics',
-      'Abuse prevention, risk control, and maintenance'
-    ];
+    :fr
+      ?[
+        'Maintenir la connexion et les préférences (cookies ou équivalents)',
+        'Fonctionnement du jeu, classement et statistiques',
+        'Prévention des abus, contrôle des risques et maintenance'
+      ]
+      :de
+        ?[
+          'Anmeldung und Einstellungen aufrechterhalten (Cookies o. ä.)',
+          'Spielbetrieb, Rangliste und Statistiken',
+          'Missbrauchsprävention, Risikokontrolle und Wartung'
+        ]
+        :es
+          ?[
+            'Mantener inicio de sesión y preferencias (cookies o similares)',
+            'Juego principal, clasificación y estadísticas',
+            'Prevención de abuso, control de riesgos y mantenimiento'
+          ]
+          :ja
+            ?[
+              'ログインと設定の保持（Cookie等）',
+              'ゲーム運営、ランキング、統計',
+              '不正防止、リスク管理、保守'
+            ]
+            :[
+              'Maintain sign-in and preferences (cookies or similar)',
+              'Core gameplay, leaderboard, and statistics',
+              'Abuse prevention, risk control, and maintenance'
+            ];
   const privacyNotes=zh
     ?'資料不會出售作第三方行銷用途，並會在合理期限內清理。你可在瀏覽器管理 Cookies；停用後可能影響登入或偏好保存。如需查詢或更正／刪除資料，請透過聯絡方式與我們聯絡。'
-    :'We do not sell your data for third‑party marketing and retain it only as needed before cleanup. You can manage cookies in your browser; disabling them may affect sign-in or preferences. For questions or correction/removal requests, contact us.';
+    :fr
+      ?'Nous ne vendons pas vos données à des tiers et les conservons uniquement le temps nécessaire. Vous pouvez gérer les cookies dans votre navigateur ; leur désactivation peut affecter la connexion ou les préférences. Pour toute question ou demande de correction/suppression, contactez‑nous.'
+      :de
+        ?'Wir verkaufen keine Daten an Dritte und speichern sie nur so lange wie nötig. Cookies können im Browser verwaltet werden; eine Deaktivierung kann Anmeldung oder Einstellungen beeinträchtigen. Für Auskünfte oder Korrektur/Löschung kontaktiere uns.'
+        :es
+          ?'No vendemos tus datos a terceros y solo los conservamos el tiempo necesario. Puedes gestionar las cookies en tu navegador; desactivarlas puede afectar el inicio de sesión o las preferencias. Para consultas o corrección/eliminación, contáctanos.'
+          :ja
+            ?'データは第三者マーケティング目的で販売せず、必要な期間のみ保持します。Cookieはブラウザで管理できますが、無効化するとログインや設定保存に影響する場合があります。お問い合わせや訂正・削除は連絡先からお願いします。'
+            :'We do not sell your data for third‑party marketing and retain it only as needed before cleanup. You can manage cookies in your browser; disabling them may affect sign-in or preferences. For questions or correction/removal requests, contact us.';
   const aboutIntro=zh
     ?'《鋤大D（Big Two）》網頁版專注於跨裝置一致體驗。'
-    :'This browser-based Big Two focuses on consistent play across devices.';
+    :fr
+      ?'Cette version web de Big Two vise une expérience cohérente sur tous les appareils.'
+      :de
+        ?'Diese Browser‑Version von Big Two fokussiert auf eine konsistente Geräte‑Erfahrung.'
+        :es
+          ?'Esta versión web de Big Two se centra en una experiencia consistente entre dispositivos.'
+          :ja
+            ?'このBig Twoのウェブ版は、デバイス間で一貫した体験を重視しています。'
+            :'This browser-based Big Two focuses on consistent play across devices.';
   const aboutList=zh
     ?[
       '支援手機、平板與桌面快速開局',
@@ -2556,18 +3032,62 @@ function legalMiniCopy(){
       '排行榜、個人設定與成績追蹤',
       '清晰出牌提示、即時狀態與計分明細'
     ]
-    :[
-      'Fast start on phone, tablet, and desktop',
-      'Solo and room matches',
-      'Leaderboard, personal settings, performance tracking',
-      'Clear play cues, live status, and scoring details'
-    ];
+    :fr
+      ?[
+        'Démarrage rapide sur mobile, tablette et desktop',
+        'Solo et parties en salon',
+        'Classement, paramètres personnels, suivi des performances',
+        'Indications claires, état en direct et détails de score'
+      ]
+      :de
+        ?[
+          'Schnellstart auf Handy, Tablet und Desktop',
+          'Solo‑ und Raumspiele',
+          'Rangliste, persönliche Einstellungen, Leistungs‑Tracking',
+          'Klare Hinweise, Live‑Status und Punktedetails'
+        ]
+        :es
+          ?[
+            'Inicio rápido en móvil, tableta y escritorio',
+            'Partidas en solitario y en sala',
+            'Clasificación, ajustes personales, seguimiento de resultados',
+            'Indicaciones claras, estado en vivo y detalles de puntuación'
+          ]
+          :ja
+            ?[
+              'スマホ・タブレット・PCで素早く開始',
+              'ソロ対戦とルーム対戦',
+              'ランキング、個人設定、成績管理',
+              '明確な出牌ガイド、リアルタイム状況、計分詳細'
+            ]
+            :[
+              'Fast start on phone, tablet, and desktop',
+              'Solo and room matches',
+              'Leaderboard, personal settings, performance tracking',
+              'Clear play cues, live status, and scoring details'
+            ];
   const aboutNotes=zh
     ?'我們持續優化效能、互動回饋、版面適配與穩定性，並依玩家回饋改進。'
-    :'We continuously improve performance, interaction feedback, responsive layout, and stability based on player feedback.';
+    :fr
+      ?'Nous améliorons en continu les performances, le feedback, l’interface et la stabilité selon les retours.'
+      :de
+        ?'Wir verbessern fortlaufend Performance, Feedback, Layout und Stabilität basierend auf Rückmeldungen.'
+        :es
+          ?'Mejoramos continuamente el rendimiento, la respuesta, el diseño y la estabilidad según comentarios.'
+          :ja
+            ?'パフォーマンス、操作感、レイアウト、安定性を継続的に改善しています。'
+            :'We continuously improve performance, interaction feedback, responsive layout, and stability based on player feedback.';
   const termsIntro=zh
     ?'使用本網站即表示你同意：'
-    :'By using this website, you agree to:';
+    :fr
+      ?'En utilisant ce site, vous acceptez :'
+      :de
+        ?'Durch die Nutzung dieser Website stimmst du zu:'
+        :es
+          ?'Al usar este sitio, aceptas:'
+          :ja
+            ?'本サイトを利用することで、以下に同意したものとします:'
+            :'By using this website, you agree to:';
   const termsList=zh
     ?[
       '合法及公平使用服務，不作弊、濫用或干擾系統',
@@ -2577,24 +3097,84 @@ function legalMiniCopy(){
       '維護、安全或法規需要下可調整功能或暫停部分服務',
       '對於網絡、裝置或第三方服務導致的中斷或損失不作保證'
     ]
-    :[
-      'Use the service lawfully and fairly without cheating or abuse',
-      'Avoid plugins, automation, crawlers, or non-standard methods that affect matches or leaderboards',
-      'Keep your account/device secure',
-      'Leaderboards and records follow system logs and may be corrected for anomalies',
-      'Features may change or suspend for maintenance, security, or legal needs',
-      'No guarantee against interruptions or data loss from network/device/third-party outages'
-    ];
+    :fr
+      ?[
+        'Utiliser le service légalement et équitablement, sans triche ni abus',
+        'Éviter plugins, automatisations, robots ou méthodes non standard affectant parties ou classements',
+        'Gérer la sécurité de votre compte/appareil',
+        'Les classements se basent sur les logs et peuvent être corrigés',
+        'Des fonctionnalités peuvent changer ou être suspendues pour maintenance, sécurité ou obligations légales',
+        'Aucune garantie contre interruptions ou pertes dues au réseau/appareil/tiers'
+      ]
+      :de
+        ?[
+          'Dienst legal und fair nutzen, ohne Betrug oder Missbrauch',
+          'Keine Plugins, Automatisierung, Crawler oder unübliche Methoden, die Spiele/Rankings beeinflussen',
+          'Sicherheit von Konto und Gerät selbst verwalten',
+          'Ranglisten basieren auf Systemlogs und können korrigiert werden',
+          'Funktionen können aus Wartungs-, Sicherheits- oder Rechtsgründen geändert/pausiert werden',
+          'Keine Garantie bei Ausfällen oder Verlusten durch Netzwerk/Gerät/Drittanbieter'
+        ]
+        :es
+          ?[
+            'Usar el servicio legalmente y con equidad, sin trampas ni abuso',
+            'Evitar plugins, automatización, rastreadores o métodos no estándar que afecten partidas o clasificaciones',
+            'Gestionar la seguridad de tu cuenta/dispositivo',
+            'Las clasificaciones siguen los registros del sistema y pueden corregirse',
+            'Funciones pueden cambiar o suspenderse por mantenimiento, seguridad o requisitos legales',
+            'Sin garantía ante interrupciones o pérdidas por red/dispositivo/terceros'
+          ]
+          :ja
+            ?[
+              '不正や濫用をせず、合法かつ公平に利用する',
+              'プラグイン、自動化、クローラー等で対戦やランキングに影響を与えない',
+              'アカウント/端末の安全管理は利用者が行う',
+              'ランキングや戦績はシステム記録に基づき、異常は修正/削除されることがある',
+              '保守・安全・法令上の理由で機能変更や一時停止を行う場合がある',
+              'ネットワーク/端末/第三者サービスによる中断や損失は保証しない'
+            ]
+            :[
+              'Use the service lawfully and fairly without cheating or abuse',
+              'Avoid plugins, automation, crawlers, or non-standard methods that affect matches or leaderboards',
+              'Keep your account/device secure',
+              'Leaderboards and records follow system logs and may be corrected for anomalies',
+              'Features may change or suspend for maintenance, security, or legal needs',
+              'No guarantee against interruptions or data loss from network/device/third-party outages'
+            ];
   const termsNotes=zh
     ?'若不同意上述條款，請停止使用本網站。'
-    :'Discontinue use if you do not accept these terms.';
+    :fr
+      ?'Si vous n’acceptez pas ces conditions, veuillez cesser d’utiliser le site.'
+      :de
+        ?'Wenn du diese Bedingungen nicht akzeptierst, nutze die Website bitte nicht.'
+        :es
+          ?'Si no aceptas estos términos, deja de usar el sitio.'
+          :ja
+            ?'同意できない場合はご利用をお控えください。'
+            :'Discontinue use if you do not accept these terms.';
   const supportText=zh
     ?'喜歡這個遊戲？歡迎點擊或掃描支持我們一杯咖啡，讓我們持續更新與改善。'
-    :'Enjoying the game? Click or scan to support us with a coffee so we can keep improving it.';
+    :fr
+      ?'Vous aimez le jeu ? Cliquez ou scannez pour nous offrir un café et soutenir les améliorations.'
+      :de
+        ?'Gefällt dir das Spiel? Unterstütze uns mit einem Kaffee per Klick oder Scan.'
+        :es
+          ?'¿Te gusta el juego? Haz clic o escanea para apoyarnos con un café.'
+          :ja
+            ?'このゲームが気に入ったら、クリックまたはスキャンでコーヒー支援をお願いします。'
+            :'Enjoying the game? Click or scan to support us with a coffee so we can keep improving it.';
   const supportHtml=`<div class="bmac-cta"><div class="bmac-msg">${esc(supportText)}</div><div class="bmac-row"><a href="https://www.buymeacoffee.com/4leafx" target="_blank" rel="noopener noreferrer"><img class="bmac-button" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee"></a><img class="bmac-qr" src="${withBase('bmac-qr.png')}" alt="Buy Me A Coffee QR"></div></div>`;
   const contactHtml=zh
     ?'如有查詢，請電郵至 <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>。'
-    :'For enquiries, email <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.';
+    :fr
+      ?'Pour toute demande, écrivez à <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.'
+      :de
+        ?'Bei Fragen: <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.'
+        :es
+          ?'Para consultas, escribe a <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.'
+          :ja
+            ?'お問い合わせは <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a> まで。'
+            :'For enquiries, email <a href="mailto:4LeafxCS@gmail.com">4LeafxCS@gmail.com</a>.';
   const contactList=zh
     ?[
       '裝置型號與系統版本',
@@ -2602,19 +3182,47 @@ function legalMiniCopy(){
       '發生時間與操作步驟',
       '截圖或錄影（如適用）'
     ]
-    :[
-      'Device model and OS version',
-      'Browser and version',
-      'Time and steps to reproduce',
-      'Screenshots or screen recording (if any)'
-    ];
+    :fr
+      ?[
+        'Modèle d’appareil et version du système',
+        'Navigateur et version',
+        'Heure et étapes de reproduction',
+        'Captures d’écran ou enregistrement (si possible)'
+      ]
+      :de
+        ?[
+          'Gerätemodell und OS‑Version',
+          'Browser und Version',
+          'Zeitpunkt und Schritte zur Reproduktion',
+          'Screenshots oder Bildschirmaufnahme (falls vorhanden)'
+        ]
+        :es
+          ?[
+            'Modelo de dispositivo y versión del SO',
+            'Navegador y versión',
+            'Hora y pasos para reproducir',
+            'Capturas o grabación de pantalla (si aplica)'
+          ]
+          :ja
+            ?[
+              '端末機種とOSバージョン',
+              'ブラウザとバージョン',
+              '発生時刻と再現手順',
+              'スクリーンショット/画面録画（可能なら）'
+            ]
+            :[
+              'Device model and OS version',
+              'Browser and version',
+              'Time and steps to reproduce',
+              'Screenshots or screen recording (if any)'
+            ];
   return{
     labels,
     closeLabel:t('close'),
       content:{
-        privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${zh?'收集資料':'Data we collect'}</p>${listHtml(privacyCollect)}<p>${zh?'使用目的':'How we use data'}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
+        privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${esc(zh?'收集資料':fr?'Données collectées':de?'Erhobene Daten':es?'Datos que recopilamos':ja?'収集するデータ':'Data we collect')}</p>${listHtml(privacyCollect)}<p>${esc(zh?'使用目的':fr?'Utilisation des données':de?'Datennutzung':es?'Cómo usamos los datos':ja?'データの利用目的':'How we use data')}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
         about:`<h4>${esc(labels.about)}</h4><div class="legal-about-grid"><div class="legal-about-main"><p>${esc(aboutIntro)}</p>${listHtml(aboutList)}<p>${esc(aboutNotes)}</p></div><div class="legal-about-side">${supportHtml}</div></div>`,
-        contact:`<h4>${esc(labels.contact)}</h4><p>${contactHtml}</p><p>${zh?'建議提供':'Please include'}</p>${listHtml(contactList)}`,
+        contact:`<h4>${esc(labels.contact)}</h4><p>${contactHtml}</p><p>${esc(zh?'建議提供':fr?'Merci d’inclure':de?'Bitte angeben':es?'Incluye':ja?'可能であれば以下を添付':'Please include')}</p>${listHtml(contactList)}`,
         terms:`<h4>${esc(labels.terms)}</h4><p>${esc(termsIntro)}</p>${listHtml(termsList,true)}<p>${esc(termsNotes)}</p>`
       }
     };
@@ -9275,7 +9883,8 @@ function renderOpponents(){
     const hobbyText=formatHobbyList(hobbies);
     const profileText=profileFieldValue(profile,'profile','-');
     const profileHtml=profileParagraphsHtml(profileText);
-    const zodiacText=profileFieldValue(profile,'zodiac','-');
+    const zodiacTextRaw=profileFieldValue(profile,'zodiac','-');
+    const zodiacText=PROFILE_ZODIAC_TRANSLATIONS[state.language]?.[zodiacTextRaw]??zodiacTextRaw;
     const zodiacMark=zodiacSymbol(zodiacText);
     const mottoText=profileFieldValue(profile,'motto','-');
     const genderLabel=b.gender==='female'?t('female'):t('male');
@@ -9311,7 +9920,8 @@ function opponentProfileModalHtml(name){
   const hobbyText=formatHobbyList(hobbies);
   const profileText=profileFieldValue(profile,'profile','-');
   const profileHtml=profileParagraphsHtml(profileText);
-  const zodiacText=profileFieldValue(profile,'zodiac','-');
+  const zodiacTextRaw=profileFieldValue(profile,'zodiac','-');
+  const zodiacText=PROFILE_ZODIAC_TRANSLATIONS[state.language]?.[zodiacTextRaw]??zodiacTextRaw;
   const zodiacMark=zodiacSymbol(zodiacText);
   const mottoText=profileFieldValue(profile,'motto','-');
   const gender=botGenderByName(name);
