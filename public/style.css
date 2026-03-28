@@ -944,6 +944,24 @@ body[data-screen='home'] .home-wrap {
 .royal-room-btn {
   min-width: 140px;
 }
+.room-create-card {
+  position: relative;
+}
+.room-create-card .room-create-hint {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 20, 32, .55);
+  color: rgba(233, 244, 255, .9);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,.22);
+}
 .royal-home-body .home-start-row .hint {
   position: static;
   transform: none;
