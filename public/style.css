@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -153,9 +153,6 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
 }
 /* Desktop/tablet: keep expanded/collapsed shell metrics identical to avoid visual jump on log toggle. */
 @media (min-width: 861px) {
-  body[data-screen='game'] .action-strip.room-mode .control-row {
-    flex-wrap: nowrap;
-  }
   body[data-screen='game'][data-log-open='0'] .game-shell {
     grid-template-rows: minmax(0,1fr) !important;
     gap: 8px !important;
@@ -215,6 +212,11 @@ h1, h2, h3, p { margin: 0; }
   right: 58px;
   top: 5px;
   z-index: 8;
+}
+.room-top-meta.room-top-meta-inline {
+  position: static;
+  transform: none;
+  z-index: auto;
 }
 @media (max-width: 860px) and (orientation: portrait) {
   .room-top-meta.room-top-meta-center {
@@ -6702,6 +6704,15 @@ body[data-screen='game'] .score-guide-modal {
 
 /* Make opponent (N/E/W) panels larger and transparent like reference. */
 @media (min-width: 861px) {
+  body[data-screen='game'] .action-strip .control-row {
+    flex-wrap: nowrap;
+  }
+  body[data-screen='game'] .action-strip .control-row .room-top-meta {
+    order: 4;
+    margin: 0 2px 0 0;
+  }
+  body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 5; }
+  body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 6; }
   body[data-screen='game'] .table {
     grid-template-columns: minmax(108px, .72fr) minmax(0, 2.1fr) minmax(108px, .72fr);
     grid-template-rows: minmax(92px, auto) minmax(0, 1fr);
