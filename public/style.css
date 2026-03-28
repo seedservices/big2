@@ -925,6 +925,22 @@ body[data-screen='home'] .home-wrap {
   gap: 10px;
   flex-wrap: wrap;
 }
+.room-create-hint {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(8, 20, 32, .55);
+  color: rgba(233, 244, 255, .86);
+  font-size: .84rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+  z-index: 15;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
 .royal-room-btn {
   min-width: 140px;
 }
