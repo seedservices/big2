@@ -6230,19 +6230,20 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   padding: 10px;
   background: rgba(3, 12, 22, .62);
   backdrop-filter: blur(3px);
+  overflow: visible;
 }
 .result-screen .result-confetti {
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 60;
   opacity: 1;
   animation: confettiBurst 1400ms ease-out both;
   mix-blend-mode: screen;
 }
 .result-screen .result-card {
   position: relative;
-  z-index: 1;
+  z-index: 55;
 }
 .log-sheet {
   position: fixed;
