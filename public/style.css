@@ -6030,7 +6030,7 @@ body[data-screen='game'] .intro-modal {
   }
   .royal-home-body .home-form-right {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, clamp(110px, 28vw, 150px));
     gap: 10px;
     padding-left: 0;
   }
