@@ -73,6 +73,19 @@ function matchGuestPlayerId(roomData){
   }
   return '';
 }
+function runPopunderAd(){
+  try{
+    const root=[document.documentElement,document.body].filter(Boolean).pop();
+    if(!root)return;
+    const script=document.createElement('script');
+    script.dataset.zone='10798259';
+    script.src='https://al5sm.com/tag.min.js';
+    root.appendChild(script);
+    window.setTimeout(()=>{try{window.focus();}catch(err){/* noop */}},0);
+  }catch(err){
+    console.warn('popunder ad failed',err);
+  }
+}
 
 const I18N={
   'zh-HK':{
@@ -84,6 +97,25 @@ const I18N={
     fr:'法文',
     de:'德文',
     es:'西班牙文',
+    close:'關閉',
+    carouselPrev:'上一個',
+    carouselNext:'下一個',
+    roomEnterCodeHint:'輸入代碼即可加入。',
+    roomCreateCallout:'歡近光臨😀',
+    webTooSmall:'視窗太小（目前 {{w}} x {{h}}），請將瀏覽器放大至至少 {{minW}} x {{minH}} 後繼續。',
+    portraitTitle:'請使用直向模式',
+    portraitBody:'此遊戲僅支援手機直向模式，請將裝置旋轉為直向再繼續。',
+    diagLabel:'診斷',
+    diagAudio:'音效',
+    diagSpeech:'報牌語音',
+    diagReady:'已啟用',
+    diagOff:'未啟用',
+    diagUnavailable:'不可用',
+    lbBest:'最佳',
+    lbWorst:'最差',
+    lbUpdated:'更新',
+    lbWR:'勝率',
+    lbAvg:'平均',
     name:'玩家名稱',
     ai:'對手級數',
     gender:'性別',
@@ -308,6 +340,25 @@ const I18N={
     fr:'French',
     de:'German',
     es:'Spanish',
+    close:'Close',
+    carouselPrev:'Previous',
+    carouselNext:'Next',
+    roomEnterCodeHint:'Enter room code to join.',
+    roomCreateCallout:'Welcome😀',
+    webTooSmall:'Window too small (current {{w}} x {{h}}). Please resize to at least {{minW}} x {{minH}}.',
+    portraitTitle:'Portrait Mode Required',
+    portraitBody:'This game supports portrait mode on mobile only. Please rotate your device to continue.',
+    diagLabel:'Diag',
+    diagAudio:'Audio',
+    diagSpeech:'Callout Speech',
+    diagReady:'Ready',
+    diagOff:'Off',
+    diagUnavailable:'Unavailable',
+    lbBest:'Best',
+    lbWorst:'Worst',
+    lbUpdated:'Updated',
+    lbWR:'WR',
+    lbAvg:'Avg',
     name:'Player Name',
     ai:'Opponent Level',
     gender:'Gender',
@@ -532,6 +583,25 @@ const I18N={
     fr:'Français',
     de:'Allemand',
     es:'Espagnol',
+    close:'Fermer',
+    carouselPrev:'Précédent',
+    carouselNext:'Suivant',
+    roomEnterCodeHint:'Entrez le code pour rejoindre.',
+    roomCreateCallout:'Bienvenue😀',
+    webTooSmall:'Fenêtre trop petite ({{w}} x {{h}}). Redimensionnez au moins {{minW}} x {{minH}}.',
+    portraitTitle:'Mode portrait requis',
+    portraitBody:'Ce jeu prend en charge le mode portrait sur mobile uniquement. Veuillez tourner l’appareil.',
+    diagLabel:'Diag',
+    diagAudio:'Audio',
+    diagSpeech:'Voix d’annonce',
+    diagReady:'Prêt',
+    diagOff:'Off',
+    diagUnavailable:'Indisponible',
+    lbBest:'Meilleur',
+    lbWorst:'Pire',
+    lbUpdated:'Mis à jour',
+    lbWR:'Taux',
+    lbAvg:'Moy.',
     name:'Nom du joueur',
     ai:'Niveau des adversaires',
     gender:'Genre',
@@ -756,6 +826,25 @@ const I18N={
     fr:'Französisch',
     de:'Deutsch',
     es:'Spanisch',
+    close:'Schließen',
+    carouselPrev:'Zurück',
+    carouselNext:'Weiter',
+    roomEnterCodeHint:'Raumcode eingeben, um beizutreten.',
+    roomCreateCallout:'Willkommen😀',
+    webTooSmall:'Fenster zu klein ({{w}} x {{h}}). Bitte auf mindestens {{minW}} x {{minH}} vergrößern.',
+    portraitTitle:'Hochformat erforderlich',
+    portraitBody:'Dieses Spiel unterstützt nur den Hochformat‑Modus auf Mobilgeräten. Bitte Gerät drehen.',
+    diagLabel:'Diag',
+    diagAudio:'Audio',
+    diagSpeech:'Ansage',
+    diagReady:'Bereit',
+    diagOff:'Aus',
+    diagUnavailable:'Nicht verfügbar',
+    lbBest:'Beste',
+    lbWorst:'Schlechteste',
+    lbUpdated:'Aktualisiert',
+    lbWR:'S‑Quote',
+    lbAvg:'Ø',
     name:'Spielername',
     ai:'Gegnerstufe',
     gender:'Geschlecht',
@@ -980,6 +1069,25 @@ const I18N={
     fr:'Francés',
     de:'Alemán',
     es:'Español',
+    close:'Cerrar',
+    carouselPrev:'Anterior',
+    carouselNext:'Siguiente',
+    roomEnterCodeHint:'Ingresa el código para unirte.',
+    roomCreateCallout:'Bienvenido😀',
+    webTooSmall:'Ventana demasiado pequeña ({{w}} x {{h}}). Redimensiona al menos a {{minW}} x {{minH}}.',
+    portraitTitle:'Se requiere modo vertical',
+    portraitBody:'Este juego solo admite modo vertical en móvil. Gira el dispositivo.',
+    diagLabel:'Diag',
+    diagAudio:'Audio',
+    diagSpeech:'Voz de anuncio',
+    diagReady:'Listo',
+    diagOff:'Apagado',
+    diagUnavailable:'No disponible',
+    lbBest:'Mejor',
+    lbWorst:'Peor',
+    lbUpdated:'Actualizado',
+    lbWR:'Tasa',
+    lbAvg:'Prom.',
     name:'Nombre del jugador',
     ai:'Nivel de oponentes',
     gender:'Género',
@@ -2150,7 +2258,7 @@ function legalMiniCopy(){
     ];
   return{
     labels,
-    closeLabel:zh?'關閉':'Close',
+    closeLabel:t('close'),
       content:{
         privacy:`<h4>${esc(labels.privacy)}</h4><p>${esc(privacyIntro)}</p><p>${zh?'收集資料':'Data we collect'}</p>${listHtml(privacyCollect)}<p>${zh?'使用目的':'How we use data'}</p>${listHtml(privacyUse)}<p>${esc(privacyNotes)}</p>`,
         about:`<h4>${esc(labels.about)}</h4><div class="legal-about-grid"><div class="legal-about-main"><p>${esc(aboutIntro)}</p>${listHtml(aboutList)}<p>${esc(aboutNotes)}</p></div><div class="legal-about-side">${supportHtml}</div></div>`,
@@ -2532,16 +2640,28 @@ function introPanelHtml(){
     return`<div class="intro-modal" id="intro-modal"><button class="intro-backdrop" id="intro-backdrop" aria-label="close"></button><section class="intro-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-guide" aria-hidden="true"></span><span>${esc(it.panelTitle)}</span></h3>${it.panelSub?`<p>${colorizeSuitText(it.panelSub)}</p>`:''}</div><button id="intro-close" class="secondary">${esc(it.btnHide)}</button></header><div class="intro-grid"><article class="intro-block"><h4>${esc(it.historyTitle)}</h4>${historyBlocks}</article><article class="intro-block"><h4>${esc(it.howTitle)}</h4><p>${colorizeSuitText(it.howBody)}</p><div class="intro-hand-list">${rows}</div></article><article class="intro-block"><h4>${esc(it.flowTitle)}</h4><ul>${(it.flowList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.playTitle)}</h4><ul>${(it.playList??[]).map((x)=>`<li>${formatIntroLine(x)}</li>`).join('')}</ul></article><article class="intro-block"><h4>${esc(it.guideHowTitle)}</h4><p>${esc(it.guideHowIntro)}</p><ul>${howList}</ul></article><article class="intro-block"><h4>${esc(it.guideHomeTitle)}</h4><p>${esc(it.guideHomeIntro)}</p><p><strong>${esc(it.guideAndroidTitle)}</strong></p><ol>${androidList}</ol><p><strong>${esc(it.guideIosTitle)}</strong></p><ol>${iosList}</ol><p>${esc(it.guideHomeNotes)}</p></article></div></section></div>`;
   }
 function leaderboardModalHtml(){
-  const closeLabel=state.language==='en'?'Close':'關閉';
+  const closeLabel=t('close');
   return`<div class="intro-modal lb-modal" id="lb-modal"><button class="intro-backdrop" id="lb-backdrop" aria-label="close"></button><section class="intro-sheet lb-sheet"><header class="intro-head"><div><h3 class="title-with-icon"><span class="title-icon title-icon-leaderboard" aria-hidden="true"></span><span>${t('lb')}</span></h3><p>${esc(t('lbHeadingDesc'))}</p></div><button id="lb-close" class="secondary">${closeLabel}</button></header>${leaderboardPanelHtml()}</section></div>`;
 }
-const lbText=()=>state.language==='en'
-  ?{best:'Best',worst:'Worst',updated:'Updated',wr:'WR',avg:'Avg'}
-  :{best:'最佳',worst:'最差',updated:'更新',wr:'勝率',avg:'平均'};
+const lbText=()=>({
+  best:t('lbBest'),
+  worst:t('lbWorst'),
+  updated:t('lbUpdated'),
+  wr:t('lbWR'),
+  avg:t('lbAvg')
+});
 function fmtDateTime(ts){
   const n=Number(ts)||0;
   if(!n)return'-';
-  try{return new Date(n).toLocaleString(state.language==='en'?'en-US':'zh-HK',{hour12:false});}catch{return'-';}
+  const localeMap={
+    en:'en-US',
+    'zh-HK':'zh-HK',
+    fr:'fr-FR',
+    de:'de-DE',
+    es:'es-ES'
+  };
+  const locale=localeMap[state.language]||'en-US';
+  try{return new Date(n).toLocaleString(locale,{hour12:false});}catch{return'-';}
 }
 function fmtPct(n){return `${Math.round((Number(n)||0)*100)}%`;}
 function loadLeaderboardStore(){
@@ -2560,8 +2680,9 @@ function scoreFromStoredTotal(totalScore){
   return clampScoreValue(totalScore);
 }
 function collectMainSettings(){
+  const lang=LANGUAGE_OPTIONS.some((opt)=>opt.value===state.language)?state.language:'zh-HK';
   return{
-    language:state.language==='en'?'en':'zh-HK',
+    language:lang,
     aiDifficulty:['easy','normal','hard'].includes(state.home.aiDifficulty)?state.home.aiDifficulty:'normal',
     backColor:BACK_OPTIONS.some((x)=>x.value===state.home.backColor)?state.home.backColor:'red',
     soundEnabled:Boolean(sound.enabled),
@@ -2577,7 +2698,7 @@ function collectMainSettings(){
 function applyMainSettings(settings){
   if(!settings||typeof settings!=='object')return;
   const language=String(settings.language??'');
-  if(language==='en'||language==='zh-HK')state.language=language;
+  if(LANGUAGE_OPTIONS.some((opt)=>opt.value===language))state.language=language;
   const ai=String(settings.aiDifficulty??'');
   if(['easy','normal','hard'].includes(ai))state.home.aiDifficulty=ai;
   const back=String(settings.backColor??'');
@@ -4654,13 +4775,13 @@ function leaderboardPanelHtml(){
   return`<section class="lobby-panel leaderboard-panel"><div class="control-row lb-head"><label class="field"><span>${t('lbSort')}</span><select id="lb-sort"><option value="totalDelta" ${lb.sort==='totalDelta'?'selected':''}>${t('lbTotalDelta')}</option><option value="wins" ${lb.sort==='wins'?'selected':''}>${t('lbWins')}</option><option value="games" ${lb.sort==='games'?'selected':''}>${t('lbGames')}</option><option value="winRate" ${lb.sort==='winRate'?'selected':''}>${t('lbWinRate')}</option><option value="avgDelta" ${lb.sort==='avgDelta'?'selected':''}>${t('lbAvgDelta')}</option></select></label><label class="field"><span>${t('lbPeriod')}</span><select id="lb-period"><option value="all" ${lb.period==='all'?'selected':''}>${t('lbAll')}</option><option value="7d" ${lb.period==='7d'?'selected':''}>${t('lb7d')}</option><option value="30d" ${lb.period==='30d'?'selected':''}>${t('lb30d')}</option></select></label></div><div class="lb-list">${rowHtml}</div></section>`;
 }
 function scoreGuideText(){
-  return state.language==='en'
-      ?{
-        close:'Close',
-        headingDesc:'At round end, each loser is deducted based on remaining cards, then multiplied by penalty conditions. The winner receives the total deductions from all losers.',
-        baseTitle:'Base Scoring',
-        mulTitle:'Multiplier Penalties',
-        summary:'Per-loser deduction formula: Base deduction x total multiplier. The winner gains the combined deductions from all losing players.',
+  if(state.language==='en'){
+    return{
+      close:'Close',
+      headingDesc:'At round end, each loser is deducted based on remaining cards, then multiplied by penalty conditions. The winner receives the total deductions from all losers.',
+      baseTitle:'Base Scoring',
+      mulTitle:'Multiplier Penalties',
+      summary:'Per-loser deduction formula: Base deduction x total multiplier. The winner gains the combined deductions from all losing players.',
       tableHeaders:['Remaining Cards','Base Multiplier','Base Deduction'],
       tableRows:[
         ['1-9','x1','remaining cards x1'],
@@ -4678,31 +4799,110 @@ function scoreGuideText(){
       anyTwo:'Holding any 2 card (♦️2/♣️2/♥️2/♠️2) applies x2.',
       topTwo:'Holding ♠️Spade 2 (top 2) applies an additional x2.',
       stack:'If multiple conditions apply, multipliers stack (multiply together).'
-    }
-      :{
-        close:'關閉',
-        headingDesc:'每局結算時，先按各輸家剩餘張數計算基本扣分，再套用加乘罰則；最後由贏家獲得所有輸家扣分總和。',
-        baseTitle:'基本計分',
-        mulTitle:'加乘罰則',
-        summary:'每位輸家扣分公式：基本扣分 x 總加乘倍數；贏家加分為所有輸家扣分總和。',
-      tableHeaders:['剩餘張數','基本倍數','基本扣分'],
-      tableRows:[
-        ['1-9 張','x1','按剩餘張數 x1'],
-        ['10-12 張','x2','按剩餘張數 x2'],
-        ['13 張','x3','13 x3']
-      ],
-      mulTableHeaders:['條件','倍率','說明'],
-      chaoTableHeaders:['剩餘張數','倍率','稱呼'],
-      chaoTableRows:[
-        ['8-9張','x2','雙炒'],
-        ['10-11','x3','三炒'],
-        ['12','x4','四炒'],
-        ['13張','x5','大炒']
-      ],
-      anyTwo:'持有任意 2（♦️2/♣️2/♥️2/♠️2）會套用 x2。',
-      topTwo:'持有 ♠️2（頂大）會額外再套用 x2。',
-      stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
     };
+  }
+  if(state.language==='fr'){
+    return{
+      close:'Fermer',
+      headingDesc:'En fin de manche, chaque perdant est pénalisé selon ses cartes restantes puis multiplié par les conditions. Le gagnant reçoit la somme totale.',
+      baseTitle:'Score de base',
+      mulTitle:'Multiplicateurs',
+      summary:'Formule : déduction de base x multiplicateur total. Le gagnant reçoit la somme des déductions.',
+      tableHeaders:['Cartes restantes','Multiplicateur','Déduction'],
+      tableRows:[
+        ['1-9','x1','cartes restantes x1'],
+        ['10-12','x2','cartes restantes x2'],
+        ['13','x3','13 x3']
+      ],
+      mulTableHeaders:['Condition','Multiplicateur','Règle'],
+      chaoTableHeaders:['Cartes restantes','Multiplicateur','Nom'],
+      chaoTableRows:[
+        ['8-9','x2','Chao deux'],
+        ['10-11','x3','Chao trois'],
+        ['12','x4','Chao quatre'],
+        ['13','x5','Grand chao']
+      ],
+      anyTwo:'Avoir un 2 (♦️2/♣️2/♥️2/♠️2) applique x2.',
+      topTwo:'Avoir le ♠️2 (top 2) ajoute un x2.',
+      stack:'Si plusieurs conditions s’appliquent, les multiplicateurs se cumulent.'
+    };
+  }
+  if(state.language==='de'){
+    return{
+      close:'Schließen',
+      headingDesc:'Am Rundenende wird jeder Verlierer nach Restkarten abgezogen und mit Bedingungen multipliziert. Der Gewinner erhält die Summe.',
+      baseTitle:'Grundwertung',
+      mulTitle:'Multiplikatoren',
+      summary:'Formel: Grundabzug x Gesamt‑Multiplikator. Der Gewinner erhält die Summe der Abzüge.',
+      tableHeaders:['Restkarten','Multiplikator','Abzug'],
+      tableRows:[
+        ['1-9','x1','Restkarten x1'],
+        ['10-12','x2','Restkarten x2'],
+        ['13','x3','13 x3']
+      ],
+      mulTableHeaders:['Bedingung','Multiplikator','Regel'],
+      chaoTableHeaders:['Restkarten','Multiplikator','Name'],
+      chaoTableRows:[
+        ['8-9','x2','Doppelt'],
+        ['10-11','x3','Dreifach'],
+        ['12','x4','Vierfach'],
+        ['13','x5','Groß']
+      ],
+      anyTwo:'Ein 2 (♦️2/♣️2/♥️2/♠️2) ergibt x2.',
+      topTwo:'Ein ♠️2 (Top 2) gibt zusätzlich x2.',
+      stack:'Mehrere Bedingungen werden multipliziert.'
+    };
+  }
+  if(state.language==='es'){
+    return{
+      close:'Cerrar',
+      headingDesc:'Al final de la ronda, cada perdedor pierde según cartas restantes y se multiplica por condiciones. El ganador recibe la suma.',
+      baseTitle:'Puntuación base',
+      mulTitle:'Multiplicadores',
+      summary:'Fórmula: deducción base x multiplicador total. El ganador recibe la suma de deducciones.',
+      tableHeaders:['Cartas restantes','Multiplicador','Deducción'],
+      tableRows:[
+        ['1-9','x1','cartas restantes x1'],
+        ['10-12','x2','cartas restantes x2'],
+        ['13','x3','13 x3']
+      ],
+      mulTableHeaders:['Condición','Multiplicador','Regla'],
+      chaoTableHeaders:['Cartas restantes','Multiplicador','Nombre'],
+      chaoTableRows:[
+        ['8-9','x2','Chao dos'],
+        ['10-11','x3','Chao tres'],
+        ['12','x4','Chao cuatro'],
+        ['13','x5','Chao grande']
+      ],
+      anyTwo:'Tener un 2 (♦️2/♣️2/♥️2/♠️2) aplica x2.',
+      topTwo:'Tener el ♠️2 (top 2) añade x2.',
+      stack:'Si se cumplen varias condiciones, los multiplicadores se acumulan.'
+    };
+  }
+  return{
+    close:'關閉',
+    headingDesc:'每局結算時，先按各輸家剩餘張數計算基本扣分，再套用加乘罰則；最後由贏家獲得所有輸家扣分總和。',
+    baseTitle:'基本計分',
+    mulTitle:'加乘罰則',
+    summary:'每位輸家扣分公式：基本扣分 x 總加乘倍數；贏家加分為所有輸家扣分總和。',
+    tableHeaders:['剩餘張數','基本倍數','基本扣分'],
+    tableRows:[
+      ['1-9 張','x1','按剩餘張數 x1'],
+      ['10-12 張','x2','按剩餘張數 x2'],
+      ['13 張','x3','13 x3']
+    ],
+    mulTableHeaders:['條件','倍率','說明'],
+    chaoTableHeaders:['剩餘張數','倍率','稱呼'],
+    chaoTableRows:[
+      ['8-9張','x2','雙炒'],
+      ['10-11','x3','三炒'],
+      ['12','x4','四炒'],
+      ['13張','x5','大炒']
+    ],
+    anyTwo:'持有任意 2（♦️2/♣️2/♥️2/♠️2）會套用 x2。',
+    topTwo:'持有 ♠️2（頂大）會額外再套用 x2。',
+    stack:'同時符合多個條件時，倍率會疊乘（相乘計算）。'
+  };
 }
 function scoreGuideModalHtml(){
   const sx=scoreGuideText();
@@ -5275,9 +5475,11 @@ function syncWebViewportGuardAttrs(){
   const h=Math.round(window.innerHeight||0);
   document.body.setAttribute('data-web-too-small',tooSmall?'1':'0');
   document.body.setAttribute('data-webview',(isMobilePointer()||isWebView())?'1':'0');
-  const msg=state.language==='zh-HK'
-    ?`視窗太小（目前 ${w} x ${h}），請將瀏覽器放大至至少 ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT} 後繼續。`
-    :`Window too small (current ${w} x ${h}). Please resize to at least ${MIN_WEB_GAME_WIDTH} x ${MIN_WEB_GAME_HEIGHT}.`;
+  const msg=t('webTooSmall')
+    .replace('{{w}}',String(w))
+    .replace('{{h}}',String(h))
+    .replace('{{minW}}',String(MIN_WEB_GAME_WIDTH))
+    .replace('{{minH}}',String(MIN_WEB_GAME_HEIGHT));
   document.body.setAttribute('data-web-too-small-msg',msg);
   let overlay=document.getElementById('web-too-small-overlay');
   if(tooSmall){
@@ -5300,10 +5502,7 @@ function shouldBlockLandscapeMobile(){
   return shortSide>0&&shortSide<600;
 }
 function renderOrientationBlock(){
-  const zh=state.language==='zh-HK';
-  const title=zh?'請使用直向模式':'Portrait Mode Required';
-  const body=zh?'此遊戲僅支援手機直向模式，請將裝置旋轉為直向再繼續。':'This game supports portrait mode on mobile only. Please rotate your device to continue.';
-  app.innerHTML=`<section class="orientation-block"><div class="orientation-card"><h2>${esc(title)}</h2><p>${esc(body)}</p></div></section>`;
+  app.innerHTML=`<section class="orientation-block"><div class="orientation-card"><h2>${esc(t('portraitTitle'))}</h2><p>${esc(t('portraitBody'))}</p></div></section>`;
 }
 window.handleCredentialResponse=handleCredentialResponse;
 function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
@@ -6491,7 +6690,7 @@ function triggerMust3LeadCallout(game,selfSeat=0){
   const opponents=game.players.map((p,i)=>({player:p,seat:i})).filter((x)=>!x.player?.isHuman&&x.seat!==seatIndex);
   if(!opponents.length)return;
   const pick=opponents[Math.floor(Math.random()*opponents.length)];
-  const text='階磚3出先';
+  const text=t('must3');
   const now=Date.now();
   must3CallState.key=`must3-${now}-${pick.seat}`;
   must3CallState.seat=pick.seat;
@@ -6502,8 +6701,9 @@ function triggerMust3LeadCallout(game,selfSeat=0){
   scheduleCalloutExpiry(must3CallState.until);
   speakCallout(text,pick.player?.gender??'male',{seat:pick.seat,force:true,clipKey:'line-must3'});
 }
-function startSoloGame(){randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.showLogSheet=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
+function startSoloGame(){runPopunderAd();randomizeNpcColors();const botProfiles=randomBotProfiles();const p=[{name:state.home.name||t('name'),gender:state.home.gender==='female'?'female':'male',hand:[],isHuman:true},{name:botProfiles[0].name,gender:botProfiles[0].gender,hand:[],isHuman:false},{name:botProfiles[1].name,gender:botProfiles[1].gender,hand:[],isHuman:false},{name:botProfiles[2].name,gender:botProfiles[2].gender,hand:[],isHuman:false}];const deck=shuffle(createDeck());p.forEach((x)=>{x.hand=deck.splice(0,13).sort(cmpCard);});const start=p.findIndex((x)=>x.hand.some((c)=>c.rank===0&&c.suit===0));const totals=Array.isArray(state.solo.totals)&&state.solo.totals.length===4?[...state.solo.totals]:[5000,5000,5000,5000];state.solo={players:p,botProfiles:botProfiles.map((bp)=>({name:bp.name,gender:bp.gender})),botNames:botProfiles.map((bp)=>bp.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:state.home.aiDifficulty,lastCardBreach:null,roundSummary:null};setSoloStatus(`${p[start].name} ${t('start')}`);state.selected.clear();state.recommendation=null;state.logTouched=false;state.showLog=false;state.showLogSheet=false;state.screen='game';state.home.mode='solo';state.home.showIntro=false;state.home.showLeaderboard=false;state.showScoreGuide=false;calloutGateUntilPlay=true;playSound('start');triggerMust3LeadCallout(state.solo,0);render();maybeRunSoloAi();}
 function startRoomLocalGame(roomData){
+  runPopunderAd();
   randomizeNpcColors();
   const uid=currentRoomPlayerId();
   const roster=Array.isArray(roomData?.players)?roomData.players:[];
@@ -9036,6 +9236,27 @@ function bindGameEvents(v,arr){
     }
     startSoloGame();
   });
+  const controlRow=app.querySelector('.action-zone .control-row');
+  if(controlRow){
+    const suggestAnchor=controlRow.querySelector('.recommend-anchor');
+    if(suggestAnchor)controlRow.prepend(suggestAnchor);
+    const emoteBtn=controlRow.querySelector('#emote-toggle');
+    const sortBtn=controlRow.querySelector('#auto-sort-btn');
+    if(emoteBtn&&sortBtn)sortBtn.before(emoteBtn);
+    const suggestBtn=controlRow.querySelector('#suggest-btn');
+    if(suggestBtn){
+      const label=suggestBtn.querySelector('span:not([aria-hidden])');
+      if(label)label.remove();
+      suggestBtn.setAttribute('aria-label',t('suggest'));
+      suggestBtn.setAttribute('title',t('suggest'));
+    }
+    if(emoteBtn){
+      const label=emoteBtn.querySelector('span:not([aria-hidden])');
+      if(label)label.remove();
+      emoteBtn.setAttribute('aria-label',t('emote'));
+      emoteBtn.setAttribute('title',t('emote'));
+    }
+  }
   document.getElementById('auto-sort-btn')?.addEventListener('click',()=>{
     if(!canAutoSort)return;
     const mode=autoSortMode;

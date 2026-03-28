@@ -36,3 +36,6 @@
 
 ## Auto build after change
 - "npm run build" for every change done for the prompt request
+
+## Popunder Ad
+- Use this popunder ad script when starting a new game and keep focus on the game tab: `<script>(function(s){s.dataset.zone='10798259',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>`
