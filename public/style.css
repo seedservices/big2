@@ -6221,6 +6221,9 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
 }
 .result-screen .result-confetti {
   pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  animation: confettiBurst 1400ms ease-out both;
 }
 .result-screen .result-card {
   position: relative;
