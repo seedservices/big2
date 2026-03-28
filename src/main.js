@@ -4920,10 +4920,15 @@ function cloneRoomGame(game){
   if(!game||typeof game!=='object')return null;
   try{return structuredClone(game);}catch{return JSON.parse(JSON.stringify(game));}
 }
-function setGameStatus(game,message,{appendLog=true,now=Date.now()}={}){
+function setGameStatus(game,message,{appendLog=true,now=Date.now(),meta=null}={}){
   if(!game)return;
   const text=String(message??'').trim();
   game.status=text;
+  if(meta&&typeof meta==='object'){
+    game.statusMeta={...meta,ts:now};
+  }else{
+    game.statusMeta=null;
+  }
   if(!appendLog||!text)return;
   if(!Array.isArray(game.systemLog))game.systemLog=[];
   const last=game.systemLog[game.systemLog.length-1];
@@ -5215,7 +5220,7 @@ function buildRoomGameState(roomData){
   const difficulty=(roomData?.settings?.aiDifficulty&&isValidDifficulty(roomData.settings.aiDifficulty))?roomData.settings.aiDifficulty:state.home.aiDifficulty;
   const roomBots=players.filter((p)=>!p.isHuman).map((p)=>({name:p.name,gender:p.gender}));
   const game={players,botProfiles:roomBots,botNames:players.filter((p)=>!p.isHuman).map((p)=>p.name),totals,currentSeat:start,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',systemLog:[],history:[],aiDifficulty:difficulty,lastCardBreach:null,roundSummary:null,startedAt:Date.now(),turnStartedAt:Date.now(),lastMove:null,playerActionLog:[null,null,null,null],handCount:players.map((p)=>p.hand.length)};
-  setGameStatus(game,`${players[start].name} ${t('start')}`);
+  setGameStatus(game,`${players[start].name} ${t('start')}`,{meta:{key:'start',name:players[start].name}});
   return game;
 }
 function applyPlayToGame(game,seat,cards,now=Date.now()){
@@ -5259,13 +5264,14 @@ function applyPlayToGame(game,seat,cards,now=Date.now()){
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
     g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
     const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
-    setGameStatus(g,`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`,{now});
+    const penalties=g.players.map((p,i)=>({name:p.name,value:deductions[i]}));
+    setGameStatus(g,`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`,{now,meta:{key:'wins',name:g.players[seat].name,penalties}});
     g.lastMove={type:'win',seat,uid:String(g.players[seat]?.uid??''),cards:[],ts:now};
     return{ok:true,game:g,finished:true};
   }
   if(g.lastCardBreach&&seat===g.lastCardBreach.threatenedSeat)g.lastCardBreach=null;
   g.currentSeat=(seat+1)%4;
-  setGameStatus(g,`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false,now});
+  setGameStatus(g,`${g.players[seat].name} ${t('played')} ${kindLabel(ev.kind)}.`,{appendLog:false,now,meta:{key:'played',name:g.players[seat].name,kind:ev.kind}});
   return{ok:true,game:g};
 }
 function applyPassToGame(game,seat,now=Date.now()){
@@ -5284,11 +5290,11 @@ function applyPassToGame(game,seat,now=Date.now()){
     g.lastPlay=null;
     g.passStreak=0;
     g.turnStartedAt=now;
-    setGameStatus(g,`${g.players[lead].name} ${t('retake')}`,{now});
+    setGameStatus(g,`${g.players[lead].name} ${t('retake')}`,{now,meta:{key:'retake',name:g.players[lead].name}});
     return{ok:true,game:g};
   }
   g.currentSeat=(seat+1)%4;
-  setGameStatus(g,`${g.players[seat].name} ${t('pass')}.`,{appendLog:false,now});
+  setGameStatus(g,`${g.players[seat].name} ${t('pass')}.`,{appendLog:false,now,meta:{key:'pass',name:g.players[seat].name}});
   return{ok:true,game:g};
 }
 function applyRoomGameSnapshot(roomData){
@@ -6557,7 +6563,22 @@ function renderOrientationBlock(){
   app.innerHTML=`<section class="orientation-block"><div class="orientation-card"><h2>${esc(t('portraitTitle'))}</h2><p>${esc(t('portraitBody'))}</p></div></section>`;
 }
 window.handleCredentialResponse=handleCredentialResponse;
-function uiStatus(msg){const s=String(msg??'');if(!s)return'';return s;}
+function uiStatus(msg,meta){
+  if(meta&&typeof meta==='object'){
+    const name=String(meta.name??'').trim();
+    if(meta.key==='start'&&name)return`${name} ${t('start')}`;
+    if(meta.key==='retake'&&name)return`${name} ${t('retake')}`;
+    if(meta.key==='pass'&&name)return`${name} ${t('pass')}.`;
+    if(meta.key==='played'&&name)return`${name} ${t('played')} ${kindLabel(meta.kind)}.`;
+    if(meta.key==='wins'&&name){
+      const penalties=Array.isArray(meta.penalties)?meta.penalties.map((p)=>`${p?.name??''}:${p?.value??0}`):[];
+      return`${name} ${t('wins')} ${t('penalty')}:${penalties.join(' / ')}`;
+    }
+  }
+  const s=String(msg??'');
+  if(!s)return'';
+  return s;
+}
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colorizeSuitText=(s)=>esc(s)
   .replaceAll('♦️','<span class="suit-red">♦️</span>')
@@ -8087,6 +8108,7 @@ function buildView(){
     gameOver:g.gameOver,
     isFirstTrick:g.isFirstTrick,
     status:g.status,
+    statusMeta:g.statusMeta??null,
     systemLog:g.systemLog??[],
     participants:g.players.map((p,seat)=>({seat,name:p.name,gender:p.gender??'male',picture:p.picture??'',isBot:!p.isHuman,count:p.hand.length,score:g.totals?.[seat]??0})),
     hand:selfPlayer?.hand??[],
@@ -8578,7 +8600,7 @@ function resultScreenHtml(v,arr){
     ${showConfetti?`<div class="confetti-layer result-confetti" aria-hidden="true"></div>`:''}
     <div class="result-card">
       <h2 class="title-with-icon"><span class="title-icon title-icon-result" aria-hidden="true"></span><span>${t('resultTitle')}</span></h2>
-      <div class="hint">${esc(uiStatus(v.status))}</div>
+      <div class="hint">${esc(uiStatus(v.status,v.statusMeta))}</div>
       <div class="result-list">${rows}</div>
       ${needsPlayers?`<div class="hint">${t('roomNeedPlayers')}</div>`:''}
       <div class="control-row">
@@ -8598,7 +8620,7 @@ function congratsOverlayHtml(v,youWin){
   const againHtml=(!isRoom||isHost)
     ?`<button id="congrats-again" class="primary">${t('again')}</button>`
     :`<span class="hint">${t('roomWaitingHost')}</span>`;
-  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button>${againHtml}</div></div></div>`;
+  return`<div class="congrats-screen"><div class="congrats-card"><h3 class="title-with-icon"><span class="title-icon title-icon-congrats" aria-hidden="true"></span><span>${t('congrats')}</span></h3><div class="hint">${esc(uiStatus(v.status,v.statusMeta))}</div><div class="control-row"><button id="congrats-home" class="secondary">${t('home')}</button>${againHtml}</div></div></div>`;
 }
 
 function markComboActive(comboId,value){
