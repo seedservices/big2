@@ -286,7 +286,7 @@ const I18N={
     roomActiveRefresh:'更新列表',
     roomStatusLabel:'房間狀態',
     roomStatusPlaying:'戰鬥中',
-    roomWaitingReady:'等待玩家準備',
+    roomWaitingReady:'等待玩家加入',
     roomStarted:'遊戲進行中',
     roomWelcomeJoin:'歡迎加入',
     roomWaitingHost:'等待房主開局',
@@ -510,7 +510,7 @@ const I18N={
     roomActiveRefresh:'Refresh',
     roomStatusLabel:'Room status',
     roomStatusPlaying:'In Game',
-    roomWaitingReady:'Waiting for players to get ready',
+    roomWaitingReady:'Waiting for players to join',
     roomStarted:'Game in progress',
     roomWelcomeJoin:'Welcome to join',
     roomWaitingHost:'Waiting for host to start...',
@@ -734,7 +734,7 @@ const I18N={
     roomActiveRefresh:'Actualiser',
     roomStatusLabel:'Statut de la salle',
     roomStatusPlaying:'En jeu',
-    roomWaitingReady:'En attente des joueurs prêts',
+    roomWaitingReady:'En attente des joueurs',
     roomStarted:'Partie en cours',
     roomWelcomeJoin:'Bienvenue',
     roomWaitingHost:'En attente de l’hôte...',
@@ -958,7 +958,7 @@ const I18N={
     roomActiveRefresh:'Aktualisieren',
     roomStatusLabel:'Raumstatus',
     roomStatusPlaying:'Im Spiel',
-    roomWaitingReady:'Warte auf bereit',
+    roomWaitingReady:'Warte auf Spieler',
     roomStarted:'Spiel läuft',
     roomWelcomeJoin:'Willkommen',
     roomWaitingHost:'Warte auf Host...',
@@ -1182,7 +1182,7 @@ const I18N={
     roomActiveRefresh:'Actualizar',
     roomStatusLabel:'Estado de sala',
     roomStatusPlaying:'En juego',
-    roomWaitingReady:'Esperando jugadores listos',
+    roomWaitingReady:'Esperando jugadores',
     roomStarted:'Partida en curso',
     roomWelcomeJoin:'Bienvenido',
     roomWaitingHost:'Esperando al anfitrión...',
@@ -1334,7 +1334,7 @@ const EMOTE_STICKERS=[
   {id:'shock',file:'emote-shock.png'}
 ];
 const app=document.getElementById('app');
-const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',logFab:{x:null,y:null},home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingReady:false,pendingReadyValue:null,pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
+const state={language:'zh-HK',screen:'home',screenBeforeConfig:'home',showRules:false,showLog:false,showLogSheet:false,logTouched:false,showScoreGuide:false,opponentProfileName:'',mottoPeekName:'',selected:new Set(),drag:{id:null,moved:false},playAnimKey:'',autoPassKey:'',score:5000,suggestCost:0,recommendation:null,recommendHint:'',logFab:{x:null,y:null},home:{mode:'solo',name:'玩家',gender:'male',avatarChoice:'male',aiDifficulty:'normal',backColor:'red',theme:'ocean',showIntro:false,showLeaderboard:false,google:{signedIn:false,provider:'',name:'',email:'',uid:'',sub:'',token:'',picture:'',gender:''},leaderboard:{rows:[],sort:'totalDelta',period:'all',limit:20},activeRooms:{rows:[],loading:false,loadedAt:0,error:''}},room:{id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',lastMoveKey:'',playerId:'',pendingStart:false,lastResultPlayers:null},sessionId:'',solo:{players:[],botNames:[],totals:[5000,5000,5000,5000],currentSeat:0,lastPlay:null,passStreak:0,isFirstTrick:true,gameOver:false,status:'',history:[],aiDifficulty:'normal',lastCardBreach:null},emote:{open:false,active:null}};
 const LEADERBOARD_KEY='hkbig2.leaderboard.v2.totalScore';
 const GOOGLE_SESSION_KEY='hkbig2.google.session.v1';
 const ENV_PASSCODE='4Leaf';
@@ -1487,7 +1487,6 @@ let emoteTimer=null;
 const BOT_EMOTE_COOLDOWN_MS=5000;
 const botEmoteCooldownBySeat=new Map();
 let roomCountdownTimer=null;
-let roomReadyPendingTimer=null;
 let roomStartPendingTimer=null;
 let playTypeCallTimer=null;
 const playTypeCallState={key:'',seat:0,text:'',until:0,startedAt:0,nonce:'',historyLen:0};
@@ -2196,7 +2195,7 @@ const introText=()=>{
       guideHowList:[
         'Sign in to enable room play and leaderboard tracking.',
         'From Home, choose Solo or enter the Lobby to create/join a room.',
-        'In a room, tap Ready; the host presses Start when at least 2 players are ready.',
+        'In a room, the host can press Start when at least 2 players are inside.',
         'On your turn, select cards and tap Play; tap Pass when allowed.',
         'Use Suggest for help, and sort/drag to organize your hand.'
       ],
@@ -2253,7 +2252,7 @@ const introText=()=>{
       guideHowList:[
         'Connectez-vous pour activer les salles et le classement.',
         'Depuis l’accueil, choisissez Solo ou entrez dans le Lobby pour créer/rejoindre.',
-        'Dans une salle, appuyez sur Prêt ; l’hôte lance dès que 2 joueurs sont prêts.',
+        'Dans une salle, l’hôte lance dès que 2 joueurs sont présents.',
         'À votre tour, sélectionnez des cartes puis Jouer ; Passez si autorisé.',
         'Utilisez Suggestion et triez/drag pour organiser votre main.'
       ],
@@ -2310,7 +2309,7 @@ const introText=()=>{
       guideHowList:[
         'Anmelden, um Räume und Rangliste zu aktivieren.',
         'Im Home Solo wählen oder Lobby öffnen, um Raum zu erstellen/beitreten.',
-        'Im Raum auf Bereit tippen; der Host startet bei mindestens 2 Bereiten.',
+        'Im Raum kann der Host starten, sobald mindestens 2 Spieler drin sind.',
         'Im Zug Karten wählen und Spielen; Passen, wenn erlaubt.',
         'Vorschlag nutzen und per Sortieren/Drag die Hand ordnen.'
       ],
@@ -2367,7 +2366,7 @@ const introText=()=>{
       guideHowList:[
         'Inicia sesión para habilitar salas y ranking.',
         'En Inicio, elige Solo o entra al Lobby para crear/unirte.',
-        'En una sala, pulsa Listo; el anfitrión inicia con al menos 2 listos.',
+        'En una sala, el anfitrión inicia cuando hay al menos 2 jugadores dentro.',
         'En tu turno, selecciona cartas y pulsa Jugar; Pasa si está permitido.',
         'Usa Sugerir y ordena/arrastra para organizar la mano.'
       ],
@@ -2423,7 +2422,7 @@ const introText=()=>{
       guideHowList:[
         '登入後可進行房間對戰與排行榜記錄。',
         '主頁選擇「開局」（單人）或進入大堂建立／加入房間。',
-        '房間內先點「準備」，房主在至少 2 位玩家就緒後按「開始」。',
+        '房主可在至少 2 位玩家進入房間後按「開始」。',
         '輪到你時，選牌後按「出牌」，可過牌時按「過牌」。',
         '需要提示可按「建議」，亦可使用排序或拖曳整理手牌。'
       ],
@@ -2834,20 +2833,14 @@ function resetRoomState(){
   if(state.room.unsub){try{state.room.unsub();}catch{}}
   if(roomPresenceTimer){clearInterval(roomPresenceTimer);roomPresenceTimer=null;}
   void updateActiveRoomPointer('');
-  clearRoomReadyPending();
   clearRoomStartPending();
-  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',pendingReady:false,pendingReadyValue:null,pendingStart:false};
+  state.room={id:'',code:'',data:null,joinOpen:false,error:'',started:false,unsub:null,selfSeat:-1,recordedGameKey:'',pendingStart:false};
   state.room.playerId='';
   if(state.home.mode==='room')state.home.mode='solo';
 }
 function setRoomError(msg){
   state.room.error=msg||'';
   render();
-}
-function clearRoomReadyPending(){
-  state.room.pendingReady=false;
-  state.room.pendingReadyValue=null;
-  if(roomReadyPendingTimer){clearTimeout(roomReadyPendingTimer);roomReadyPendingTimer=null;}
 }
 function clearRoomStartPending(){
   state.room.pendingStart=false;
@@ -2892,7 +2885,6 @@ function isRoomPresenceOnlyUpdate(prev,next){
     if(String(before.name||'')!==String(p.name||''))return false;
     if(String(before.gender||'')!==String(p.gender||''))return false;
     if(String(before.picture||'')!==String(p.picture||''))return false;
-    if(Boolean(before.ready)!==Boolean(p.ready))return false;
     if(Boolean(before.isHost)!==Boolean(p.isHost))return false;
     if(Number(before.seat)!==Number(p.seat))return false;
   }
@@ -3163,7 +3155,6 @@ async function loadActiveRooms(attempt=0){
             gender:p.gender==='female'?'female':'male',
             picture:String(p.picture||''),
             uid:String(p.uid||''),
-            ready:Boolean(p.ready),
             lastSeen:Number(p.lastSeen)||0,
             isBot:!isRoomPlayerHuman(p),
             avatarColor:'#7aaed8'
@@ -3180,7 +3171,6 @@ async function loadActiveRooms(attempt=0){
               gender,
               picture:String(p?.picture||''),
               uid:String(p?.uid||`bot:${safeSeat}`),
-              ready:true,
               lastSeen:0,
               isBot,
               avatarColor:isBot?playerColorByViewClass(seatCls[safeSeat]||'south'):'#7aaed8'
@@ -3272,7 +3262,7 @@ async function createRoom(){
       expiresAt:now+(2*60*60*1000),
         maxPlayers:4,
         isPrivate:false,
-        players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),ready:true,isHost:true,seat:0,lastSeen:now}],
+        players:[{uid,name,gender:state.home.gender==='female'?'female':'male',picture:authPictureUrl(),isHost:true,seat:0,lastSeen:now}],
       playerIds:[uid],
       settings:collectMainSettings(),
       totals:[5000,5000,5000,5000],
@@ -3383,8 +3373,7 @@ async function joinRoomByCode(codeRaw){
           const idx=players.findIndex((p)=>p===candidates[0]);
           if(idx>=0){
             const oldUid=String(players[idx]?.uid||'');
-            const ready=Boolean(players[idx]?.ready);
-            players[idx]={...players[idx],uid,name,gender,picture,lastSeen:now,ready};
+            players[idx]={...players[idx],uid,name,gender,picture,lastSeen:now};
             if(oldUid&&hostId===oldUid){
               hostId=uid;
               hostName=name;
@@ -3399,7 +3388,7 @@ async function joinRoomByCode(codeRaw){
         let seat=0;
         while(usedSeats.has(seat)&&seat<4)seat+=1;
         if(seat>=4)throw new Error('room full');
-        players.push({uid,name,gender,picture,ready:true,isHost:false,seat,lastSeen:now});
+        players.push({uid,name,gender,picture,isHost:false,seat,lastSeen:now});
       }
       const updates={players,playerIds:roomPlayerIds(players),updatedAt:now,hostId,hostName};
       if(String(data.status)==='finished'){
@@ -3490,9 +3479,6 @@ function subscribeRoom(roomId,code){
     const selfEntry=Array.isArray(data.players)
       ?data.players.find((p)=>String(p?.uid||'')===String(resolvedId))
       :null;
-    if(state.room.pendingReady&&selfEntry&&Boolean(selfEntry.ready)===Boolean(state.room.pendingReadyValue)){
-      clearRoomReadyPending();
-    }
     startRoomPresencePing();
     syncRoomSelfProfile();
     void updateActiveRoomPointer(roomId);
@@ -3668,29 +3654,6 @@ async function leaveRoom(toLobby=false){
     console.error('leave room failed',err);
   }
 }
-async function setRoomReady(ready){
-  if(!state.room.id||!firebaseDb)return;
-  try{
-    const uid=currentRoomPlayerId();
-    if(!uid)return;
-    const ref=firebaseDb.collection(FIRESTORE_ROOMS_COLLECTION).doc(state.room.id);
-    await firebaseDb.runTransaction(async(tx)=>{
-      const snap=await tx.get(ref);
-      if(!snap.exists)return;
-      const data=snap.data()??{};
-      if(String(data.status)==='starting')return;
-      const players=Array.isArray(data.players)?[...data.players]:[];
-      const next=players.map((p)=>String(p.uid)===uid?{...p,ready:Boolean(ready)}:p);
-      tx.update(ref,{players:next,updatedAt:Date.now()});
-    });
-  }catch(err){
-    console.error('ready update failed',err);
-    clearRoomReadyPending();
-    setRoomError(t('roomSendTimeout'));
-  }finally{
-    if(state.room.pendingReady)clearRoomReadyPending();
-  }
-}
 async function setRoomPrivacy(isPrivate){
   if(!state.room.id||!firebaseDb)return;
   try{
@@ -3734,9 +3697,7 @@ async function startRoom(){
       }
       const humanPlayers=players.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
       if(humanPlayers.length<2)throw new Error('need players');
-      const allReady=humanPlayers.every((p)=>p.ready||String(p.uid)===uid);
-      if(!allReady)throw new Error('not ready');
-        const now=Date.now();
+      const now=Date.now();
         const hostUpdate=(hostId&&String(data.hostId??'').trim()!==hostId)?{hostId,hostName}:{};
         const bumped=bumpRoomPlayerLastSeen(players,uid,now);
         const nextPlayers=bumped.changed?bumped.players:players;
@@ -3763,7 +3724,6 @@ async function startRoom(){
     console.error('start room failed',err);
     const msg=String(err?.message??'');
     if(msg.includes('need players'))setRoomError(t('roomNeedPlayers'));
-    else setRoomError(t('roomReadyHint'));
     clearRoomStartPending();
   }
 }
@@ -3779,8 +3739,7 @@ async function roomReset(){
       if(String(data.hostId)!==uid)throw new Error('not host');
       const now=Date.now();
       const players=Array.isArray(data.players)?data.players:[];
-      const resetPlayers=players.map((p)=>({...p,ready:false}));
-      tx.update(ref,{status:'lobby',game:null,updatedAt:now,expiresAt:now+(2*60*60*1000),players:resetPlayers});
+      tx.update(ref,{status:'lobby',game:null,updatedAt:now,expiresAt:now+(2*60*60*1000),players});
     });
   }catch(err){
     console.error('room reset failed',err);
@@ -3809,7 +3768,6 @@ async function restartRoomGame(){
     console.error('restart room failed',err);
     const msg=String(err?.message??'');
     if(msg.includes('need players'))setSoloStatus(t('roomNeedPlayers'));
-    else setSoloStatus(t('roomReadyHint'));
   }
 }
 
@@ -7887,7 +7845,6 @@ function renderHome(){
   const roomIsHost=derivedHostId&&String(derivedHostId)===roomUid;
   const roomHumanPlayers=roomPlayers.filter((p)=>String(p.uid||'').startsWith('uid:')||String(p.uid||'').startsWith('guest:'));
   const roomCanStart=roomHumanPlayers.length>=2;
-  const roomReady=Boolean(roomSelf?.ready);
   const roomPrivate=Boolean(roomData?.isPrivate);
   const roomStatus=String(roomData?.status??'');
   const roomStarting=roomStatus==='starting';
@@ -7895,18 +7852,14 @@ function renderHome(){
   const roomSeatMap=new Map(roomPlayers.map((p)=>[Number(p.seat),p]));
   const gameSeatMap=roomGamePlayers?new Map(roomGamePlayers.map((p,i)=>[Number.isFinite(Number(p?.seat))?Number(p.seat):i,p])):null;
   const useGameRoster=roomStatus==='finished'&&Boolean(gameSeatMap);
-  const roomReadyPending=Boolean(state.room.pendingReady);
   const roomStartPending=Boolean(state.room.pendingStart);
-  const readyCountText=roomHumanPlayers.length
-    ?t('roomReadyCount').replace('{{ready}}',String(roomHumanPlayers.filter((p)=>p.ready).length)).replace('{{total}}',String(roomHumanPlayers.length))
-    :'';
   const roomStatusText=(()=>{
     if(roomStatus==='playing')return t('roomStatusPlaying');
     if(roomStatus==='starting')return t('roomStarting');
     if(roomStatus==='finished')return t('roomWaitingHost');
     return roomIsHost?t('roomWaitingReady'):t('roomWaitingHost');
   })();
-  const roomStatusLine=`${roomStatusText}${readyCountText?` · ${readyCountText}`:''}`;
+  const roomStatusLine=roomStatusText;
   const roomStatusBanner=`<div class="room-status-text">${esc(roomStatusLine)}</div>`;
   if(state.home.avatarChoice==='google'){
     state.home.avatarChoice=state.home.gender==='female'?'female':'male';
@@ -7946,19 +7899,12 @@ function renderHome(){
     const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
     const isSelf=String(roomEntry?.uid||'')===String(roomUid);
     const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-    const readyText=roomEntry?.ready?t('roomReady'):t('roomWaiting');
-    const readyControl=isSelf
-      ?`<div class="option-combo toggle-combo room-ready-toggle" id="room-ready-toggle">
-          <button class="combo-btn toggle-btn ${roomEntry?.ready?'active':''}" data-ready="1" ${roomReadyPending?'disabled':''}>${t('roomReady')}</button>
-          <button class="combo-btn toggle-btn ${roomEntry?.ready?'':'active'}" data-ready="0" ${roomReadyPending?'disabled':''}>${t('roomWaiting')}</button>
-        </div>`
-      :(roomEntry?`<div class="lobby-seat-status">${readyText}</div>`:'');
+    const readyControl='';
     const displayName=(roomStatus==='finished'?'':entryName);
     const nameHtml=`<div class="lobby-seat-name">${displayName?esc(displayName):'&nbsp;'}</div>`;
-    return`<div class="lobby-seat ${roomEntry?.ready?'ready':''} ${isHost?'host':''} ${offline?'offline':''}">
+    return`<div class="lobby-seat ${isHost?'host':''} ${offline?'offline':''}">
       <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entryName)}"/>${hostBadge}</span>
       ${nameHtml}
-      ${readyControl}
       <div class="lobby-seat-label">${seatLabel}</div>
     </div>`;
   }).join('');
@@ -7976,7 +7922,7 @@ function renderHome(){
   const roomStartControl=roomIsHost
     ?`${`<button id="room-start" class="primary" ${(roomStarting||!roomCanStart||roomStartPending)?'disabled':''}>${t('roomStart')}</button>`}${roomStartPending?`<span class="hint">${t('roomSending')}</span>`:roomStarting?`<span class="hint">${t('roomStarting')}</span>`:(!roomStarting&&!roomCanStart)?`<span class="hint">${t('roomNeedPlayers')}</span>`:''}`
     :`<span class="hint">${roomStarting?t('roomStarting'):t('roomWaitingHost')}</span>`;
-  const roomPendingHint=(roomReadyPending&&!roomStartPending)?`<span class="hint">${t('roomSending')}</span>`:'';
+  const roomPendingHint='';
   const roomTitle=t('roomTableTitle');
   const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card room-card-icon"><div class="room-head"><span class="room-corner-icon" aria-hidden="true">🔢</span><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span class="room-code">${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
@@ -8011,7 +7957,7 @@ function renderHome(){
             const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',false);
             const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
             const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-            return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
+            return`<div class="lobby-seat lobby-seat-mini ${isHost?'host':''}">
               <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
               </div>`;
           }
@@ -8023,7 +7969,7 @@ function renderHome(){
               const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',Boolean(entry.isBot));
               const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
               const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-          return`<div class="lobby-seat lobby-seat-mini ${entry.ready?'ready':''} ${isHost?'host':''}">
+          return`<div class="lobby-seat lobby-seat-mini ${isHost?'host':''}">
             <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
             </div>`;
         }).join('');
@@ -8186,21 +8132,6 @@ function renderHome(){
   document.getElementById('room-leave')?.addEventListener('click',async()=>{
     await leaveRoom(true);
   });
-  document.querySelectorAll('#room-ready-toggle [data-ready]').forEach((btn)=>btn.addEventListener('click',async()=>{
-    if(state.room.pendingReady)return;
-    const desired=btn.getAttribute('data-ready')==='1';
-    state.room.pendingReady=true;
-    state.room.pendingReadyValue=desired;
-    if(roomReadyPendingTimer){clearTimeout(roomReadyPendingTimer);}
-    roomReadyPendingTimer=window.setTimeout(()=>{
-      roomReadyPendingTimer=null;
-      state.room.pendingReady=false;
-      state.room.pendingReadyValue=null;
-      setRoomError(t('roomSendTimeout'));
-    },5000);
-    render();
-    await setRoomReady(desired);
-  }));
   document.querySelectorAll('#room-privacy-toggle [data-private]').forEach((btn)=>btn.addEventListener('click',async()=>{
     if(!roomIsHost)return;
     const desired=btn.getAttribute('data-private')==='1';
@@ -9081,8 +9012,7 @@ function bindGameEvents(v,arr){
       if(roomIsHost()){
         await restartRoomGame();
       }else{
-        await setRoomReady(true);
-        setSoloStatus(t('roomReadyHint'));
+        setSoloStatus(t('roomWaitingHost'));
         render();
       }
       return;
@@ -9099,8 +9029,7 @@ function bindGameEvents(v,arr){
       if(roomIsHost()){
         await restartRoomGame();
       }else{
-        await setRoomReady(true);
-        setSoloStatus(t('roomReadyHint'));
+        setSoloStatus(t('roomWaitingHost'));
         render();
       }
       return;
