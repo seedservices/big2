@@ -111,7 +111,7 @@ body[data-screen='game'] {
 body[data-screen='game'] #app {
   height: 100dvh;
   max-height: 100dvh;
-  padding-bottom: 0 !important;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
 }
 /* Collapsed game log: lock layout to viewport height to avoid page overflow scrollbar. */
 body[data-screen='game'][data-log-open='0'] {
@@ -5325,7 +5325,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
     overflow-y: auto;
   }
   #app { padding: 7px; }
-  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 7px 0 !important; }
+  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 7px max(8px, env(safe-area-inset-bottom)) !important; }
   body[data-screen='game'] #app { margin-top: 0 !important; }
   body[data-screen='game'] .game-shell,
   body[data-screen='game'] .main-zone,
@@ -5777,7 +5777,7 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
 }
 @media (max-width: 600px) {
   #app { padding: 5px; }
-  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 5px 0 !important; }
+  body[data-screen='game'] #app { padding: max(6px, env(safe-area-inset-top)) 5px max(8px, env(safe-area-inset-bottom)) !important; }
   body[data-screen='game'] #app { margin-top: 0 !important; }
   body[data-screen='game'] .game-shell,
   body[data-screen='game'] .main-zone,
