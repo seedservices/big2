@@ -6707,6 +6707,9 @@ body[data-screen='game'] .score-guide-modal {
     flex: 0 0 auto;
     gap: 4px;
     margin: 0 2px 0 0;
+    text-align: left;
+    white-space: nowrap;
+    padding: 3px 7px;
   }
   body[data-screen='game'] .action-strip .control-row .room-status-inline-meta {
     padding: 4px 8px;
