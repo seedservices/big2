@@ -4495,6 +4495,7 @@ body[data-screen='game'] .table-center-stack {
 .action-strip .control-row #pass-btn { order: 3; }
 .action-strip .control-row #auto-sort-btn { order: 4; }
 .action-strip .control-row #emote-toggle { order: 5; }
+.action-strip .control-row .room-status-inline { display: none; }
 .action-strip .hand {
   gap: 3px;
   grid-area: hand;
@@ -6699,6 +6700,15 @@ body[data-screen='game'] .score-guide-modal {
 
 /* Make opponent (N/E/W) panels larger and transparent like reference. */
 @media (min-width: 861px) {
+  body[data-screen='game'] .action-strip .control-row .room-status-inline {
+    display: inline-flex;
+    align-items: center;
+    order: 4;
+    flex: 0 0 auto;
+    margin: 0 2px 0 0;
+  }
+  body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 5; }
+  body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 6; }
   body[data-screen='game'] .table {
     grid-template-columns: minmax(108px, .72fr) minmax(0, 2.1fr) minmax(108px, .72fr);
     grid-template-rows: minmax(92px, auto) minmax(0, 1fr);
