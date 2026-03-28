@@ -9361,10 +9361,11 @@ function bindGameEvents(v,arr){
   if(controlRow){
     const suggestAnchor=controlRow.querySelector('.recommend-anchor');
     const playBtn=controlRow.querySelector('#play-btn');
-    if(suggestAnchor&&playBtn)controlRow.insertBefore(suggestAnchor,playBtn);
-    const emoteBtn=controlRow.querySelector('#emote-toggle');
+    const passBtn=controlRow.querySelector('#pass-btn');
     const sortBtn=controlRow.querySelector('#auto-sort-btn');
-    if(emoteBtn&&sortBtn)sortBtn.after(emoteBtn);
+    const emoteBtn=controlRow.querySelector('#emote-toggle');
+    const order=[suggestAnchor,playBtn,passBtn,sortBtn,emoteBtn].filter(Boolean);
+    order.forEach((node)=>controlRow.appendChild(node));
     const suggestBtn=controlRow.querySelector('#suggest-btn');
     if(suggestBtn){
       const label=suggestBtn.querySelector('span:not([aria-hidden])');
