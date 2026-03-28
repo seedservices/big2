@@ -7310,7 +7310,8 @@ function resultScreenHtml(v,arr){
   const winner=arr.find((p)=>p.count===0)??arr[0];
   const winnerLastPlay=(v.history??[]).slice().reverse().find((e)=>e.action==='play'&&e.seat===winner.seat&&Array.isArray(e.cards)&&e.cards.length);
   const winnerLastDiscardCards=winnerLastPlay?.cards??[];
-  const showConfetti=Number.isFinite(Number(v.selfSeat))&&winner.seat===v.selfSeat;
+  const selfSeatNum=Number.isFinite(Number(v.selfSeat))?Number(v.selfSeat):null;
+  const showConfetti=selfSeatNum!==null&&winner.seat===selfSeatNum;
   const deductions=v.roundSummary?.deductions??arr.map((p)=>p.seat===winner.seat?0:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]).deduction);
   const winnerGain=Number(v.roundSummary?.winnerGain??deductions.reduce((sum,vv)=>sum+vv,0));
   const detailBySeat=v.roundSummary?.details??arr.map((p)=>p.seat===winner.seat?{remain:0,base:0,multiplier:1,deduction:0,anyTwo:false,topTwo:false,chaoMultiplier:1,chaoKey:''}:calcPenaltyDetail(v.revealedHands?.[p.seat]??[]));
@@ -7646,6 +7647,9 @@ function bindBackCarousel(comboId){
   let snapTimer=0;
   let rafId=0;
   let pendingUpdate=false;
+  let pendingMove=false;
+  let pendingOffsetX=0;
+  let rafMove=0;
   let lastSelectedValue='';
   const normalizeOffset=()=>{
     const section=getSectionWidth();
@@ -7654,8 +7658,8 @@ function bindBackCarousel(comboId){
     while(offsetX>0)offsetX-=section;
   };
   const applyOffset=(animate=false)=>{
-    rail.style.transition=animate?'transform 180ms ease':'none';
-    rail.style.transform=`translateX(${offsetX}px)`;
+    rail.style.transition=animate?'transform 120ms cubic-bezier(.2,.8,.2,1)':'none';
+    rail.style.transform=`translate3d(${offsetX}px,0,0)`;
   };
   const findNearestButton=(preferredValue='')=>{
     const buttons=getButtons();
@@ -7705,6 +7709,19 @@ function bindBackCarousel(comboId){
       if(!pendingUpdate)return;
       pendingUpdate=false;
       updateSelectionFromOffset('',forceScale);
+    });
+  };
+  const scheduleOffsetApply=()=>{
+    pendingMove=true;
+    if(rafMove)return;
+    rafMove=requestAnimationFrame(()=>{
+      rafMove=0;
+      if(!pendingMove)return;
+      pendingMove=false;
+      offsetX=pendingOffsetX;
+      normalizeOffset();
+      applyOffset(false);
+      scheduleSelectionUpdate(false);
     });
   };
   const centerToButton=(btn,animate=true,preferredValue='',allowNormalize=false)=>{
@@ -7795,14 +7812,18 @@ function bindBackCarousel(comboId){
     const dx=ev.clientX-dragStartX;
     const dy=Math.abs(ev.clientY-dragStartY);
     if(Math.abs(dx)>6||dy>6)dragMoved=true;
-    offsetX=dragStartOffset+dx;
-    normalizeOffset();
-    applyOffset(false);
-    scheduleSelectionUpdate(false);
+    pendingOffsetX=dragStartOffset+dx;
+    scheduleOffsetApply();
   });
   const endDrag=()=>{
     if(!dragActive)return;
     dragActive=false;
+    if(pendingMove){
+      offsetX=pendingOffsetX;
+      normalizeOffset();
+      applyOffset(false);
+      pendingMove=false;
+    }
     updateSelectionFromOffset('',true);
     const target=findNearestButton(state.home.backColor);
     if(target)centerToButton(target,true,state.home.backColor);
