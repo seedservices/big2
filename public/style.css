@@ -2686,7 +2686,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2389d1ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z'/%3E%3Cpath d='M8 7h8M8 11h7'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ec0ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z'/%3E%3Cpath d='M8 7h8M8 11h7'/%3E%3C/svg%3E");
 }
 .title-icon-leaderboard {
   background-repeat: no-repeat;
@@ -2698,7 +2698,7 @@ input, select { border: 1px solid rgba(255,255,255,.28); border-radius: 11px; pa
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2376e39c' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3Cpath d='M8 8h2M14 8h2M8 12h8M8 16h8'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ec0ff' stroke-width='2.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16v16H4z'/%3E%3Cpath d='M8 8h2M14 8h2M8 12h8M8 16h8'/%3E%3C/svg%3E");
 }
 .title-icon-player {
   background-repeat: no-repeat;
