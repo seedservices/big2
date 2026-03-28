@@ -73,18 +73,98 @@ function matchGuestPlayerId(roomData){
   }
   return '';
 }
+let popunderArmedUntil=0;
+let popunderBypassBound=false;
+let popunderDebugOverlay=null;
+let popunderLastOverlay=null;
+let popunderLastOverlayAt=0;
+const POPUNDER_DEBUG=true;
+function armPopunderBypass(ms=5000){
+  popunderArmedUntil=Date.now()+Math.max(0,Number(ms)||0);
+  if(popunderBypassBound)return;
+  document.addEventListener('pointerdown',(e)=>{
+    if(Date.now()>popunderArmedUntil)return;
+    const app=document.getElementById('app');
+    if(!app)return;
+    if(!popunderDebugOverlay&&POPUNDER_DEBUG){
+      popunderDebugOverlay=document.createElement('div');
+      popunderDebugOverlay.style.cssText='position:fixed;left:8px;bottom:8px;z-index:999999;padding:6px 8px;border-radius:10px;background:rgba(0,0,0,0.72);color:#fff;font:12px/1.3 system-ui;max-width:70vw;pointer-events:none;';
+      popunderDebugOverlay.textContent='Popunder debug ready';
+      document.body.appendChild(popunderDebugOverlay);
+    }
+    const touch=e.touches?.[0]??e.changedTouches?.[0];
+    const x=Number.isFinite(touch?.clientX)?touch.clientX:e.clientX;
+    const y=Number.isFinite(touch?.clientY)?touch.clientY:e.clientY;
+    if(!Number.isFinite(x)||!Number.isFinite(y))return;
+    const top=document.elementFromPoint(x,y);
+    if(!top||app.contains(top)){
+      if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent=`Popunder debug: top=${top?.tagName?.toLowerCase()||'none'} (app)`;
+      return;
+    }
+    popunderLastOverlay=top;
+    popunderLastOverlayAt=Date.now();
+    if(popunderDebugOverlay&&POPUNDER_DEBUG){
+      const cls=top.className?String(top.className).trim():'';
+      const id=top.id?`#${top.id}`:'';
+      const styles=window.getComputedStyle(top);
+      popunderDebugOverlay.textContent=`Popunder overlay: ${top.tagName.toLowerCase()}${id}${cls?'.'+cls.replace(/\s+/g,'.'):''} z=${styles.zIndex} pe=${styles.pointerEvents}`;
+    }
+    const disabled=[];
+    let node=top;
+    while(node&&node!==document.body){
+      const prev=node.style.pointerEvents;
+      disabled.push({node,prev});
+      node.style.pointerEvents='none';
+      node=node.parentElement;
+    }
+    const under=document.elementFromPoint(x,y);
+    if(under&&app.contains(under)){
+      e.preventDefault();
+      e.stopPropagation();
+      under.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:x,clientY:y}));
+      if(popunderDebugOverlay&&POPUNDER_DEBUG)popunderDebugOverlay.textContent='Popunder debug: rerouted click to app';
+    }
+    window.setTimeout(()=>{disabled.forEach(({node,prev})=>{if(node?.isConnected)node.style.pointerEvents=prev||'';});},5000);
+  },true);
+  popunderBypassBound=true;
+}
 function runPopunderAd(){
   try{
     const root=[document.documentElement,document.body].filter(Boolean).pop();
     if(!root)return;
+    if(POPUNDER_DEBUG){
+      if(popunderLastOverlay&&Date.now()-popunderLastOverlayAt<15000){
+        try{popunderLastOverlay.remove();}catch{}
+      }
+    }
     const script=document.createElement('script');
     script.dataset.zone='10798259';
     script.src='https://al5sm.com/tag.min.js';
     root.appendChild(script);
+    armPopunderBypass(5000);
     window.setTimeout(()=>{try{window.focus();}catch(err){/* noop */}},0);
   }catch(err){
     console.warn('popunder ad failed',err);
   }
+}
+function schedulePopunderAfterRender(delayMs=250){
+  const delay=Math.max(0,Number(delayMs)||0);
+  const invoke=()=>window.setTimeout(runPopunderAd,delay);
+  window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>{
+    if('requestIdleCallback' in window){
+      window.requestIdleCallback(invoke,{timeout:delay+250});
+    }else{
+      invoke();
+    }
+  }));
+}
+const actionGuard=new Map();
+function guardAction(key,windowMs=800){
+  const now=Date.now();
+  const last=actionGuard.get(key)||0;
+  if(now-last<windowMs)return false;
+  actionGuard.set(key,now);
+  return true;
 }
 
 const I18N={
@@ -178,7 +258,7 @@ const I18N={
     reveal:'完局攤牌',
     revealSub:'有人勝出，所有玩家餘牌如下：',
     drag:'可拖曳手牌重新排序',
-    must3:'首圈第一手必須包含♦️3。',
+    must3:'階磚♦️3出先。',
     beat:'你所選牌未能大過上手。',
     cantPass:'話事中不可過牌。',
     retake:'重新話事。',
@@ -8259,9 +8339,8 @@ function renderHome(){
   bindSoundToggle('sound-combo');
   bindCalloutDisplayToggle('callout-display-combo');
   bindEmoteDisplayToggle('emote-display-combo');
-  document.getElementById('solo-start')?.addEventListener('click',async()=>{
+  const handleSoloStart=async()=>{
     if(!signedInForPlay())return;
-    runPopunderAd();
     unlockAudio();
     state.home.mode='solo';
     state.home.showLeaderboard=false;
@@ -8273,7 +8352,16 @@ function renderHome(){
     }
     if(!synced)console.warn('profile sync failed on start; continuing to game');
     startSoloGame();
-  });
+    schedulePopunderAfterRender(350);
+  };
+  const soloStartBtn=document.getElementById('solo-start');
+  soloStartBtn?.addEventListener('pointerdown',(e)=>{
+    if(!guardAction('solo-start'))return;
+    e.preventDefault();
+    e.stopPropagation();
+    void handleSoloStart();
+  },true);
+  soloStartBtn?.addEventListener('click',()=>{if(!guardAction('solo-start'))return;void handleSoloStart();});
   document.getElementById('room-lobby-open')?.addEventListener('click',()=>{
     if(!signedInForPlay()){
       setRoomError(t('roomLoginRequired'));
@@ -8339,7 +8427,6 @@ function renderHome(){
   }));
   document.getElementById('room-start')?.addEventListener('click',async()=>{
     if(state.room.pendingStart)return;
-    runPopunderAd();
     state.room.pendingStart=true;
     if(roomStartPendingTimer){clearTimeout(roomStartPendingTimer);}
     roomStartPendingTimer=window.setTimeout(()=>{
@@ -8347,6 +8434,7 @@ function renderHome(){
       state.room.pendingStart=false;
       setRoomError(t('roomSendTimeout'));
     },5000);
+    window.setTimeout(runPopunderAd,0);
     render();
     let synced=false;
     for(let i=0;i<4&&!synced;i++){
@@ -9195,19 +9283,26 @@ function bindGameEvents(v,arr){
   document.getElementById('score-guide-backdrop')?.addEventListener('click',()=>{state.showScoreGuide=false;render();});
   document.getElementById('opponent-profile-close')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
   document.getElementById('opponent-profile-backdrop')?.addEventListener('click',()=>{state.opponentProfileName='';render();});
-  document.getElementById('restart-btn')?.addEventListener('click',async()=>{
+  const handleRestart=async()=>{
     triggerClickBanner(document.getElementById('restart-btn'));
     await waitMs(120);
-    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
     startSoloGame();
-  });
-  document.getElementById('result-again')?.addEventListener('click',async()=>{
+    schedulePopunderAfterRender(1200);
+  };
+  const restartBtn=document.getElementById('restart-btn');
+  restartBtn?.addEventListener('pointerdown',(e)=>{
+    if(!guardAction('restart-btn'))return;
+    e.preventDefault();
+    e.stopPropagation();
+    void handleRestart();
+  },true);
+  restartBtn?.addEventListener('click',()=>{if(!guardAction('restart-btn'))return;void handleRestart();});
+  const handleResultAgain=async()=>{
     triggerClickBanner(document.getElementById('result-again'));
     await waitMs(120);
-    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
@@ -9221,11 +9316,19 @@ function bindGameEvents(v,arr){
       return;
     }
     startSoloGame();
-  });
-  document.getElementById('congrats-again')?.addEventListener('click',async()=>{
+    schedulePopunderAfterRender(350);
+  };
+  const resultAgainBtn=document.getElementById('result-again');
+  resultAgainBtn?.addEventListener('pointerdown',(e)=>{
+    if(!guardAction('result-again'))return;
+    e.preventDefault();
+    e.stopPropagation();
+    void handleResultAgain();
+  },true);
+  resultAgainBtn?.addEventListener('click',()=>{if(!guardAction('result-again'))return;void handleResultAgain();});
+  const handleCongratsAgain=async()=>{
     triggerClickBanner(document.getElementById('congrats-again'));
     await waitMs(120);
-    runPopunderAd();
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
@@ -9239,14 +9342,24 @@ function bindGameEvents(v,arr){
       return;
     }
     startSoloGame();
-  });
+    schedulePopunderAfterRender(350);
+  };
+  const congratsAgainBtn=document.getElementById('congrats-again');
+  congratsAgainBtn?.addEventListener('pointerdown',(e)=>{
+    if(!guardAction('congrats-again'))return;
+    e.preventDefault();
+    e.stopPropagation();
+    void handleCongratsAgain();
+  },true);
+  congratsAgainBtn?.addEventListener('click',()=>{if(!guardAction('congrats-again'))return;void handleCongratsAgain();});
   const controlRow=app.querySelector('.action-zone .control-row');
   if(controlRow){
     const suggestAnchor=controlRow.querySelector('.recommend-anchor');
-    if(suggestAnchor)controlRow.prepend(suggestAnchor);
+    const playBtn=controlRow.querySelector('#play-btn');
+    if(suggestAnchor&&playBtn)controlRow.insertBefore(suggestAnchor,playBtn);
     const emoteBtn=controlRow.querySelector('#emote-toggle');
     const sortBtn=controlRow.querySelector('#auto-sort-btn');
-    if(emoteBtn&&sortBtn)sortBtn.before(emoteBtn);
+    if(emoteBtn&&sortBtn)sortBtn.after(emoteBtn);
     const suggestBtn=controlRow.querySelector('#suggest-btn');
     if(suggestBtn){
       const label=suggestBtn.querySelector('span:not([aria-hidden])');
