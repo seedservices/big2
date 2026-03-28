@@ -13,6 +13,9 @@
       "sizes": "512x512"
     }
   ],
+  "apple": {
+    "statusBarStyle": "black-translucent"
+  },
   "display": "standalone",
   "background_color": "#0b1623",
   "theme_color": "#0b1623"
