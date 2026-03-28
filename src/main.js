@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+﻿﻿﻿﻿﻿﻿const RANKS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const SUITS=[
   {symbol:'♦️',red:true},
   {symbol:'♣️',red:false},
@@ -5574,10 +5574,11 @@ function syncRoomCountdownTicker(){
       roomCountdownTimer=null;
       return;
     }
+    const countdownText=roomCountdownText(state.room.data);
     const countdownEl=document.getElementById('room-countdown-value');
-    if(countdownEl&&state.room.data){
-      countdownEl.textContent=roomCountdownText(state.room.data);
-    }
+    if(countdownEl)countdownEl.textContent=countdownText;
+    const countdownInline=document.getElementById('room-countdown-inline');
+    if(countdownInline)countdownInline.textContent=countdownText;
   },1000);
 }
 function currentLeaderboardIdentity(){
@@ -10100,19 +10101,19 @@ function renderGame(){
       <span class="room-top-item"><span>${t('roomCountdown')}</span><strong id="room-countdown-value">${esc(countdown)}</strong></span>
     </div>`;
   })();
+  const roomStatusInlineMeta=(()=>{
+    if(v.mode!=='room'||!state.room.data)return'';
+    const baseRound=Number(state.room.data.roundCount||0);
+    const status=String(state.room.data.status||'');
+    const round=baseRound+(status==='playing'||status==='starting'?1:0);
+    const countdown=roomCountdownText(state.room.data);
+    return `<span class="room-status-label">${t('roomRound')}</span><strong class="room-status-value">${Number.isFinite(round)?round:'-'}</strong><span class="room-status-sep">·</span><span class="room-status-label">${t('roomCountdown')}</span><strong class="room-status-value" id="room-countdown-inline">${esc(countdown)}</strong>`;
+  })();
+  const roomStatusInline=roomStatusInlineMeta
+    ?`<div class="room-status-inline room-status-inline-meta" id="room-status-inline">${roomStatusInlineMeta}</div>`
+    :'';
   const roomTopMetaPanel=roomTopMeta?`<div class="room-top-meta-panel">${roomTopMeta}</div>`:'';
   const roomTopMetaCenter=roomTopMeta?`<div class="room-top-meta-center">${roomTopMeta}</div>`:'';
-  const roomStatusInlineText=(()=>{
-    if(v.mode!=='room'||!state.room.data)return'';
-    const status=String(state.room.data.status||'');
-    if(status==='playing')return t('roomStatusPlaying');
-    if(status==='starting')return t('roomStarting');
-    if(status==='finished')return t('roomWaitingHost');
-    return t('roomWaitingReady');
-  })();
-  const roomStatusInline=roomStatusInlineText
-    ?`<div class="room-status-inline" id="room-status-inline">${esc(t('roomStatusLabel'))}: ${esc(roomStatusInlineText)}</div>`
-    :'';
   const playTypeFresh=Boolean(playTypeCallState.startedAt&&Date.now()-playTypeCallState.startedAt<260);
   const passCall=currentPassCall(v);
   const passCallFresh=Boolean(passCallState.startedAt&&Date.now()-passCallState.startedAt<260);

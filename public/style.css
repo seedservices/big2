@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -6705,7 +6705,26 @@ body[data-screen='game'] .score-guide-modal {
     align-items: center;
     order: 4;
     flex: 0 0 auto;
+    gap: 4px;
     margin: 0 2px 0 0;
+  }
+  body[data-screen='game'] .action-strip .control-row .room-status-inline-meta {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(12, 28, 42, .55);
+    font-size: .76rem;
+    color: #f4fbff;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  body[data-screen='game'] .action-strip .control-row .room-status-inline-meta .room-status-label {
+    font-size: .68rem;
+    font-weight: 600;
+    opacity: .8;
+  }
+  body[data-screen='game'] .action-strip .control-row .room-status-inline-meta .room-status-sep {
+    opacity: .7;
   }
   body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 5; }
   body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 6; }
