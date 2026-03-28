@@ -6030,7 +6030,7 @@ body[data-screen='game'] .intro-modal {
   }
   .royal-home-body .home-form-right {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
     gap: 10px;
     padding-left: 0;
   }
@@ -6053,6 +6053,24 @@ body[data-screen='game'] .intro-modal {
   .royal-home-body .home-form-right .field-emote {
     grid-column: 2;
     margin-left: 0;
+  }
+  .royal-home-body .difficulty-combo .toggle-btn {
+    min-height: 30px;
+    padding: 2px 7px;
+  }
+  .royal-home-body .home-form-right .field-sound .toggle-combo {
+    max-width: 84px;
+  }
+  .royal-home-body #sound-combo {
+    max-width: 84px;
+  }
+  .royal-home-body .home-form-right .field-sound .sound-toggle-btn {
+    min-width: 26px;
+    padding: 2px 5px;
+  }
+  .royal-home-body #emote-display-combo .toggle-btn {
+    min-width: 32px;
+    padding: 2px 6px;
   }
   .royal-home-body .home-form-right .field-cardback {
     order: -2;
