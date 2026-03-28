@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -4460,7 +4460,7 @@ body[data-screen='game'] .table-center-stack {
   border: 2px solid transparent;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
   background: var(--panel-2);
-  padding: 18px 8px 6px;
+  padding: 0 8px 6px;
   display: grid;
   gap: 4px;
   min-height: 0;
@@ -4498,8 +4498,9 @@ body[data-screen='game'] .table-center-stack {
 .action-strip .control-row .recommend-anchor { order: 1; }
 .action-strip .control-row #play-btn { order: 2; }
 .action-strip .control-row #pass-btn { order: 3; }
-.action-strip .control-row #auto-sort-btn { order: 4; }
-.action-strip .control-row #emote-toggle { order: 5; }
+.action-strip .control-row #emote-toggle { order: 4; }
+.action-strip .control-row .room-top-meta { order: 5; }
+.action-strip .control-row #auto-sort-btn { order: 6; }
 .action-strip .hand {
   gap: 3px;
   grid-area: hand;
@@ -6708,11 +6709,12 @@ body[data-screen='game'] .score-guide-modal {
     flex-wrap: nowrap;
   }
   body[data-screen='game'] .action-strip .control-row .room-top-meta {
-    order: 4;
-    margin: 0 2px 0 0;
+    margin-left: auto;
+    order: 5;
+    margin-right: 2px;
   }
-  body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 5; }
-  body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 6; }
+  body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 6; margin-left: 0 !important; }
+  body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 7; }
   body[data-screen='game'] .table {
     grid-template-columns: minmax(108px, .72fr) minmax(0, 2.1fr) minmax(108px, .72fr);
     grid-template-rows: minmax(92px, auto) minmax(0, 1fr);
