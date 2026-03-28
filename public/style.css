@@ -6713,7 +6713,7 @@ body[data-screen='game'] .score-guide-modal {
     order: 5;
     margin-right: 2px;
   }
-  body[data-screen='game'] .action-strip .control-row #auto-sort-btn { order: 6; margin-left: 0 !important; }
+  body[data-screen='game'][data-game-mode='room'] .action-strip .control-row #auto-sort-btn { order: 6; margin-left: 0 !important; }
   body[data-screen='game'] .action-strip .control-row #emote-toggle { order: 7; }
   body[data-screen='game'] .table {
     grid-template-columns: minmax(108px, .72fr) minmax(0, 2.1fr) minmax(108px, .72fr);

@@ -10736,6 +10736,9 @@ function bindGameEvents(v,arr){
     state.opponentProfileName='';
     state.recommendation=null;
     setRecommendHint('');
+    if(state.home.mode==='room'&&state.room.id){
+      await leaveRoom();
+    }
     startSoloGame();
     schedulePopunderAfterRender(1200);
   };
@@ -11085,6 +11088,7 @@ function render(){
   applyTheme();
   document.title=EFFECTIVE_ENV==='PROD'?`${t('title')}`:`${t('title')} - ${EFFECTIVE_ENV}`;
   document.body.setAttribute('data-screen',state.screen);
+  document.body.setAttribute('data-game-mode',state.home.mode==='room'?'room':'solo');
   document.body.setAttribute('data-ios',isIOSDevice()?'1':'0');
   document.body.setAttribute('data-is-mobile',isMobilePointer()?'1':'0');
   if(state.screen==='game'&&!isPortraitMode()){
