@@ -9268,34 +9268,19 @@ function renderHome(){
       ?roomLobbyBtnCore
       :`<span class="locked-btn" data-lock="${esc(loginHint)}">${roomLobbyBtnCore}<span class="lock-badge" aria-hidden="true">🔒</span><span class="locked-tip">${esc(loginHint)}</span></span>`)
     :'';
-  const roomSeats=[0,1,2,3].map((seat)=>{
+  const roomLobbyRows=[0,1,2,3].map((seat)=>{
     const seatLabel=t('seatLabel').replace('{{n}}',String(seat+1));
     const roomEntry=roomSeatMap.get(seat)||null;
     const gameEntry=gameSeatMap?gameSeatMap.get(seat)||null:null;
     const entry=useGameRoster?(gameEntry||roomEntry):roomEntry;
     if(!entry){
-      return`<div class="lobby-seat empty"><div class="lobby-seat-avatar empty">+</div><div class="lobby-seat-name">${t('roomSeatOpen')}</div><div class="lobby-seat-label">${seatLabel}</div></div>`;
+      return`<div class="room-lobby-row empty"><span class="room-lobby-seat">${seatLabel}</span><span class="room-lobby-name">${t('roomSeatOpen')}</span></div>`;
     }
     const entryName=String(entry.name||'');
-    const entryGender=String(entry.gender||(useGameRoster?null:roomEntry?.gender)||'male')==='female'?'female':'male';
-    const entryPicture=String(useGameRoster?entry.picture:(entry.picture||roomEntry?.picture)||'').trim();
-    const isBot=useGameRoster?(!entry.isHuman):(!roomEntry?false:!isRoomPlayerHuman(roomEntry));
-    const avatarColor=isBot?playerColorByViewClass(seatCls[seat]||'south'):'#7aaed8';
-    const avatarSrc=entryPicture?authPictureUrlFrom(entryPicture):avatarDataUri(entryName,avatarColor,entryGender,isBot);
     const isHost=String(entry.uid)===String(derivedHostId)||entry.isHost===true||String(roomEntry?.uid||'')===String(derivedHostId);
-    const hostTag='';
-    const lastSeen=Number(roomEntry?.lastSeen)||0;
-    const offline=roomData?.status==='playing'&&lastSeen>0&&(Date.now()-lastSeen>ROOM_OFFLINE_MS);
-    const isSelf=String(roomEntry?.uid||'')===String(roomUid);
-    const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-    const readyControl='';
+    const hostBadge=isHost?' 🚩':'';
     const displayName=(roomStatus==='finished'?'':entryName);
-    const nameHtml=`<div class="lobby-seat-name">${displayName?esc(displayName):'&nbsp;'}</div>`;
-    return`<div class="lobby-seat ${isHost?'host':''} ${offline?'offline':''}">
-      <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entryName)}"/>${hostBadge}</span>
-      ${nameHtml}
-      <div class="lobby-seat-label">${seatLabel}</div>
-    </div>`;
+    return`<div class="room-lobby-row ${isHost?'host':''}"><span class="room-lobby-seat">${seatLabel}</span><span class="room-lobby-name">${displayName?esc(displayName):'&nbsp;'}${hostBadge}</span></div>`;
   }).join('');
   const roomHostLine='';
   const roomPrivacyRow=roomIsHost
@@ -9313,11 +9298,10 @@ function renderHome(){
     :`<span class="hint">${roomStarting?t('roomStarting'):t('roomWaitingHost')}</span>`;
   const roomPendingHint='';
   const roomTitle=t('roomTableTitle');
-  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card room-card-icon"><div class="room-head"><span class="room-corner-icon" aria-hidden="true">🔢</span><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span class="room-code">${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="lobby-table">${roomSeats}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
+  const roomLobbyHtml=(inRoom&&roomStatus!=='playing')?`<div class="room-overlay"><div class="room-card room-lobby-card room-card-icon"><div class="room-head"><span class="room-corner-icon" aria-hidden="true">🔢</span><h3>${roomTitle}</h3>${roomHostLine}</div><div class="room-id-center"><span class="room-code">${esc(state.room.code)}</span><button id="room-copy" class="secondary">${t('roomCopy')}</button></div>${roomPrivacyRow}<div class="room-lobby-list">${roomLobbyRows}</div>${roomErrorHtml}<div class="room-actions">${roomStartControl}${roomPendingHint}<button id="room-leave" class="danger" ${roomStarting?'disabled':''}>${t('roomLeave')}</button></div></div></div>`:'';
   const activeRoomsState=state.home.activeRooms;
   const activeRooms=Array.isArray(activeRoomsState?.rows)?activeRoomsState.rows:[];
-  const emptySeats=[0,1,2,3].map(()=>`<div class="room-active-seat empty">+</div>`).join('');
-  const createTableCard=`<button class="room-active-card room-create-card" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><div class="room-create-icon room-create-emoji" aria-hidden="true">👩🏻‍💻🧑🏻‍💻</div><span class="room-create-hint">${t('roomCreateHint')}</span><span class="room-create-callout" aria-hidden="true">歡近光臨😀</span></button>`;
+  const createTableCard=`<button class="room-active-card room-create-card room-create-simple" id="room-create-card" type="button"><div class="room-active-code">${t('roomCreate')}</div><span class="room-create-hint">${t('roomCreateHint')}</span></button>`;
   const maskRoomCode=(code)=>{
     const raw=String(code||'');
     if(!raw)return'';
@@ -9336,32 +9320,6 @@ function renderHome(){
         const roster=Array.isArray(r.roster)?r.roster:[];
         const isPrivate=Boolean(r.isPrivate);
         const displayCode=isPrivate?maskRoomCode(r.code):String(r.code||'').toUpperCase();
-        const roomSeats=[0,1,2,3].map((seat)=>{
-          if(r.status==='finished'){
-            const entry=roster.find((p)=>Number(p.seat)===seat&& !Boolean(p.isBot));
-            if(!entry){
-              return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
-            }
-            const avatarColor=entry.avatarColor||'#7aaed8';
-            const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',false);
-            const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
-            const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-            return`<div class="lobby-seat lobby-seat-mini ${isHost?'host':''}">
-              <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
-              </div>`;
-          }
-          const entry=roster.find((p)=>Number(p.seat)===seat);
-          if(!entry){
-            return`<div class="lobby-seat lobby-seat-mini empty"><div class="lobby-seat-avatar empty">+</div></div>`;
-          }
-              const avatarColor=entry.avatarColor||'#7aaed8';
-              const avatarSrc=entry.picture?authPictureUrlFrom(entry.picture):avatarDataUri(entry.name,avatarColor,entry.gender??'male',Boolean(entry.isBot));
-              const isHost=String(entry.uid)===String(r.hostId)||entry.isHost===true;
-              const hostBadge=isHost?`<span class="lobby-seat-host-badge">🚩</span>`:'';
-          return`<div class="lobby-seat lobby-seat-mini ${isHost?'host':''}">
-            <span class="lobby-seat-avatar-wrap"><img class="lobby-seat-avatar" src="${avatarSrc}" alt="${esc(entry.name)}"/>${hostBadge}</span>
-            </div>`;
-        }).join('');
         let statusLabel='';
         if(r.status==='playing'){
           const round=Number(r.roundCount||0)+1;
@@ -9386,10 +9344,10 @@ function renderHome(){
           return statusLabel?statusLabel.replace(/<[^>]+>/g,''):'';
         })();
         const bottomRow=`<div class="room-active-bottom">${statusText?`<div class="room-active-status-line">${esc(statusText)}</div>`:'<span></span>'}<div class="room-active-count">${displayPlayers}/${r.maxPlayers}</div></div>`;
-        return`<button class="room-active-card room-active-card-full${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}>${isPrivate?`<span class="room-active-private-inline">🔑 ${t('roomPrivate')}</span>`:''}<div class="room-active-code"><span class="room-active-code-text">${esc(displayCode)}</span></div><div class="room-active-table room-active-table-full">${roomSeats}</div>${bottomRow}</button>`;
+        return`<button class="room-active-card room-active-list-item${isPrivate?' room-active-card-private':''}" data-code="${esc(r.code)}" data-private="${isPrivate?'1':'0'}" type="button"${joinDisabled?' disabled':''}>${isPrivate?`<span class="room-active-private-inline">🔑 ${t('roomPrivate')}</span>`:''}<div class="room-active-code"><span class="room-active-code-text">${esc(displayCode)}</span></div>${bottomRow}</button>`;
       }).join('')
       :'';
-  const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-card room-active-empty" aria-disabled="true"><div class="room-active-code">${t('roomActiveEmpty')}</div><div class="room-active-table">${emptySeats}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></div>`;
+  const activeRoomsEmpty=activeRooms.length?'':`<div class="room-active-card room-active-empty" aria-disabled="true"><div class="room-active-code">${t('roomActiveEmpty')}</div><div class="room-active-info"><div class="room-active-count">0/4</div></div></div>`;
   const hiddenCount=Number(state.home.activeRooms.hiddenCount)||0;
   const hiddenNote=hiddenCount?`<span class="room-active-hidden">Hidden: ${hiddenCount}</span>`:'';
   const refreshCountdownText=state.room.joinOpenCountdown&&state.room.joinOpenCountdown>0

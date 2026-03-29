@@ -1159,6 +1159,35 @@ body[data-screen='home'] .home-wrap {
 .lobby-table::before {
   content: none;
 }
+.room-lobby-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(8, 20, 30, .92);
+  border: 1px solid rgba(130, 200, 160, .35);
+}
+.room-lobby-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05);
+}
+.room-lobby-row.empty {
+  border-style: dashed;
+  color: var(--muted);
+}
+.room-lobby-seat {
+  font-size: .76rem;
+  color: var(--muted);
+}
+.room-lobby-name {
+  font-weight: 700;
+}
 .lobby-seat {
   position: relative;
   z-index: 1;
@@ -1371,7 +1400,7 @@ body[data-screen='home'] .home-wrap {
   gap: 10px;
   max-height: 240px;
   overflow: auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
 }
 .room-join-card .room-active-block {
@@ -1401,6 +1430,10 @@ body[data-screen='home'] .home-wrap {
 }
 .room-create-card .room-active-code {
   text-align: center;
+}
+.room-create-simple {
+  justify-items: center;
+  align-content: center;
 }
 .room-create-callout {
   position: absolute;
@@ -1479,6 +1512,10 @@ body[data-screen='home'] .home-wrap {
 }
 .room-active-card-full {
   text-align: left;
+}
+.room-active-list-item {
+  text-align: left;
+  align-content: start;
 }
 .room-active-table-full .lobby-seat-mini {
   min-height: 0;
