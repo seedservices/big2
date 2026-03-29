@@ -9171,14 +9171,15 @@ function bindBackCarousel(comboId){
     if(!(ev.target instanceof HTMLElement))return;
     const preview=ev.target.closest?.('.combo-back-preview');
     if(!preview)return;
-    if(state.screen==='home'){
-      showHomeCardbackZoom(preview);
-    }
     const btn=preview.closest?.('.combo-btn');
     if(!(btn instanceof HTMLElement))return;
     const value=btn.getAttribute('data-value');
     if(!value)return;
     centerToButton(btn,true,value);
+    if(state.screen==='home'){
+      const selectedPreview=btn.querySelector('.combo-back-preview');
+      showHomeCardbackZoom(selectedPreview instanceof HTMLElement?selectedPreview:preview);
+    }
   });
   viewport.addEventListener('dragstart',(ev)=>{
     ev.preventDefault();

@@ -2162,7 +2162,7 @@ body[data-screen='home'] .home-wrap {
 .cardback-zoom-ghost.active {
   left: 50%;
   top: 50%;
-  transform: translate(-50%,-50%) scale(2);
+  transform: translate(-50%,-50%) scale(3.5);
 }
  .theme-dot {
   width: 10px;
