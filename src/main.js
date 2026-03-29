@@ -5263,8 +5263,8 @@ function applyPlayToGame(game,seat,cards,now=Date.now()){
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
     g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
-    const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
-    const penalties=g.players.map((p,i)=>({name:p.name,value:deductions[i]}));
+    const remain=g.players.map((p,i)=>({p,i})).filter((x)=>x.i!==seat).map((x)=>`${x.p.name}:${deductions[x.i]}`).join(' / ');
+    const penalties=g.players.map((p,i)=>({name:p.name,value:deductions[i]})).filter((_,i)=>i!==seat);
     setGameStatus(g,`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`,{now,meta:{key:'wins',name:g.players[seat].name,penalties}});
     g.lastMove={type:'win',seat,uid:String(g.players[seat]?.uid??''),cards:[],ts:now};
     return{ok:true,game:g,finished:true};
@@ -6571,7 +6571,9 @@ function uiStatus(msg,meta){
     if(meta.key==='pass'&&name)return`${name} ${t('pass')}.`;
     if(meta.key==='played'&&name)return`${name} ${t('played')} ${kindLabel(meta.kind)}.`;
     if(meta.key==='wins'&&name){
-      const penalties=Array.isArray(meta.penalties)?meta.penalties.map((p)=>`${p?.name??''}:${p?.value??0}`):[];
+      const penalties=Array.isArray(meta.penalties)
+        ?meta.penalties.filter((p)=>String(p?.name??'').trim()!==name).map((p)=>`${p?.name??''}:${p?.value??0}`)
+        :[];
       return`${name} ${t('wins')} ${t('penalty')}:${penalties.join(' / ')}`;
     }
   }
@@ -7844,7 +7846,7 @@ function soloApplyPlay(seat,cards){const g=state.solo;const ev=evaluatePlay(card
     const winnerGain=deductions.reduce((sum,v)=>sum+v,0);
     g.roundSummary={winnerSeat:seat,deductions:[...deductions],winnerGain,details,lastCardBreach:g.lastCardBreach?{...g.lastCardBreach}:null};
   g.totals=(g.totals??[5000,5000,5000,5000]).map((s,i)=>s+(i===seat?winnerGain:-deductions[i]));
-  const remain=g.players.map((p,i)=>`${p.name}:${deductions[i]}`).join(' / ');
+  const remain=g.players.map((p,i)=>({p,i})).filter((x)=>x.i!==seat).map((x)=>`${x.p.name}:${deductions[x.i]}`).join(' / ');
   setSoloStatus(`${g.players[seat].name} ${t('wins')} ${t('penalty')}:${remain}`);
   const deltas=g.players.map((_,i)=>i===seat?winnerGain:-deductions[i]);
   g.players.forEach((p,i)=>{
