@@ -2131,6 +2131,39 @@ body[data-screen='home'] .home-wrap {
   transform: scale(1.15);
   transform-origin: center;
 }
+.cardback-zoom-open {
+  cursor: zoom-out;
+}
+.cardback-zoom-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 10, 16, .22);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transition: opacity 120ms ease;
+}
+.cardback-zoom-backdrop.active {
+  opacity: 1;
+}
+.cardback-zoom-ghost {
+  position: fixed;
+  left: var(--zoom-left);
+  top: var(--zoom-top);
+  width: var(--zoom-width);
+  height: var(--zoom-height);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 10px 26px rgba(0,0,0,.35);
+  transform: translate3d(0,0,0) scale(1);
+  transition: left 120ms ease, top 120ms ease, transform 120ms ease;
+}
+.cardback-zoom-ghost.active {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%) scale(2);
+}
  .theme-dot {
   width: 10px;
   height: 10px;

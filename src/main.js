@@ -8757,6 +8757,55 @@ let logSwipeStartX=0;
 let logSwipeStartY=0;
 let logSwipeStartAt=0;
 let discardSizeObserver=null;
+let homeCardbackZoomCleanup=null;
+function clearHomeCardbackZoom(){
+  if(typeof homeCardbackZoomCleanup==='function'){
+    homeCardbackZoomCleanup();
+  }
+  homeCardbackZoomCleanup=null;
+}
+function showHomeCardbackZoom(previewEl){
+  if(!(previewEl instanceof HTMLElement))return;
+  if(state.screen!=='home')return;
+  clearHomeCardbackZoom();
+  const rect=previewEl.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const ghost=previewEl.cloneNode(true);
+  if(!(ghost instanceof HTMLElement))return;
+  const backdrop=document.createElement('div');
+  backdrop.className='cardback-zoom-backdrop';
+  ghost.classList.add('cardback-zoom-ghost');
+  ghost.style.setProperty('--zoom-left',`${rect.left}px`);
+  ghost.style.setProperty('--zoom-top',`${rect.top}px`);
+  ghost.style.setProperty('--zoom-width',`${rect.width}px`);
+  ghost.style.setProperty('--zoom-height',`${rect.height}px`);
+  document.body.classList.add('cardback-zoom-open');
+  document.body.appendChild(backdrop);
+  document.body.appendChild(ghost);
+  requestAnimationFrame(()=>{
+    ghost.classList.add('active');
+    backdrop.classList.add('active');
+  });
+  const dismiss=()=>{
+    document.removeEventListener('pointerdown',handleDocPointer,true);
+    document.removeEventListener('keydown',handleEsc,true);
+    ghost.classList.remove('active');
+    backdrop.classList.remove('active');
+    window.setTimeout(()=>{
+      ghost.remove();
+      backdrop.remove();
+      document.body.classList.remove('cardback-zoom-open');
+    },120);
+    homeCardbackZoomCleanup=null;
+  };
+  const handleDocPointer=()=>{dismiss();};
+  const handleEsc=(ev)=>{if(ev.key==='Escape')dismiss();};
+  window.setTimeout(()=>{
+    document.addEventListener('pointerdown',handleDocPointer,true);
+    document.addEventListener('keydown',handleEsc,true);
+  },0);
+  homeCardbackZoomCleanup=dismiss;
+}
 function positionRoomTopMeta(){
   const meta=document.querySelector('.room-top-meta');
   if(!meta)return;
@@ -9122,6 +9171,9 @@ function bindBackCarousel(comboId){
     if(!(ev.target instanceof HTMLElement))return;
     const preview=ev.target.closest?.('.combo-back-preview');
     if(!preview)return;
+    if(state.screen==='home'){
+      showHomeCardbackZoom(preview);
+    }
     const btn=preview.closest?.('.combo-btn');
     if(!(btn instanceof HTMLElement))return;
     const value=btn.getAttribute('data-value');
@@ -11240,6 +11292,9 @@ function syncLogFabPosition(){
   logFab.style.bottom='auto';
 }
 function render(){
+  if(state.screen!=='home'){
+    clearHomeCardbackZoom();
+  }
   if(state.screen==='home'&&location.hash==='#opponents'){
     state.screen='opponents';
   }
