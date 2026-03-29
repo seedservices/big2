@@ -2127,7 +2127,7 @@ body[data-screen='home'] .home-wrap {
 }
 .cardback-combo .combo-btn.active .combo-back-preview {
   box-shadow: 0 0 0 2px rgba(255, 209, 102, .55);
-  border-radius: 6px;
+  border-radius: 4px;
   transform: scale(1.15);
   transform-origin: center;
 }
@@ -2154,7 +2154,7 @@ body[data-screen='home'] .home-wrap {
   top: var(--zoom-top);
   width: var(--zoom-width);
   height: var(--zoom-height);
-  border-radius: 6px;
+  border-radius: 4px;
   pointer-events: none;
   z-index: 9999;
   box-shadow: 0 10px 26px rgba(0,0,0,.35);

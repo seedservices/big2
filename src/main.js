@@ -9175,10 +9175,17 @@ function bindBackCarousel(comboId){
     if(!(btn instanceof HTMLElement))return;
     const value=btn.getAttribute('data-value');
     if(!value)return;
+    state.home.backColor=value;
+    markComboActive('back-combo-left',value);
+    markComboActive('back-combo-right',value);
+    markComboActive('config-back-combo',value);
     centerToButton(btn,true,value);
     if(state.screen==='home'){
-      const selectedPreview=btn.querySelector('.combo-back-preview');
-      showHomeCardbackZoom(selectedPreview instanceof HTMLElement?selectedPreview:preview);
+      requestAnimationFrame(()=>{
+        const selectedBtn=viewport.querySelector(`.combo-btn.active[data-value="${value}"]`);
+        const selectedPreview=selectedBtn?.querySelector?.('.combo-back-preview');
+        showHomeCardbackZoom(selectedPreview instanceof HTMLElement?selectedPreview:preview);
+      });
     }
   });
   viewport.addEventListener('dragstart',(ev)=>{
