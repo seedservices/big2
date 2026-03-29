@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@font-face {
   font-family: 'Ma Shan Zheng';
   font-style: normal;
   font-weight: 400;
@@ -6308,8 +6308,14 @@ body[data-orientation='landscape'] .table { --table-tilt: 0deg; }
   inset: 0;
   z-index: 60;
   opacity: 1;
-  animation: confettiBurst 1400ms ease-out both;
+  animation: confettiBurst 1500ms ease-out both;
   mix-blend-mode: screen;
+}
+.result-screen .result-confetti-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
 }
 .result-screen .result-card {
   position: relative;
@@ -8430,6 +8436,15 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   pointer-events: none;
 }
 
+.confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .win-banner {
   padding: 10px 18px;
   border-radius: 999px;
@@ -8437,8 +8452,10 @@ body[data-screen='game'][data-log-open='0'] .side-zone.log-collapsed .log-side-c
   color: #1b232e;
   font-weight: 800;
   font-size: clamp(1rem, 2.3vw, 1.35rem);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
-  animation: winPop .5s ease-out both;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .35);
+  animation: winPop .55s cubic-bezier(.16,1.22,.3,1) both;
+  position: relative;
+  z-index: 2;
 }
 
 .confetti-layer {
@@ -8524,14 +8541,16 @@ body[data-screen='game'][data-web-too-small='1'][data-webview='1'] #app::after {
 }
 
 @keyframes winPop {
-  from { transform: translateY(10px) scale(.82); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  0% { transform: translateY(16px) scale(.72); opacity: 0; }
+  60% { transform: translateY(-4px) scale(1.06); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 @keyframes confettiBurst {
-  0% { transform: scale(.86); opacity: 0; }
-  35% { opacity: 1; }
-  100% { transform: scale(1.04); opacity: 0; }
+  0% { transform: scale(.75) rotate(-2deg); opacity: 0; }
+  25% { opacity: 1; }
+  60% { opacity: .95; }
+  100% { transform: scale(1.12) rotate(2deg); opacity: 0; }
 }
 
 /* Landscape opponent callout placement:

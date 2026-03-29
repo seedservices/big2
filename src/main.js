@@ -8597,7 +8597,7 @@ function resultScreenHtml(v,arr){
     </div>`;
   }).join('');
   return`<section class="result-screen">
-    ${showConfetti?`<div class="confetti-layer result-confetti" aria-hidden="true"></div>`:''}
+    ${showConfetti?`<canvas class="confetti-canvas result-confetti-canvas" data-confetti="result" aria-hidden="true"></canvas>`:''}
     <div class="result-card">
       <h2 class="title-with-icon"><span class="title-icon title-icon-result" aria-hidden="true"></span><span>${t('resultTitle')}</span></h2>
       <div class="hint">${esc(uiStatus(v.status,v.statusMeta))}</div>
@@ -10298,6 +10298,9 @@ function renderGame(){
   const emotePanel=state.emote.open?`<div class="emote-panel">${EMOTE_STICKERS.map((s)=>`<button class="emote-btn" data-emote-id="${s.id}" type="button"><img src="${withBase(`emotes/${s.file}`)}" alt="${s.id}"/><span class="emote-btn-label">${esc(t(`emoteLabel${s.id[0].toUpperCase()}${s.id.slice(1)}`))}</span></button>`).join('')}</div>`:'';
   const sideZoneHtml=portraitMode?'':`<aside class="side-zone"><section class="side-card log-side-card"><h3 class="log-toggle-title title-with-icon" aria-label="${esc(logToggleStateText)}"><span class="title-icon title-icon-log" aria-hidden="true"></span><span>${t('log')}</span></h3><div class="history-list">${historyHtml(v.history,v.selfSeat,v.systemLog)}</div></section></aside>`;
   app.innerHTML=`<section class="game-shell ${v.gameOver?'game-over':''} ${state.showLog?'log-open':''}"><div class="main-zone"><header class="topbar"><div class="game-title-wrap"><span class="game-logo-block"><img class="title-logo title-logo-game" src="${withBase('title-lockup-game.png')}" alt="鋤大D TRADITIONAL BIG TWO"/></span>${roomTopMeta}</div><div class="topbar-right"><div class="control-row">${renderLangMenu('game-lang-menu')}<button id="game-intro-toggle" class="secondary">${esc(intro.btnShow)}</button><button id="score-guide-toggle" class="secondary">${t('scoreGuide')}</button><button id="game-lb-toggle" class="secondary">${t('lb')}</button><button id="home-btn" class="secondary">${t('home')}</button><button id="restart-btn" class="primary">${t('restart')}</button></div></div></header><section class="table">${seatHtml}<div class="table-center-stack">${mobileNamesHtml}${mobileDiscardHtml}${centerMovesHtml(v)}${centerLastMovesHtml(lastActions,v.selfSeat)}${emoteHtml}</div>${(!v.gameOver&&youWin)?`<div class="win-celebrate"><div class="confetti-layer"></div><div class="win-banner">${t('congrats')}</div></div>`:''}</section><section class="action-zone"><div class="action-strip ${v.canControl&&!v.gameOver?'active':''}" style="--player-color:${playerColorByViewClass('south')};"><div class="seat-name-fixed player-tag"><div class="name">${selfAvatar}<span class="seat-identity"><span class="seat-name-text">${esc(selfName)}</span><span class="seat-subline">${selfScore}</span></span></div></div>${selfCalloutHtml}<div class="control-row"><button id="play-btn" class="primary game-cta-btn ${isRecPlay?'recommend-glow-play':''}" ${canPlay?'':'disabled'}><span aria-hidden="true">▶</span><span>${t('play')}</span></button><button id="pass-btn" class="danger game-cta-btn ${isRecPass?'recommend-glow':''}" ${v.canPass?'':'disabled'}><span aria-hidden="true">✖</span><span>${t('pass')}</span></button><span class="recommend-anchor"><button id="suggest-btn" class="secondary game-cta-btn" ${canSuggest?'':'disabled'}><span aria-hidden="true">💡</span><span>${t('suggest')}</span></button>${showRecommendHint?`<span class="recommend-layer"><span class="hint recommend-hint ${isRecEmpty?'rec-empty':''}"><span class="recommend-bulb" aria-hidden="true">💡</span><span>${esc(state.recommendHint)}</span></span></span>`:''}</span><button id="emote-toggle" class="secondary game-cta-btn emote-toggle" type="button"><span aria-hidden="true">😆</span><span>${t('emote')}</span></button><button id="auto-sort-btn" class="secondary game-cta-btn auto-sort-btn" ${canAutoSort?'':'disabled'}><svg class="sort-icon" aria-hidden="true" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.430.636-.980 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.6 9.6 0 0 0 7.556 8a9.6 9.6 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.6 10.6 0 0 1 7 9.05c-.26.43-.636.980-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173 1.01 4.126-2.082A9.6 9.6 0 0 0 6.444 8a9.6 9.6 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5"/><path d="M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192m0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.120.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192"/></svg></button></div>${emotePanel}<div class="hand">${v.hand.map((c,i)=>renderHandCard(c,state.selected.has(cardId(c)),(showMust3Highlight&&isLowestSingle(c))?'must3-highlight':'',i+1)).join('')}</div><div class="drag-popup" id="drag-popup">${t('drag')}</div></div></section>${v.gameOver?'':congratsOverlayHtml(v,youWin)}${revealHtml(v,arr)}</div>${sideZoneHtml}${v.gameOver?resultScreenHtml(v,arr):''}${state.opponentProfileName?opponentProfileModalHtml(state.opponentProfileName):''}${state.showScoreGuide?scoreGuideModalHtml():''}${state.home.showIntro?introPanelHtml():''}${state.home.showLeaderboard?leaderboardModalHtml():''}</section>`;
+  if(!v.gameOver&&youWin){
+    app.innerHTML=app.innerHTML.replace('<div class="win-celebrate"><div class="confetti-layer"></div>','<div class="win-celebrate"><canvas class="confetti-canvas" data-confetti="win" aria-hidden="true"></canvas>');
+  }
   const appEl=document.getElementById('app');
   if(appEl){
     let logFab=appEl.querySelector('#game-log-fab');
@@ -10370,6 +10373,7 @@ function renderGame(){
     img.src=fallback;
     img.classList.remove('player-avatar-google');
   },{once:true});
+  syncConfettiCanvases();
   bindGameEvents(v,arr);
   requestAnimationFrame(()=>{
     syncDiscardSizeFromHand();
@@ -10493,6 +10497,113 @@ function syncHandStackMode(){
     overlap+=((overflowRight+0.5)/(count-1));
     overlap=Math.max(0,Math.min(overlap,maxOverlap));
     hand.style.setProperty('--hand-overlap-px',`${overlap.toFixed(2)}px`);
+  }
+}
+const confettiStates=new Map();
+const CONFETTI_COLORS=['#f39c12','#e74c3c','#9b59b6','#3498db','#2ecc71','#f1c40f','#ff7aa2','#66d1ff'];
+const CONFETTI_COUNT=160;
+function createConfettiParticle(w,h){
+  const size=Math.random()*10+6;
+  return{
+    x:Math.random()*w,
+    y:Math.random()*h-h,
+    size,
+    color:CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
+    speedX:Math.random()*1.8-0.9,
+    speedY:Math.random()*3.4+1.6,
+    rotation:Math.random()*360,
+    rotationSpeed:Math.random()*6+3,
+    opacity:Math.random()*0.45+0.55,
+    swaySeed:Math.random()*Math.PI*2
+  };
+}
+function syncConfettiCanvasSize(canvas,state){
+  const ratio=window.devicePixelRatio||1;
+  const w=Math.max(1,canvas.clientWidth);
+  const h=Math.max(1,canvas.clientHeight);
+  const targetW=Math.round(w*ratio);
+  const targetH=Math.round(h*ratio);
+  if(canvas.width!==targetW||canvas.height!==targetH){
+    canvas.width=targetW;
+    canvas.height=targetH;
+    state.scale=ratio;
+    state.width=w;
+    state.height=h;
+    state.ctx.setTransform(ratio,0,0,ratio,0,0);
+  }
+}
+function startConfettiCanvas(canvas){
+  if(confettiStates.has(canvas))return;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)return;
+  const state={
+    canvas,
+    ctx,
+    width:canvas.clientWidth||1,
+    height:canvas.clientHeight||1,
+    scale:window.devicePixelRatio||1,
+    particles:[],
+    raf:0,
+    last:performance.now()
+  };
+  for(let i=0;i<CONFETTI_COUNT;i+=1){
+    state.particles.push(createConfettiParticle(state.width,state.height));
+  }
+  const tick=(now)=>{
+    if(!canvas.isConnected){
+      stopConfettiCanvas(canvas);
+      return;
+    }
+    syncConfettiCanvasSize(canvas,state);
+    const dt=Math.min(3,(now-state.last)/16.6667);
+    state.last=now;
+    const w=state.width;
+    const h=state.height;
+    ctx.clearRect(0,0,w,h);
+    for(const p of state.particles){
+      p.y+=p.speedY*dt;
+      p.x+=p.speedX*dt+Math.sin((p.y/30)+p.swaySeed)*0.9*dt;
+      p.rotation+=p.rotationSpeed*dt;
+      if(p.y>h+20){
+        const np=createConfettiParticle(w,h);
+        p.x=np.x;
+        p.y=-20;
+        p.size=np.size;
+        p.color=np.color;
+        p.speedX=np.speedX;
+        p.speedY=np.speedY;
+        p.rotation=np.rotation;
+        p.rotationSpeed=np.rotationSpeed;
+        p.opacity=np.opacity;
+        p.swaySeed=np.swaySeed;
+      }
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate((p.rotation*Math.PI)/180);
+      ctx.globalAlpha=p.opacity;
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size/1.6);
+      ctx.restore();
+    }
+    state.raf=window.requestAnimationFrame(tick);
+  };
+  confettiStates.set(canvas,state);
+  state.raf=window.requestAnimationFrame(tick);
+}
+function stopConfettiCanvas(canvas){
+  const state=confettiStates.get(canvas);
+  if(!state)return;
+  if(state.raf)cancelAnimationFrame(state.raf);
+  confettiStates.delete(canvas);
+}
+function syncConfettiCanvases(){
+  const nodes=[...document.querySelectorAll('canvas.confetti-canvas')];
+  const live=new Set(nodes);
+  for(const canvas of confettiStates.keys()){
+    if(!live.has(canvas))stopConfettiCanvas(canvas);
+  }
+  for(const canvas of nodes){
+    startConfettiCanvas(canvas);
   }
 }
 function reorderCurrent(v,fromId,toId){
@@ -10835,8 +10946,6 @@ function bindGameEvents(v,arr){
     order.forEach((node)=>controlRow.appendChild(node));
     const suggestBtn=controlRow.querySelector('#suggest-btn');
     if(suggestBtn){
-      const label=suggestBtn.querySelector('span:not([aria-hidden])');
-      if(label)label.remove();
       suggestBtn.setAttribute('aria-label',t('suggest'));
       suggestBtn.setAttribute('title',t('suggest'));
     }
