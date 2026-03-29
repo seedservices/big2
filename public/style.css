@@ -2192,16 +2192,20 @@ body[data-screen='home'] .home-wrap {
   width: var(--zoom-width);
   height: var(--zoom-height);
   border-radius: 4px;
+  object-fit: cover;
+  image-rendering: auto;
   pointer-events: none;
   z-index: 9999;
   box-shadow: 0 10px 26px rgba(0,0,0,.35);
-  transform: translate3d(0,0,0) scale(1);
-  transition: left 120ms ease, top 120ms ease, transform 120ms ease;
+  transform: translate3d(0,0,0);
+  transition: left 140ms ease, top 140ms ease, width 140ms ease, height 140ms ease, transform 140ms ease;
 }
 .cardback-zoom-ghost.active {
   left: 50%;
   top: 50%;
-  transform: translate(-50%,-50%) scale(6);
+  width: var(--zoom-target-width);
+  height: var(--zoom-target-height);
+  transform: translate(-50%,-50%);
 }
  .theme-dot {
   width: 10px;
