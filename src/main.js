@@ -10850,6 +10850,14 @@ function bindGameEvents(v,arr){
       if(dt>700)return;
       const dx=t.clientX-logSwipeStartX;
       const dy=logSwipeStartY-t.clientY;
+      const absDy=Math.abs(t.clientY-logSwipeStartY);
+      if(dx>90&&absDy<Math.max(28,dx*0.5)){
+        const suggestBtn=document.getElementById('suggest-btn');
+        if(suggestBtn&&!suggestBtn.hasAttribute('disabled')){
+          suggestBtn.click();
+        }
+        return;
+      }
       if(dy<90)return;
       if(Math.abs(dx)>Math.max(28,dy*0.5))return;
       state.showLogSheet=true;
@@ -10946,6 +10954,14 @@ function bindGameEvents(v,arr){
     order.forEach((node)=>controlRow.appendChild(node));
     const suggestBtn=controlRow.querySelector('#suggest-btn');
     if(suggestBtn){
+      const label=suggestBtn.querySelector('span:not([aria-hidden])');
+      if(!label){
+        const text=document.createElement('span');
+        text.textContent=t('suggest');
+        suggestBtn.appendChild(text);
+      }else{
+        label.textContent=t('suggest');
+      }
       suggestBtn.setAttribute('aria-label',t('suggest'));
       suggestBtn.setAttribute('title',t('suggest'));
     }
@@ -10954,6 +10970,10 @@ function bindGameEvents(v,arr){
       if(label)label.remove();
       emoteBtn.setAttribute('aria-label',t('emote'));
       emoteBtn.setAttribute('title',t('emote'));
+    }
+    if(isPortraitMode()){
+      const portraitOrder=[suggestAnchor,playBtn,passBtn,sortBtn,emoteBtn].filter(Boolean);
+      portraitOrder.forEach((node)=>controlRow.appendChild(node));
     }
   }
   document.getElementById('auto-sort-btn')?.addEventListener('click',()=>{
