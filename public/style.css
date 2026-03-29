@@ -5343,6 +5343,60 @@ body[data-screen='game'] .side-zone:not(.log-collapsed) .history-list {
   body[data-screen='game'][data-orientation='portrait'] .game-shell {
     --callout-scale: 1;
   }
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .last-card-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .pass-call.play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .last-card-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .last-card-call-seat {
+    max-width: clamp(150px, 66vw, 300px) !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .last-card-call-seat {
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
+    text-align: left !important;
+    transform-origin: left top !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .last-card-call-seat {
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    text-align: right !important;
+    transform-origin: right top !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .play-type-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .last-card-call-seat,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .pass-call.play-type-call-seat {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    text-align: center !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .play-type-call-seat::after,
+  body[data-screen='game'][data-orientation='portrait'] .seat.west .last-card-call-seat::after {
+    left: 18px !important;
+    right: auto !important;
+    transform: none !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .play-type-call-seat::after,
+  body[data-screen='game'][data-orientation='portrait'] .seat.east .last-card-call-seat::after {
+    left: auto !important;
+    right: 18px !important;
+    transform: none !important;
+  }
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .play-type-call-seat::after,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .last-card-call-seat::after,
+  body[data-screen='game'][data-orientation='portrait'] .seat.north .pass-call.play-type-call-seat::after {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
 
   /* Portrait mobile: place south callout above the seat name, tail pointing at the tag. */
   body[data-screen='game'][data-orientation='portrait'] .action-strip .play-type-call-self,
