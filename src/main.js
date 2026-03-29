@@ -10858,6 +10858,13 @@ function bindGameEvents(v,arr){
         }
         return;
       }
+      if(dx<-90&&absDy<Math.max(28,Math.abs(dx)*0.5)){
+        const emoteBtn=document.getElementById('emote-toggle');
+        if(emoteBtn&&!emoteBtn.hasAttribute('disabled')){
+          emoteBtn.click();
+        }
+        return;
+      }
       if(dy<90)return;
       if(Math.abs(dx)>Math.max(28,dy*0.5))return;
       state.showLogSheet=true;
